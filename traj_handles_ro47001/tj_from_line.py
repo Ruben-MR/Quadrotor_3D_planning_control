@@ -1,3 +1,14 @@
+import os
+import sys
+##################################################################
+# deal with the folders
+url1=os.path.join(os.getcwd(),"model/")
+url2=os.path.join(os.getcwd(),"traj_handles_ro47001/")
+url3=os.path.join(os.getcwd(),"map/")
+sys.path.append(url1)
+sys.path.append(url2)
+sys.path.append(url3)
+#################################################################
 import numpy as np
 
 def tj_from_line(start_pos, end_pos, time_ttl, t_c):
