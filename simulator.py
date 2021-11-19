@@ -90,7 +90,7 @@ plt.rcParams['figure.figsize'] = 16, 16
 filename = 'colliders.csv'
 data = np.loadtxt(filename, delimiter=',', dtype=np.float64, skiprows=2)
 print(data)
-voxmap = create_voxmap(data, 10)
+voxmap = create_voxmap(data, 15)
 print(voxmap.shape)
 
 ax1.voxels(voxmap, edgecolor='k')
@@ -106,8 +106,8 @@ ax1.set_zlim(0, voxmap.shape[2]+20)
 real_trajectory['x'] = np.array(real_trajectory['x'])
 real_trajectory['y'] = np.array(real_trajectory['y'])
 real_trajectory['z'] = np.array(real_trajectory['z'])
-point, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'rx', label='Quadrotor')
-line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], label='Real_Trajectory')
+point, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'r+', markersize=20, label='Quadrotor')
+line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'g', label='Real_Trajectory')
 
 ax1.set_xlabel('x')
 ax1.set_ylabel('y')
