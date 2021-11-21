@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 #filename = 'obstacles_cylinder.csv'
-#data = np.loadtxt(filename, delimiter=',', dtype=np.int64, skiprows=1)
+#data = np.loadtxt(filename, delimiter=',', dtype=np.float64, skiprows=1)
 
 '''
 print(data)
