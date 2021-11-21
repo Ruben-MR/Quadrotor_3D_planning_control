@@ -11,7 +11,7 @@ from numpy.linalg import norm
 def collisionCheckingCylinder(startPose, goalPose, obstacle_array, boundary):
     feasible = True
     n = 100
-    safety_dis = 5
+    safety_dis = 0.5
     direction = (goalPose-startPose)/n
     for i in range(n+1):
         currentPose = startPose + i*direction

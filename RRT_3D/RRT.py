@@ -41,8 +41,8 @@ def RRT_path_search(x_start, x_goal, map_boundary):
     '''
     # Set parameters
     dim = 3
-    Thr = 100       # threshold for final goal
-    Delta = 30     # step for steering
+    Thr = 5       # threshold for final goal
+    Delta = 1     # step for steering
 
     count = 0 
     pathFind = False
@@ -132,11 +132,11 @@ def RRT_path_search(x_start, x_goal, map_boundary):
 
 # Initialization and import the obstacle array
 x_start = np.array([1,1,1])
-x_goal  = np.array([700,700,700])
-map_boundary = 800
+x_goal  = np.array([20,20,20])
+map_boundary = 20
 
 filename = os.path.join(url1,'obstacles_cylinder.csv')
-obstacle_array = np.loadtxt(filename, delimiter=',', dtype=np.int64, skiprows=1)
+obstacle_array = np.loadtxt(filename, delimiter=',', dtype=np.float64, skiprows=1)
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
