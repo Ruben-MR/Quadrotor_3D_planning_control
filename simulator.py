@@ -1,13 +1,16 @@
 import os
 import sys
+
 ##################################################################
 # deal with the folders
-url1=os.path.join(os.getcwd(),"model/")
-url2=os.path.join(os.getcwd(),"traj_handles_ro47001/")
-url3=os.path.join(os.getcwd(),"map/")
+
+url1 = os.path.join(os.getcwd(), "model/")
+url2 = os.path.join(os.getcwd(), "traj_handles_ro47001/")
+url3 = os.path.join(os.getcwd(), "map/")
 sys.path.append(url1)
 sys.path.append(url2)
 sys.path.append(url3)
+
 #################################################################
 import numpy as np
 from matplotlib import pyplot as plt
@@ -21,30 +24,29 @@ from tj_handle_diamond import tj_diamond, get_T_diamond
 from tj_handle_hover import tj_hover, get_T_hover
 from map_3d import create_voxmap
 
-
 #################################################################
 '''
 You can choose trajectory here!
 '''
-#----------------------------------------------------------------
+# ----------------------------------------------------------------
 
-tj_handle = tj_tud
-T = get_T_tud()
+# tj_handle = tj_tud
+# T = get_T_tud()
 
-#----------------------------------------------------------------
+# ----------------------------------------------------------------
 
-#tj_handle = tj_circle
-#T = get_T_circle()
+tj_handle = tj_circle
+T = get_T_circle()
 
-#----------------------------------------------------------------
+# ----------------------------------------------------------------
 
-#tj_handle = tj_diamond
-#T = get_T_diamond()
+# tj_handle = tj_diamond
+# T = get_T_diamond()
 
-#----------------------------------------------------------------
+# ----------------------------------------------------------------
 
-#tj_handle = tj_hover
-#T = get_T_hover()
+# tj_handle = tj_hover
+# T = get_T_hover()
 
 #################################################################
 
@@ -59,7 +61,7 @@ dt = 0.01
 t = 0
 policy = GeometricControlller()
 time_step = 1e-2
-iterations = int(T/time_step)
+iterations = int(T / time_step)
 real_trajectory = {'x': [], 'y': [], 'z': []}
 total_SE = 0
 total_energy = 0
@@ -79,21 +81,20 @@ for itr in range(iterations):
     real_trajectory['z'].append(obs['x'][2])
     current_state = obs
     t += dt
-    total_SE += (np.sum((obs['x'] - state_des['pos'])**2)*time_step)
-    total_energy += (np.sum(cmd_rotor_speeds**2)*time_step)
-    
+    total_SE += (np.sum((obs['x'] - state_des['pos']) ** 2) * time_step)
+    total_energy += (np.sum(cmd_rotor_speeds ** 2) * time_step)
+
 ############################################################################
 print("Sum of tracking error (integration): ", total_SE)
 print("Total time: ", t)
 print("Sum of energy consumption (integration)", total_energy)
 ############################################################################
-
-############################################################################
 # plot nice maps!
 
 fig = plt.figure()
-#ax1 = fig.gca(projection='3d')
-ax1 = p3.Axes3D(fig) # 3D place for drawing
+# ax1 = fig.gca(projection='3d')
+ax1 = p3.Axes3D(fig, auto_add_to_figure=False)  # 3D place for drawing
+fig.add_axes(ax1)
 plt.rcParams['figure.figsize'] = 16, 16
 
 ############################################################################
@@ -108,17 +109,19 @@ ax1.voxels(voxmap, edgecolor='k')
 ax1.set_xlim(voxmap.shape[0], 0)
 ax1.set_ylim(0, voxmap.shape[1])
 # add a bit to z-axis height for visualization
-ax1.set_zlim(0, voxmap.shape[2]+20)
+ax1.set_zlim(0, voxmap.shape[2] + 20)
 
-#plt.xlabel('North')
-#plt.ylabel('East')
+# plt.xlabel('North')
+# plt.ylabel('East')
 ############################################################################
 
 real_trajectory['x'] = np.array(real_trajectory['x'])
 real_trajectory['y'] = np.array(real_trajectory['y'])
 real_trajectory['z'] = np.array(real_trajectory['z'])
-point, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'r+', markersize=20, label='Quadrotor')
-line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'g', label='Real_Trajectory')
+point, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'r+', markersize=20,
+                  label='Quadrotor')
+line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'g',
+                 label='Real_Trajectory')
 
 ax1.set_xlabel('x')
 ax1.set_ylabel('y')
@@ -126,6 +129,7 @@ ax1.set_zlabel('z')
 ax1.set_title('3D animate')
 ax1.view_init(30, 35)
 ax1.legend(loc='lower right')
+
 
 def animate(i):
     line.set_xdata(real_trajectory['x'][:i + 1])
@@ -135,10 +139,7 @@ def animate(i):
     point.set_ydata(real_trajectory['y'][i])
     point.set_3d_properties(real_trajectory['z'][i])
 
-ani = animation.FuncAnimation(fig=fig,
-                              func=animate,
-                              frames=len(real_trajectory['x']),
-                              interval=1,
-                              repeat=False,
+
+ani = animation.FuncAnimation(fig=fig, func=animate, frames=len(real_trajectory['x']), interval=1, repeat=False,
                               blit=False)
 plt.show()

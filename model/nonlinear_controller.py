@@ -3,9 +3,9 @@ import os
 import sys
 ##################################################################
 # deal with the folders
-url1=os.path.join(os.getcwd(),"model/")
-url2=os.path.join(os.getcwd(),"traj_handles_ro47001/")
-url3=os.path.join(os.getcwd(),"map/")
+url1 = os.path.join(os.getcwd(), "model/")
+url2 = os.path.join(os.getcwd(), "traj_handles_ro47001/")
+url3 = os.path.join(os.getcwd(), "map/")
 sys.path.append(url1)
 sys.path.append(url2)
 sys.path.append(url3)
@@ -41,57 +41,53 @@ class GeometricControlller:
         self.k_drag = 7.8e-11
 
     def control(self, flat_output, state):
-        '''
+        """
         :param desired state: pos, vel, acc, yaw, yaw_dot
         :param current state: x, v, q, w
         :return:
-        '''
+        """
         cmd_motor_speeds = np.zeros((4,))
-        cmd_thrust = 0
         cmd_moment = np.zeros((3,))
         
         acc = flat_output['acc'] + self.Kp_pos @ (flat_output['pos']-state['x']) +\
-            self.Kd_pos @ (flat_output['vel']-state['v'])
-        Fc = self.mass*acc + np.array([0, 0, self.mass*self.g])
-        #R = self.quaternion2romat(state['q'])
-        R = Rotation.from_quat(state['q']).as_matrix()
+            self.Kd_pos @ (flat_output['vel']-state['v'])           # obtain commanded acceleration
+        Fc = self.mass*acc + np.array([0, 0, self.mass*self.g])     # obtain commanded force
+        R = Rotation.from_quat(state['q']).as_matrix()              # obtain rotation matrix of current orientation
         
-        # u1
-        b3 = R[:, 2] # (3, 1)
+        # Calculation of commanded force u1
+        b3 = R[:, 2]  # (3, 1)
         u1 = b3.T @ Fc.reshape([3, 1])
         
-        # u2
-        b3_c = Fc/norm(Fc) # desired b3
-        
-        #psi = self.rotmat2euler(R)[2] # yaw angle
+        # Calculation of commanded torque u2
+        b3_c = Fc/norm(Fc)  # desired b3 (body-frame Z)
+
         psi = flat_output['yaw']
         a_psi = np.array([np.cos(psi), np.sin(psi), 0])
         cross_b3c_apsi = np.cross(b3_c, a_psi)
         b2_c = cross_b3c_apsi/norm(cross_b3c_apsi)
         
-        R_des = np.vstack((np.cross(b2_c,b3_c), b2_c, b3_c)).T # desired rotation matrix        
-        ss_matrix = R_des.T @ R - R.T @ R_des # skew symmetric matrix
+        r_des = np.vstack((np.cross(b2_c, b3_c), b2_c, b3_c)).T  # desired rotation matrix
+        ss_matrix = r_des.T @ R - R.T @ r_des                    # orientation error
         veemap = np.array([-ss_matrix[1, 2], ss_matrix[0, 2], -ss_matrix[0, 1]])
-        e_R = 0.5*veemap # orientation error
+        e_r = 0.5*veemap    # orientation error
         
         w_des = np.array([0, 0, flat_output['yaw']])
-        e_w = state['w'] - w_des # angular velocity 
+        e_w = state['w'] - w_des    # angular velocity
         
-        u2 = self.inertia @ (-self.K_R @ e_R - self.K_w @ e_w)
-        
-        Len = self.arm_length
+        u2 = self.inertia @ (-self.K_R @ e_r - self.K_w @ e_w)
+
         gama = self.k_drag / self.k_thrust
-        cof_temp = np.array(
-            [1, 1, 1, 1, 0, Len, 0, -Len, -Len, 0, Len, 0, gama, -gama, gama, -gama]).reshape(4, 4)
+        cof_temp = np.array([1, 1, 1, 1, 0, self.arm_length, 0, -self.arm_length, -self.arm_length, 0, self.arm_length,
+                             0, gama, -gama, gama, -gama]).reshape(4, 4)
 
         u = np.array([u1, u2[0], u2[1], u2[2]])
-        F_i = np.matmul(np.linalg.inv(cof_temp), u)
+        f_i = np.matmul(np.linalg.inv(cof_temp), u)
         
         for i in range(4):
-            if F_i[i] < 0:
-                F_i[i] = 0
+            if f_i[i] < 0:
+                f_i[i] = 0
                 cmd_motor_speeds[i] = self.rotor_speed_max
-            cmd_motor_speeds[i] = np.sqrt(F_i[i] / self.k_thrust)
+            cmd_motor_speeds[i] = np.sqrt(f_i[i] / self.k_thrust)
             if cmd_motor_speeds[i] > self.rotor_speed_max:
                 cmd_motor_speeds[i] = self.rotor_speed_max
 
@@ -100,7 +96,7 @@ class GeometricControlller:
         cmd_moment[1] = u2[1]
         cmd_moment[2] = u2[2]
         
-        cmd_q = Rotation.as_quat(Rotation.from_matrix(R_des))
+        cmd_q = Rotation.as_quat(Rotation.from_matrix(r_des))
         cmd_q = cmd_q / norm(cmd_q)
 
         control_input = {'cmd_rotor_speeds': cmd_motor_speeds,
@@ -109,43 +105,3 @@ class GeometricControlller:
                          'cmd_q': cmd_q}
         
         return control_input
-
-    # some manually implemented functions just for better understanding
-    def eulzxy2rotmat(self, euler):
-        phi = euler[0]
-        theta = euler[1]
-        psi = euler[2]
-        
-        R = np.array([[cos(psi)*cos(theta) - sin(phi)*sin(psi)*sin(theta), -cos(phi)*sin(psi),\
-                       cos(psi)*sin(theta) + cos(theta)*sin(phi)*sin(psi)],\
-                       [cos(theta)*sin(psi) + cos(psi)*sin(phi)*sin(theta), cos(phi)*cos(psi),\
-                        sin(psi)*sin(theta) - cos(psi)*cos(theta)*sin(phi)],\
-                        [-cos(phi)*sin(theta), sin(phi), cos(phi)*cos(theta)]])
-
-        return R
-    def quaternion2romat(self, q):
-    # q: w i j k
-        [q0, q1, q2, q3] = [q[0], q[1], q[2], q[3]]
-        R = 2 * np.array([[q0**2+q1**2-0.5, q1*q2-q0*q3, q0*q2+q1*q3],\
-                                    [q0*q3+q1*q2, q0**2+q2**2-0.5, q2*q3-q0*q1],\
-                                    [q1*q3-q0*q2, q0*q1+q2*q3, q0**2+q3**2-0.5]])
-        return R
-
-
-    def rotmat2euler(self, R):
-        if R[2, 1] < 1:
-            if R[2, 1] > -1:
-                thetaX = arcsin(R[2, 1])
-                thetaZ = arctan2(-R[0, 1], R[1, 1])
-                thetaY = arctan2(-R[2, 0], R[2, 2])
-            else:
-                thetaX = -pi/2
-                thetaZ = -arctan2(R[0, 2], R[0, 0])
-                thetaY = 0
-        else:
-            thetaX = pi/2;
-            thetaZ = arctan2(R[0,2], R[0,0])
-            thetaY = 0
-        euler = np.array([thetaX, thetaY, thetaZ])
-        
-        return euler
