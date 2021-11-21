@@ -9,14 +9,14 @@ Go to Overleaf (I found no link for this one as I think it will depend on the pe
 
 ## Plotting resources
 
-- Matplotlib library for 3D representation: [matplotlib library][https://matplotlib.org/stable/api/_as_gen/mpl_toolkits.mplot3d.axes3d.Axes3D.html]
+- Matplotlib library for 3D representation: [matplotlib library](https://matplotlib.org/stable/api/_as_gen/mpl_toolkits.mplot3d.axes3d.Axes3D.html)
 
 ## Useful projects for inspiration or reference
 
-[3D Motion Planning repo by abhiojha8][https://github.com/abhiojha8/3D-Motion-Planning] 
+[3D Motion Planning repo by abhiojha8](https://github.com/abhiojha8/3D-Motion-Planning)
 
 ## Various
 
-Link to the first reference for the quaternion derivation of the quadrotor model: [Quaternions and dynamics][https://archive.org/details/arxiv-0811.2889/page/n5/mode/2up]
+Link to the first reference for the quaternion derivation of the quadrotor model: [Quaternions and dynamics](https://archive.org/details/arxiv-0811.2889/page/n5/mode/2up)
 
 
