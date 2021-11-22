@@ -13,13 +13,24 @@ Go to Overleaf (I found no link for this one as I think it will depend on the pe
 
 ## Reference articles
 
+### For dynamic environmentsç
+
 - A UAV Dynamic Path Planning Algorithm: [source](https://ieeexplore.ieee.org/document/9337581)
+	- Q-Learining algorithm (similar to RL) for global planning + artificial potential fields for local (dynamic) planning
 - Decision planning of a quadrotor in dynamical environment: [source](https://ieeexplore.ieee.org/document/8028421)
+	- Strictly Q-Learning algorithm (similar to RL). In this case integrating the dynamic planning under obstacle velocity assumptions.
 - Dynamic obstacle avoidance path planning for UAV: [souorce](https://ieeexplore.ieee.org/document/9274865)
-- An Adaptive Path Replanning Method for Coordinated Operations of Drone in Dynamic Urban Environments: [source](https://ieeexplore.ieee.org/document/9184113)
+	- RRT* (Also, nice comparison between RRT, RRT* and RRT* Informed) for global planning plus dynamic winidow for local planning.
 - Real-Time Motion Planning for Quadrotor MAVs in Three-dimensional Complex Environment: [source](https://ieeexplore.ieee.org/document/9019196)
-- A RRT\*based kinodynamic trajectory planning algorithm for Multirotor Micro Air Vehicle: [source](https://ieeexplore.ieee.org/document/9277168)
+	- RRT* for global planning and Path Oriented Prunging for local planning.
+
+
+### For static environments
+
+- A RRT* based kinodynamic trajectory planning algorithm for Multirotor Micro Air Vehicle: [source](https://ieeexplore.ieee.org/document/9277168)
+	- RRT* with multiple considerations on the kinodynamics of the system
 - Path Planning Followed by Kinodynamic Smoothing for Multirotor Aerial Vehicles (MAVs): [source](https://ieeexplore.ieee.org/document/9290162)
+	- RRT* 
 
 ## Useful projects for inspiration or reference
 
