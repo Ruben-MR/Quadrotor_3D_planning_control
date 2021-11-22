@@ -45,5 +45,6 @@ This README file will contain the links to the resources used in the project, re
 ## Various
 
 - Link to the first reference for the quaternion derivation of the quadrotor model: [Quaternions and dynamics](https://archive.org/details/arxiv-0811.2889/page/n5/mode/2up)
+- Very interesting approach for obstacle definition and collision detection. [source](https://gdbooks.gitbooks.io/3dcollisions/content/Chapter1/)
 
 
