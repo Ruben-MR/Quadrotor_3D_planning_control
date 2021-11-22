@@ -40,6 +40,8 @@ This README file will contain the links to the resources used in the project, re
 - [3D Motion Planning repo by abhiojha8](https://github.com/abhiojha8/3D-Motion-Planning)
 - Kinodynamic motion planning for quadrotor-like aerial robots: [source](https://oatao.univ-toulouse.fr/20169/1/Boeuf.pdf)
     - A Thesis on quadrotors, covers a very wide range of information on the topic. Chapter on steering function included.
+- Very extensive project on path planning algorithms, it does not use any library for collisions, but implements it itself. Can be useful for inspiration: [source](https://github.com/zhm-real/PathPlanning)
+
 ## Various
 
 - Link to the first reference for the quaternion derivation of the quadrotor model: [Quaternions and dynamics](https://archive.org/details/arxiv-0811.2889/page/n5/mode/2up)
