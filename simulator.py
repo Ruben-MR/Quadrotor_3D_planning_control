@@ -16,40 +16,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
-from quadrotor import Quadrotor
-from nonlinear_controller import GeometricControlller
-from tj_handle_tud import tj_tud, get_T_tud
-from tj_handle_circle import tj_circle, get_T_circle
-from tj_handle_diamond import tj_diamond, get_T_diamond
-from tj_handle_hover import tj_hover, get_T_hover
-from map_3d import create_voxmap
+from model.quadrotor import Quadrotor
+from model.nonlinear_controller import GeometricControlller as policy
+from traj_handles_ro47001.tj_handle_circle import tj_circle, get_T_circle as tj_handle, T
+from map.map_3d import create_voxmap
 
 #################################################################
-'''
-You can choose trajectory here!
-'''
-# ----------------------------------------------------------------
-
-# tj_handle = tj_tud
-# T = get_T_tud()
-
-# ----------------------------------------------------------------
-
-tj_handle = tj_circle
-T = get_T_circle()
-
-# ----------------------------------------------------------------
-
-# tj_handle = tj_diamond
-# T = get_T_diamond()
-
-# ----------------------------------------------------------------
-
-# tj_handle = tj_hover
-# T = get_T_hover()
-
-#################################################################
-
 
 env = Quadrotor()
 # circle trajectory has different initial position
@@ -59,7 +31,6 @@ else:
     current_state = env.reset(position=[0, 0, 0])
 dt = 0.01
 t = 0
-policy = GeometricControlller()
 time_step = 1e-2
 iterations = int(T / time_step)
 real_trajectory = {'x': [], 'y': [], 'z': []}
@@ -92,7 +63,6 @@ print("Sum of energy consumption (integration)", total_energy)
 # plot nice maps!
 
 fig = plt.figure()
-# ax1 = fig.gca(projection='3d')
 ax1 = p3.Axes3D(fig, auto_add_to_figure=False)  # 3D place for drawing
 fig.add_axes(ax1)
 plt.rcParams['figure.figsize'] = 16, 16
@@ -111,8 +81,6 @@ ax1.set_ylim(0, voxmap.shape[1])
 # add a bit to z-axis height for visualization
 ax1.set_zlim(0, voxmap.shape[2] + 20)
 
-# plt.xlabel('North')
-# plt.ylabel('East')
 ############################################################################
 
 real_trajectory['x'] = np.array(real_trajectory['x'])

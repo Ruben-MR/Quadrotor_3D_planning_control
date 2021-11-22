@@ -8,22 +8,21 @@ Created on Sun Nov 14 23:44:01 2021
 
 import os
 import sys
-# deal with the folders
-url1=os.path.abspath(os.path.join(os.getcwd(),"../map/"))
-sys.path.append(url1)
-
 import numpy as np
 import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from collisionCheckingCylinder import collisionCheckingCylinder
 from numpy.linalg import norm
 from map_cylinder import data_for_cylinder
 
+# deal with the folders
+url1=os.path.abspath(os.path.join(os.getcwd(),"../map/"))
+sys.path.append(url1)
+
+from collisionCheckingCylinder import collisionCheckingCylinder
 
 
-#%% 
-# Definition of Class Node 
+# Definition of Class Node
 class Node:
     def __init__(self, idx, pos):
         self.idx = idx
@@ -146,7 +145,7 @@ def RRT_star_path_search(x_start, x_goal, map_boundary):
 
         # check arriving the goal
         if norm(x_new-x_goal) < Thr:
-#            ax.plot([x_goal[0], x_new[0]], 
+#            ax.plot([x_goal[0], x_new[0]],
 #                    [x_goal[1], x_new[1]],
 #                    [x_goal[2], x_new[2]], c='b')
             pathFind = True
