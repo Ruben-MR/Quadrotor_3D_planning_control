@@ -5,7 +5,7 @@ This README file will contain the links to the resources used in the project, re
 
 ## Project report
 
-Go to Overleaf (I found no link for this one as I think it will depend on the person)
+[View the report on Overleaf](https://www.overleaf.com/read/djjcwndjbvxw)
 
 ## Plotting resources
 
