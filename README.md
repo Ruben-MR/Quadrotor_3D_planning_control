@@ -46,5 +46,6 @@ This README file will contain the links to the resources used in the project, re
 
 - Link to the first reference for the quaternion derivation of the quadrotor model: [Quaternions and dynamics](https://archive.org/details/arxiv-0811.2889/page/n5/mode/2up)
 - Very interesting approach for obstacle definition and collision detection. [source](https://gdbooks.gitbooks.io/3dcollisions/content/Chapter1/)
-
+- Clear and intuitive explanation of configuration space and DOF(degree of freedom). See chapter 2, Modern Robotics. [source](http://hades.mech.northwestern.edu/images/7/7f/MR.pdf)
+- Explanation of potential functions and fields. See chapter 4, Principles of Robot Motion. [source](http://mathdep.ifmo.ru/wp-content/uploads/2018/10/Intelligent-Robotics-and-Autonomous-Agents-series-Choset-H.-et-al.-Principles-of-Robot-Motion_-Theory-Algorithms-and-Implementations-MIT-2005.pdf)
 
