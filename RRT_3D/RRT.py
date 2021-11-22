@@ -21,8 +21,7 @@ from numpy.linalg import norm
 from map_cylinder import data_for_cylinder
 
 
-#%% 
-# Definition of Class Node 
+# Definition of Class Node
 class Node:
     def __init__(self, idx, pos):
         self.idx = idx
@@ -62,7 +61,7 @@ def RRT_path_search(x_start, x_goal, map_boundary):
         x_rand[0] = random.random() * map_boundary
         x_rand[1] = random.random() * map_boundary
         x_rand[2] = random.random() * map_boundary
-#        ax.plot([x_rand[0]],[x_rand[1]],[x_rand[2]],marker='+',c='k',markersize = 2)
+        # ax.plot([x_rand[0]],[x_rand[1]],[x_rand[2]],marker='+',c='k',markersize = 2)
 
     
         # find the nearest node

@@ -50,7 +50,8 @@ def extract_polygons(data):
         # Also, `shapely` draws sequentially from point to point.
         # If the area of the polygon in shapely is 0, you've likely got a weird order.
         obstacle = [north - d_north, north + d_north, east - d_east, east + d_east]
-        corners = [(obstacle[0], obstacle[2]), (obstacle[0], obstacle[3]), (obstacle[1], 	     				obstacle[3]), (obstacle[1], obstacle[2])]
+        corners = [(obstacle[0], obstacle[2]), (obstacle[0], obstacle[3]), (obstacle[1], obstacle[3]),
+                   (obstacle[1], obstacle[2])]
         
         # Compute the height of the polygon
         height = alt + d_alt
