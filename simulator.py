@@ -17,18 +17,18 @@ from matplotlib import pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
 from model.quadrotor import Quadrotor
-from model.nonlinear_controller import GeometricControlller as policy
-from traj_handles_ro47001.tj_handle_circle import tj_circle, get_T_circle as tj_handle, T
+from model.nonlinear_controller import GeometricController
+from traj_handles_ro47001.tj_handle_circle import tj_circle as tj_handle
+from traj_handles_ro47001.tj_handle_circle import get_T_circle
 from map.map_3d import create_voxmap
 
 #################################################################
 
 env = Quadrotor()
 # circle trajectory has different initial position
-if tj_handle == tj_circle:
-    current_state = env.reset(position=[5, 0, 0])
-else:
-    current_state = env.reset(position=[0, 0, 0])
+policy = GeometricController()
+T = get_T_circle()
+current_state = env.reset(position=[5, 0, 0])
 dt = 0.01
 t = 0
 time_step = 1e-2

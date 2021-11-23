@@ -16,7 +16,7 @@ from numpy import sin, cos, arcsin, arctan2, pi
 from numpy.linalg import norm
 
 
-class GeometricControlller:
+class GeometricController:
     def __init__(self):
         
         self.Kp_pos = np.diag([83, 83, 245])
