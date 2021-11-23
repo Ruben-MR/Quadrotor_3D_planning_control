@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Nov 14 23:44:01 2021
-
-@author: zyz
-"""
 
 import os
 import sys
@@ -39,7 +34,7 @@ class RRT_star:
     '''
 
     # Class constructor given an initial position
-    def __init__(self, x_start):
+    def __init__(self, x_start, num_iter):
         # Set parameters
         self.num_dim = 3        # number of dimensions to search for
         self.thr = 5            # threshold for final goal
@@ -47,14 +42,16 @@ class RRT_star:
         self.count = 0          # counter of nodes added
         self.pathFind = False   # boolean for found path indication
         self.neigh_dist = 5     # threshold for termination
+        self.num_iter = num_iter
+        self.goal_idx = 0
         # Add the first node
         self.node_list = [Node(0, x_start)]
 
     # Method for adding the
     def find_path(self, x_goal, map_boundary):
         # Start iteration
-        for iteration in range(3000):
-            if iteration % 200 == 0:  # show the progress
+        for iteration in range(self.num_iter):
+            if iteration % 100 == 0:  # show the progress
                 print('Search progress:', iteration)
 
             # get a new sampled point and the index of the closest node in the list
@@ -72,13 +69,12 @@ class RRT_star:
                 self.rewire_node(k, idx, False)
 
             # check arriving to the goal
-            if norm(x_new - x_goal) < self.thr:
+            if (not self.pathFind) and norm(x_new - x_goal) < self.thr:
                 self.pathFind = True
-                break
-        # Add the final point to the node list
-        if self.pathFind:
-            self.count += 1
-            self.add_node(x_goal, self.count - 1)
+                # Add the final point to the node list
+                self.count += 1
+                self.add_node(x_goal, self.count - 1)
+                self.goal_idx = self.count
 
         return self.pathFind
 
@@ -88,7 +84,7 @@ class RRT_star:
         path_list = []
         if self.pathFind:
             # The index of the last element will be equal to the number of elements added
-            path_idx = self.count
+            path_idx = self.goal_idx
             # Iterate backwards appending the nodes and updating the index until the initial one
             while path_idx >= 0:
                 path_list.append(self.node_list[path_idx].pos)
@@ -108,10 +104,7 @@ class RRT_star:
             if dis < nearest_dis:
                 nearest_node = i
                 nearest_dis = dis
-        x_nearest = self.node_list[nearest_node].pos
-        # extend to x_new
-        x_new = x_nearest + self.delta / nearest_dis * (x_rand - x_nearest)
-        return x_new, nearest_node
+        return x_rand, nearest_node
 
     # Function for node rewiring, takes a bool to rewire depending on whether a new sample is given or an existing one
     def rewire_node(self, pos, closest_idx, is_new=True):
@@ -180,7 +173,7 @@ ax.plot([x_start[0]], [x_start[1]], [x_start[2]], marker='o', c='r', markersize=
 ax.plot([x_goal[0]], [x_goal[1]], [x_goal[2]], marker='o', c='b', markersize=10)
 
 # Call the RRT search function
-RRT = RRT_star(x_start)
+RRT = RRT_star(x_start,1000)
 path_exists = RRT.find_path(x_goal, map_boundary)
 path_list = RRT.get_path()
 
