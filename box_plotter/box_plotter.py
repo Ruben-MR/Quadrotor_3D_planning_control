@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import Obstacle
+from Obstacle import Obstacle
 
 
 # DEFINITIONS #########################################################################################################
@@ -60,6 +60,15 @@ def main():
     entrance_2 = np.array([[5, 1, 1], [5.3, 4, 2]])
     entrance_3 = np.array([[5, 0, 0], [5.3, 4, 1]])
     mid_wall = np.array([[2, 2.5, 0], [5, 2.8, 3]])
+    
+    large_wall_1 = Obstacle(np.array([0, 5, 0]), np.array([14, 5.3, 3]))
+    large_wall_2 = Obstacle(np.array([14, 5, 0]), np.array([15, 5.3, 2]))
+    table_1 = Obstacle(np.array([0, 4, 0]), np.array([1, 5, 1]))
+    table_2 = Obstacle(np.array([1.5, 4, 0]), np.array([2.5, 5, 1]))
+    entrance_1 = Obstacle(np.array([5, 0, 2]), np.array([5.3, 5, 3]))
+    entrance_2 = Obstacle(np.array([5, 1, 1]), np.array([5.3, 4, 2]))
+    entrance_3 = Obstacle(np.array([5, 0, 0]), np.array([5.3, 4, 1]))
+    mid_wall = Obstacle(np.array([2, 2.5, 0]), np.array([5, 2.8, 3]))
 
     boxes = list()
 

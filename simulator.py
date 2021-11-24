@@ -63,8 +63,9 @@ print("Sum of energy consumption (integration)", total_energy)
 # plot nice maps!
 
 fig = plt.figure()
-ax1 = p3.Axes3D(fig, auto_add_to_figure=False)  # 3D place for drawing
-fig.add_axes(ax1)
+#ax1 = p3.Axes3D(fig, auto_add_to_figure=False)  # 3D place for drawing
+#fig.add_axes(ax1)
+ax1 = p3.Axes3D(fig)  # 3D place for drawing
 plt.rcParams['figure.figsize'] = 16, 16
 
 ############################################################################
@@ -72,7 +73,7 @@ plt.rcParams['figure.figsize'] = 16, 16
 filename = 'colliders.csv'
 data = np.loadtxt(filename, delimiter=',', dtype=np.float64, skiprows=2)
 print(data)
-voxmap = create_voxmap(data, 15)
+voxmap = create_voxmap(data, 10)
 print(voxmap.shape)
 
 ax1.voxels(voxmap, edgecolor='k')
