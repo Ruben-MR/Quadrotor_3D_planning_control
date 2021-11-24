@@ -27,19 +27,15 @@ class Obstacle(object):
         self.collision_x_max_ = self.x_max_+self.r_
         self.collision_y_max_ = self.y_max_+self.r_
         self.collision_z_max_ = self.z_max_+self.r_
-    
+
+    # Function for checking collisioin with a given point
     def collision_check(self, point):
-        if point[0] < self.collision_x_min_ or point[0] > self.collision_x_max_:
-            feasible = True
-            return feasible
-        if point[1] < self.collision_y_min_ or point[1] > self.collision_y_max_:
-            feasible = True
-            return feasible
-        if point[2] < self.collision_z_min_ or point[2] > self.collision_z_max_:
-            feasible = True
-            return feasible
-        feasible = False
-        return feasible
+        if self.collision_x_min_ <= point[0] <= self.collision_x_max_ and \
+            self.collision_y_min_ <= point[1] <= self.collision_y_max_ and \
+                self.collision_z_min_ <= point[2] <= self.collision_z_max_:
+            return True
+        else:
+            return False
     
     def physical_vertices(self):
         self.length_x_ = self.x_max_ - self.x_min_
@@ -65,17 +61,15 @@ def collision_check_path(startPose, goalPose, obstacle_array, boundary=None): # 
     startPose = np.array(startPose)
     goalPose = np.array(goalPose)
     obstacle_array = np.array(obstacle_array)
-    feasible = True
     n = 100
     direction = (goalPose-startPose)/n
     for i in range(n+1):
         currentPose = startPose + i*direction
         for obstacle in obstacle_array: # obstacle_array should be an array containing list of obstacle objects
-            feasible_single_obs = obstacle.collision_check(currentPose)
-            if not feasible_single_obs:
-                feasible = False
-                return feasible
-    return feasible
+            collision_single_obs = obstacle.collision_check(currentPose)
+            if collision_single_obs:
+                return True
+    return False
 
 
 obs = Obstacle([0, 0, 0], [1, 1, 1])
