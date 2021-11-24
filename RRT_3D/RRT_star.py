@@ -13,8 +13,6 @@ from Obstacle import Obstacle, collision_check_path
 url1 = os.path.abspath(os.path.join(os.getcwd(), "../map/"))
 sys.path.append(url1)
 
-from collisionCheckingCylinder import collisionCheckingCylinder
-
 
 # Definition of Class Node
 class Node:
@@ -33,17 +31,18 @@ class RRT_star:
     '''
 
     # Class constructor given an initial position
-    def __init__(self, x_start, num_iter, obstacles, thr=0.5):
+    def __init__(self, x_start, num_iter, obstacles, ax, thr=0.5):
         # Set parameters
         self.num_dim = 3        # number of dimensions to search for
-        self.thr = thr            # threshold for final goal
+        self.thr = thr          # threshold for final goal
         self.pathFind = False   # boolean for found path indication
         self.neigh_dist = 5     # threshold for termination
         self.num_iter = num_iter
         self.goal_idx = 0
         self.obstacle_array = obstacles
+        self.ax = ax
         # Add the first node
-        self.node_list = [Node(x_start, 0, -1)]
+        self.node_list = [Node(pos=x_start, cost=0, parent_idx=-1)]
 
     # Method for adding the
     def find_path(self, x_goal, map_boundary):
@@ -56,7 +55,7 @@ class RRT_star:
             x_new, idx = self.new_and_closest(map_boundary)
 
             # check whether the new point is colliding or not
-            if idx == -1:
+            if idx is None:
                 continue
             else:
                 # path collision checking, if there is a collision, skip the rest and go to the next iteraion
@@ -105,7 +104,7 @@ class RRT_star:
         # check for collision of the sample with an obstacle
         for obstacle in self.obstacle_array:
             if obstacle.collision_check(x_rand):
-                return x_rand, -1
+                return x_rand, None
 
         # find the nearest node, given that the furthest one will be the goal
         nearest_dis = float('inf')
@@ -131,7 +130,7 @@ class RRT_star:
                 dist2xnew = norm(pos - self.node_list[j].pos)
                 neighbor_cost = self.node_list[j].cost + dist2xnew
                 if dist2xnew < self.neigh_dist:
-                    if collision_check_path(self.node_list[j].pos, pos, self.obstacle_array):
+                    if not collision_check_path(self.node_list[j].pos, pos, self.obstacle_array):
                         neigh_list.append(j)
                         if neighbor_cost < lowest_cost:
                             lowest_cost = neighbor_cost
@@ -149,6 +148,16 @@ class RRT_star:
                 self.node_list[node_idx].cost = rewire_cost
                 self.node_list[node_idx].parent_idx = len(self.node_list) - 1
 
+    def plotTree(self):
+        for node in range(1, len(self.node_list)):
+
+            parent_idx = self.node_list[node].parent_idx
+            self.ax.plot([self.node_list[parent_idx].pos[0], self.node_list[node].pos[0]],
+                         [self.node_list[parent_idx].pos[1], self.node_list[node].pos[1]],
+                         [self.node_list[parent_idx].pos[2], self.node_list[node].pos[2]])
+
+            self.ax.scatter([self.node_list[node].pos[0]], [self.node_list[node].pos[1]], [self.node_list[node].pos[2]])
+"""
 # Display the whole process(can be commented all below when importing the search function)
 boxes = list()
 boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
@@ -163,38 +172,26 @@ boxes.append(np.array([[2, 2.5, 0], [5, 2.8, 3]]))
 obstacles = list()
 for box in boxes:
     obstacles.append(Obstacle(box[0, :], box[1, :]))
-
-# Initialization and import the obstacle array
-x_start = np.array([10, 8, 1])
-x_goal = np.array([0.5, 4.5, 1])
-map_boundary = [15, 8, 3]
-
 """
+obstacles = [Obstacle([1, 1, 1], [2, 2, 2])]
 # Initialization and import the obstacle array
-x_start = np.array([1, 1, 1])
-x_goal = np.array([20, 20, 20])
-map_boundary = 20
-
-filename = os.path.join(url1, 'obstacles_cylinder.csv')
-obstacle_array = np.loadtxt(filename, delimiter=',', dtype=np.float64, skiprows=1)
+x_start = np.array([0, 0, 0])
+x_goal = np.array([3, 3, 3])
+map_boundary = [3, 3, 3]
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-for i in range(obstacle_array.shape[0]):
-    center_x, center_y, radius, height_z = obstacle_array[i, :]
-
-    Xc, Yc, Zc = data_for_cylinder(center_x, center_y, radius, height_z)
-    ax.plot_surface(Xc, Yc, Zc, alpha=0.5)
+# Call the RRT search function
+RRT = RRT_star(x_start, 300, obstacles, ax)
+path_exists = RRT.find_path(x_goal, map_boundary)
+print(path_exists)
+path_list = RRT.get_path()
+RRT.plotTree()
 
 # Draw the start and goal point
 ax.plot([x_start[0]], [x_start[1]], [x_start[2]], marker='o', c='r', markersize=10)
 ax.plot([x_goal[0]], [x_goal[1]], [x_goal[2]], marker='o', c='b', markersize=10)
-
-# Call the RRT search function
-RRT = RRT_star(x_start,1000,obstacle_array)
-path_exists = RRT.find_path(x_goal, map_boundary)
-path_list = RRT.get_path()
 
 # Draw the final path
 path_length = 0
@@ -206,6 +203,8 @@ for i in range(len(path_list) - 1):
 
 print('Length of path:', round(path_length, 2))
 
-ax.set_title('RRT* Algorithm')
+# Plot the obstacles
+for box in obstacles:
+    plot_three_dee_box(box, ax=ax)
+
 plt.show()
-"""

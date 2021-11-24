@@ -54,13 +54,12 @@ class Obstacle(object):
 
 
 
-def collision_check_path(startPose, goalPose, obstacle_array, boundary=None): # TODO: set boundary of the workspace later
+def collision_check_path(startPose, goalPose, obstacle_array, boundary=None):
     '''
     collision check function for a path (discretization)
     '''
     startPose = np.array(startPose)
     goalPose = np.array(goalPose)
-    obstacle_array = np.array(obstacle_array)
     n = 100
     direction = (goalPose-startPose)/n
     for i in range(n+1):
@@ -71,15 +70,13 @@ def collision_check_path(startPose, goalPose, obstacle_array, boundary=None): # 
                 return True
     return False
 
-
+"""
 obs = Obstacle([0, 0, 0], [1, 1, 1])
 point = np.array([0.5, 0.5, 2])
 print(obs.collision_check(point))
 print(obs.physical_vertices())
-start = [1, 1, 1.1]
+start = [0.5, 0.5, 0.5]
 end = [1, 1, 2]
 obs_lst = [obs]
 print(collision_check_path(start, end, obs_lst))
-
-    
-    
+"""

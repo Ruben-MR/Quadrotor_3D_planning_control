@@ -2,12 +2,13 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import Obstacle
 
 
 # DEFINITIONS #########################################################################################################
 
 
-def plot_three_dee_box(points, ax=None, rgb=(1, 0, 0), opacity=0.6, show=False):
+def plot_three_dee_box(obstacle, ax=None, rgb=(1, 0, 0), opacity=0.6, show=False):
     """
     This function takes 2 3D points, defining a 3D orthogonal box, and plots it.
 
@@ -18,9 +19,7 @@ def plot_three_dee_box(points, ax=None, rgb=(1, 0, 0), opacity=0.6, show=False):
     :param show: if set to True, the function will automatically plot the box
     :return: None
     """
-    assert points.shape == (2, 3), f"Wrong coordinate format: got {points.shape}, must be (2, 3)."
-    assert np.all(points[0] < points[1]), f"Wrong coordinate orders, must go from closest corner to origin, to furthest"
-
+    points = np.array([obstacle.point_min_, obstacle.point_max_])
     if ax is None:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
