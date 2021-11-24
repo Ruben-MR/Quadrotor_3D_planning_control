@@ -8,18 +8,21 @@ from Obstacle import Obstacle
 # DEFINITIONS #########################################################################################################
 
 
-def plot_three_dee_box(obstacle, ax=None, rgb=(1, 0, 0), opacity=0.6, show=False):
+def plot_three_dee_box(points, ax=None, rgb=(1, 0, 0), opacity=0.6, show=False):
     """
     This function takes 2 3D points, defining a 3D orthogonal box, and plots it.
 
-    :param points: the box-defining points, a set of two 3D coordinates, format is a np.array of shape (2, 3)
+    :param points: the box-defining points, a set of two 3D coordinates,
+    format can be a np.array of shape (2, 3), or an Obstacle object.
     :param ax: the parent plotting environment, if none is provided, one will be created automatically
     :param rgb: the color to use, by default red, format is a tuple of RGB values
     :param opacity: determines the opacity og the box, format is a float, must be between 0 and 1
     :param show: if set to True, the function will automatically plot the box
     :return: None
     """
-    points = np.array([obstacle.point_min_, obstacle.point_max_])
+    if type(points) == Obstacle:
+        points = np.array([points.point_min_, points.point_max_])
+
     if ax is None:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -52,15 +55,15 @@ def main():
     # For visualization, a plane from [0, 0, 0] to [0, 5.3, 3] and a ground plane can be added.
     # For collision detection, those planes will be implicit in the search space.
 
-    large_wall_1 = np.array([[0, 5, 0], [14, 5.3, 3]])
-    large_wall_2 = np.array([[14, 5, 0], [15, 5.3, 2]])
-    table_1 = np.array([[0, 4, 0], [1, 5, 1]])
-    table_2 = np.array([[1.5, 4, 0], [2.5, 5, 1]])
-    entrance_1 = np.array([[5, 0, 2], [5.3, 5, 3]])
-    entrance_2 = np.array([[5, 1, 1], [5.3, 4, 2]])
-    entrance_3 = np.array([[5, 0, 0], [5.3, 4, 1]])
-    mid_wall = np.array([[2, 2.5, 0], [5, 2.8, 3]])
-    
+    # large_wall_1 = np.array([[0, 5, 0], [14, 5.3, 3]])
+    # large_wall_2 = np.array([[14, 5, 0], [15, 5.3, 2]])
+    # table_1 = np.array([[0, 4, 0], [1, 5, 1]])
+    # table_2 = np.array([[1.5, 4, 0], [2.5, 5, 1]])
+    # entrance_1 = np.array([[5, 0, 2], [5.3, 5, 3]])
+    # entrance_2 = np.array([[5, 1, 1], [5.3, 4, 2]])
+    # entrance_3 = np.array([[5, 0, 0], [5.3, 4, 1]])
+    # mid_wall = np.array([[2, 2.5, 0], [5, 2.8, 3]])
+
     large_wall_1 = Obstacle(np.array([0, 5, 0]), np.array([14, 5.3, 3]))
     large_wall_2 = Obstacle(np.array([14, 5, 0]), np.array([15, 5.3, 2]))
     table_1 = Obstacle(np.array([0, 4, 0]), np.array([1, 5, 1]))
