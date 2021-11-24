@@ -18,12 +18,10 @@ from collisionCheckingCylinder import collisionCheckingCylinder
 
 # Definition of Class Node
 class Node:
-    def __init__(self, idx, pos):
-        self.idx = idx
+    def __init__(self, pos, cost, parent_idx):
         self.pos = pos
-        self.parent_pos = np.zeros(3)
-        self.cost = 0  # cost from the start to the current node
-        self.parent_idx = -1  # parent's node index
+        self.cost = cost                # cost from the start to the current node
+        self.parent_idx = parent_idx    # parent's node index
 
 
 # Definition of the RRT* search class
@@ -35,19 +33,17 @@ class RRT_star:
     '''
 
     # Class constructor given an initial position
-    def __init__(self, x_start, num_iter, obstacles):
+    def __init__(self, x_start, num_iter, obstacles, thr=0.5):
         # Set parameters
         self.num_dim = 3        # number of dimensions to search for
-        self.thr = 5            # threshold for final goal
-        self.delta = 1          # step for steering
-        self.count = 0          # counter of nodes added
+        self.thr = thr            # threshold for final goal
         self.pathFind = False   # boolean for found path indication
         self.neigh_dist = 5     # threshold for termination
         self.num_iter = num_iter
         self.goal_idx = 0
         self.obstacle_array = obstacles
         # Add the first node
-        self.node_list = [Node(0, x_start)]
+        self.node_list = [Node(x_start, 0, -1)]
 
     # Method for adding the
     def find_path(self, x_goal, map_boundary):
@@ -57,14 +53,14 @@ class RRT_star:
                 print('Search progress:', iteration)
 
             # get a new sampled point and the index of the closest node in the list
-            x_new, idx = self.new_and_closest(x_goal, map_boundary)
+            x_new, idx = self.new_and_closest(map_boundary)
 
             # check whether the new point is colliding or not
             if idx == -1:
                 continue
             else:
                 # path collision checking, if there is a collision, skip the rest and go to the next iteraion
-                if collision_check_path(self.node_list[idx].pos,x_new,self.obstacle_array):
+                if collision_check_path(self.node_list[idx].pos, x_new, self.obstacle_array):
                     continue
 
             # Rewire the new node for optimal cost and get the close points
@@ -79,9 +75,10 @@ class RRT_star:
             if (not self.pathFind) and norm(x_new - x_goal) < self.thr:
                 self.pathFind = True
                 # Add the final point to the node list
-                self.count += 1
-                self.add_node(x_goal, self.count - 1)
-                self.goal_idx = self.count
+                self.node_list.append(Node(x_goal,
+                                           self.node_list[-1].cost+norm(x_goal - x_new),
+                                           len(self.node_list) - 1))
+                self.goal_idx = len(self.node_list) - 1
 
         return self.pathFind
 
@@ -101,7 +98,7 @@ class RRT_star:
         return path_list
 
     # Function for generating a new sample and the index of the closest neighbor
-    def new_and_closest(self, x_goal, map_boundary):
+    def new_and_closest(self, map_boundary):
         # random sampling
         x_rand = np.random.uniform(0, 1, 3) * map_boundary
 
@@ -111,7 +108,7 @@ class RRT_star:
                 return x_rand, -1
 
         # find the nearest node, given that the furthest one will be the goal
-        nearest_dis = norm(x_goal)
+        nearest_dis = float('inf')
         for i in range(len(self.node_list)):
             dis = norm(self.node_list[i].pos - x_rand)
             if dis < nearest_dis:
@@ -134,15 +131,14 @@ class RRT_star:
                 dist2xnew = norm(pos - self.node_list[j].pos)
                 neighbor_cost = self.node_list[j].cost + dist2xnew
                 if dist2xnew < self.neigh_dist:
-                    if collisionCheckingCylinder(self.node_list[j].pos, pos, self.obstacle_array, map_boundary):
+                    if collision_check_path(self.node_list[j].pos, pos, self.obstacle_array):
                         neigh_list.append(j)
                         if neighbor_cost < lowest_cost:
                             lowest_cost = neighbor_cost
                             optimal_neigh = j
 
             # add x_new to the tree, the parent of x_new is at index optimal_node
-            self.count += 1
-            self.add_node(pos, optimal_neigh)
+            self.node_list.append(Node(pos, lowest_cost, optimal_neigh))
             return neigh_list
 
         # If the node is existent, check whether the connection with the new node [at index -1] minimizes the cost
@@ -150,18 +146,8 @@ class RRT_star:
             node_idx = pos
             rewire_cost = self.node_list[-1].cost + norm(self.node_list[node_idx].pos - self.node_list[-1].pos)
             if rewire_cost < self.node_list[node_idx].cost:
-                self.node_list[node_idx].parent_pos = self.node_list[-1].pos
                 self.node_list[node_idx].cost = rewire_cost
-                self.node_list[node_idx].parent_idx = self.count
-
-    # Function for adding a node to the list
-    def add_node(self, pos, parent_idx):
-        new_node = Node(self.count, pos)
-        new_node.parent_idx = parent_idx
-        new_node.parent_pos = self.node_list[parent_idx].pos
-        new_node.cost = self.node_list[parent_idx].cost + norm(pos - new_node.parent_pos)
-        self.node_list.append(new_node)
-
+                self.node_list[node_idx].parent_idx = len(self.node_list) - 1
 
 # Display the whole process(can be commented all below when importing the search function)
 boxes = list()
