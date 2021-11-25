@@ -10,8 +10,7 @@ sys.path.append(url2)
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.linalg import norm
-from map_cylinder import data_for_cylinder
-from box_plotter.box_plotter import plot_three_dee_box
+from box_plotter import plot_three_dee_box
 from Obstacle import Obstacle, collision_check_path
 
 
@@ -184,11 +183,11 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 # Call the RRT search function
-RRT = RRT_star(x_start, 300, obstacles, ax)
+RRT = RRT_star(x_start, 300, obstacles, ax,1)
 path_exists = RRT.find_path(x_goal, map_boundary)
 print(path_exists)
 path_list = RRT.get_path()
-RRT.plotTree()
+# RRT.plotTree()
 
 # Draw the start and goal point
 ax.plot([x_start[0]], [x_start[1]], [x_start[2]], marker='o', c='r', markersize=10)
