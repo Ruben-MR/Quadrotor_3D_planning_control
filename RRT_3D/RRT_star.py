@@ -157,7 +157,7 @@ class RRT_star:
                          [self.node_list[parent_idx].pos[2], self.node_list[node].pos[2]])
 
             self.ax.scatter([self.node_list[node].pos[0]], [self.node_list[node].pos[1]], [self.node_list[node].pos[2]])
-
+'''
 # Display the whole process(can be commented all below when importing the search function)
 boxes = list()
 boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
@@ -176,14 +176,14 @@ for box in boxes:
 #obstacles = [Obstacle([0.5, 1, 1], [1, 1.5, 1.5]), Obstacle([1.5, 1, 1], [2, 1.5, 1.5])]
 # Initialization and import the obstacle array
 x_start = np.array([0, 0, 0])
-x_goal = np.array([3, 3, 3])
-map_boundary = [3, 3, 3]
+x_goal = np.array([3, 7, 3])
+map_boundary = [17, 8, 3]
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 # Call the RRT search function
-RRT = RRT_star(x_start, 300, obstacles, ax,1)
+RRT = RRT_star(x_start, 3500, obstacles, ax,1)
 path_exists = RRT.find_path(x_goal, map_boundary)
 print(path_exists)
 path_list = RRT.get_path()
@@ -208,3 +208,4 @@ for box in obstacles:
     plot_three_dee_box(box, ax=ax)
 
 plt.show()
+'''
