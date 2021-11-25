@@ -29,6 +29,7 @@ class Obstacle(object):
         self.collision_z_max_ = self.z_max_+self.r_
 
     # Function for checking collisioin with a given point
+    # return True if there is collision
     def collision_check(self, point):
         if self.collision_x_min_ <= point[0] <= self.collision_x_max_ and \
             self.collision_y_min_ <= point[1] <= self.collision_y_max_ and \
@@ -57,6 +58,7 @@ class Obstacle(object):
 def collision_check_path(startPose, goalPose, obstacle_array, boundary=None):
     '''
     collision check function for a path (discretization)
+    return True if there is collision
     '''
     startPose = np.array(startPose)
     goalPose = np.array(goalPose)

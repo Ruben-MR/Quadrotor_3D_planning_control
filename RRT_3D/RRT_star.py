@@ -3,15 +3,16 @@
 
 import os
 import sys
+url1 = os.path.abspath(os.path.join(os.getcwd(), "../map/"))
+url2 = os.path.abspath(os.path.join(os.getcwd(), "../box_plotter/"))
+sys.path.append(url1)
+sys.path.append(url2)
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.linalg import norm
 from map_cylinder import data_for_cylinder
-from box_plotter import plot_three_dee_box
+from box_plotter.box_plotter import plot_three_dee_box
 from Obstacle import Obstacle, collision_check_path
-# deal with the folders
-url1 = os.path.abspath(os.path.join(os.getcwd(), "../map/"))
-sys.path.append(url1)
 
 
 # Definition of Class Node
@@ -44,12 +45,12 @@ class RRT_star:
         # Add the first node
         self.node_list = [Node(pos=x_start, cost=0, parent_idx=-1)]
 
-    # Method for adding the
+    # Method for adding new paths
     def find_path(self, x_goal, map_boundary):
         # Start iteration
         for iteration in range(self.num_iter):
             if iteration % 100 == 0:  # show the progress
-                print('Search progress:', iteration)
+                print('Search iterations:', iteration)
 
             # get a new sampled point and the index of the closest node in the list
             x_new, idx = self.new_and_closest(map_boundary)
