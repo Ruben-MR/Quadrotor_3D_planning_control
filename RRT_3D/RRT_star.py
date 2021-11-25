@@ -173,7 +173,7 @@ obstacles = list()
 for box in boxes:
     obstacles.append(Obstacle(box[0, :], box[1, :]))
 """
-obstacles = [Obstacle([1, 1, 1], [2, 2, 2])]
+obstacles = [Obstacle([0.5, 1, 1], [1, 1.5, 1.5]), Obstacle([1.5, 1, 1], [2, 1.5, 1.5])]
 # Initialization and import the obstacle array
 x_start = np.array([0, 0, 0])
 x_goal = np.array([3, 3, 3])
@@ -187,7 +187,7 @@ RRT = RRT_star(x_start, 300, obstacles, ax,1)
 path_exists = RRT.find_path(x_goal, map_boundary)
 print(path_exists)
 path_list = RRT.get_path()
-# RRT.plotTree()
+RRT.plotTree()
 
 # Draw the start and goal point
 ax.plot([x_start[0]], [x_start[1]], [x_start[2]], marker='o', c='r', markersize=10)
