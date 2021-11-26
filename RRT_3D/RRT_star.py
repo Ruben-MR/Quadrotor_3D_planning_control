@@ -157,7 +157,7 @@ class RRT_star:
                          [self.node_list[parent_idx].pos[2], self.node_list[node].pos[2]])
 
             self.ax.scatter([self.node_list[node].pos[0]], [self.node_list[node].pos[1]], [self.node_list[node].pos[2]])
-'''
+
 # Display the whole process(can be commented all below when importing the search function)
 boxes = list()
 boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
@@ -179,6 +179,14 @@ x_start = np.array([0, 0, 0])
 x_goal = np.array([3, 7, 3])
 map_boundary = [17, 8, 3]
 
+'''
+# Initialization and import the obstacle array in a simple setting
+obstacles = [Obstacle([0.5, 1, 1], [1, 1.5, 1.5]), Obstacle([1.5, 1, 1], [2, 1.5, 1.5])]
+x_start = np.array([0, 0, 0])
+x_goal = np.array([3, 3, 3])
+map_boundary = [3, 3, 3]
+'''
+
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
@@ -187,7 +195,7 @@ RRT = RRT_star(x_start, 3500, obstacles, ax,1)
 path_exists = RRT.find_path(x_goal, map_boundary)
 print(path_exists)
 path_list = RRT.get_path()
-RRT.plotTree()
+#RRT.plotTree()
 
 # Draw the start and goal point
 ax.plot([x_start[0]], [x_start[1]], [x_start[2]], marker='o', c='r', markersize=10)
@@ -198,7 +206,7 @@ path_length = 0
 for i in range(len(path_list) - 1):
     ax.plot([path_list[i][0], path_list[i + 1][0]],
             [path_list[i][1], path_list[i + 1][1]],
-            [path_list[i][2], path_list[i + 1][2]], c='r', linewidth=2)
+            [path_list[i][2], path_list[i + 1][2]], c='b', linewidth=2)
     path_length += norm(path_list[i] - path_list[i + 1])
 
 print('Length of path:', round(path_length, 2))
@@ -208,4 +216,3 @@ for box in obstacles:
     plot_three_dee_box(box, ax=ax)
 
 plt.show()
-'''
