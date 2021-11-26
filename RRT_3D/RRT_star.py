@@ -158,8 +158,7 @@ class RRT_star:
 
             self.ax.scatter([self.node_list[node].pos[0]], [self.node_list[node].pos[1]], [self.node_list[node].pos[2]])
 
-
-# Initialization and import the obstacle array in a real environment
+# Display the whole process(can be commented all below when importing the search function)
 boxes = list()
 boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
 boxes.append(np.array([[14, 5, 0], [15, 5.3, 2]]))
@@ -174,6 +173,8 @@ obstacles = list()
 for box in boxes:
     obstacles.append(Obstacle(box[0, :], box[1, :]))
 
+#obstacles = [Obstacle([0.5, 1, 1], [1, 1.5, 1.5]), Obstacle([1.5, 1, 1], [2, 1.5, 1.5])]
+# Initialization and import the obstacle array
 x_start = np.array([0, 0, 0])
 x_goal = np.array([3, 7, 3])
 map_boundary = [17, 8, 3]
