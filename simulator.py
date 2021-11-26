@@ -16,10 +16,9 @@ from matplotlib import animation
 from model.quadrotor import Quadrotor
 from model.nonlinear_controller import GeometricController
 from traj_handles_ro47001.tj_handle_BangBang import tj_bangbang as tj_handle
-from traj_handles_ro47001.tj_handle_circle import get_T_circle
 from box_plotter import plot_three_dee_box
 from Obstacle import Obstacle
-from RRT_3D import RRT_star
+from RRT_3D.RRT_star import RRT_star
 #################################################################
 env = Quadrotor()
 # circle trajectory has different initial position
@@ -32,7 +31,7 @@ real_trajectory = {'x': [], 'y': [], 'z': []}
 total_SE = 0
 total_energy = 0
 #################################################################
-#set the environment
+# set the environment
 # Display the whole process(can be commented all below when importing the search function)
 
 boxes = list()
@@ -45,14 +44,15 @@ boxes.append(np.array([[5, 1, 1], [5.3, 4, 2]]))
 boxes.append(np.array([[5, 0, 0], [5.3, 4, 1]]))
 boxes.append(np.array([[2, 2.5, 0], [5, 2.8, 3]]))
 
-obstacles = [Obstacle([0.5, 1, 1], [1, 1.5, 1.5]), Obstacle([1.5, 1, 1], [2, 1.5, 1.5])]
-
 obstacles = list()
 for box in boxes:
     obstacles.append(Obstacle(box[0, :], box[1, :]))
     
 fig = plt.figure()
-ax1 = p3.Axes3D(fig)  # 3D place for drawing
+ax1 = fig.add_subplot(111, projection="3d")
+ax1.set_xlim(0, 15)
+ax1.set_ylim(-5, 10)
+ax1.set_zlim(0, 15)
 plt.rcParams['figure.figsize'] = 16, 16
 
 #########################################################################
@@ -61,11 +61,7 @@ x_start = np.array([0, 0, 0])
 x_goal = np.array([3, 7, 3])
 map_boundary = [17, 8, 3]
 
-# x_start = np.array([0, 0, 0])
-# x_goal = np.array([3, 3, 3])
-# map_boundary = [3, 3, 3]
-
-RRT = RRT_star.RRT_star(x_start, 1000, obstacles, ax1,1)
+RRT = RRT_star(x_start, 1000, obstacles, ax1, 1)
 path_exists = RRT.find_path(x_goal, map_boundary)
 print(path_exists)
 path_list = RRT.get_path()
@@ -80,10 +76,7 @@ for i in range(len_path - 1):
     local_t = 0
     local_T = np.sqrt(np.sum((local_start - local_end)**2))/0.8
     for itr in range(int(local_T/time_step)):
-        #print('local_iter: ', itr)
-        #print("local path: ", local_start, local_end)
         state_des = tj_handle(local_t, local_start, local_end, local_T)
-        #print(state_des)
         action = policy.control(state_des, current_state)
         cmd_rotor_speeds = action['cmd_rotor_speeds']
         obs, reward, done, info = env.step(cmd_rotor_speeds)
@@ -107,35 +100,6 @@ print("Total time: ", t)
 print("Sum of energy consumption (integration)", total_energy)
 ############################################################################
 
-# plot nice maps!
-
-# set the environment
-# Display the whole process(can be commented all below when importing the search function)
-boxes = list()
-boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
-boxes.append(np.array([[14, 5, 0], [15, 5.3, 2]]))
-boxes.append(np.array([[0, 4, 0], [1, 5, 1]]))
-boxes.append(np.array([[1.5, 4, 0], [2.5, 5, 1]]))
-boxes.append(np.array([[5, 0, 2], [5.3, 5, 3]]))
-boxes.append(np.array([[5, 1, 1], [5.3, 4, 2]]))
-boxes.append(np.array([[5, 0, 0], [5.3, 4, 1]]))
-boxes.append(np.array([[2, 2.5, 0], [5, 2.8, 3]]))
-
-obstacles = list()
-for box in boxes:
-    obstacles.append(Obstacle(box[0, :], box[1, :]))
-
-fig = plt.figure()
-ax1 = fig.add_subplot(111, projection="3d")
-ax1.set_xlim(0, 15)
-ax1.set_ylim(-5, 10)
-ax1.set_zlim(0, 15)
-plt.rcParams['figure.figsize'] = 16, 16
-
-# Plot the obstacles
-for box in obstacles:
-    plot_three_dee_box(box, ax=ax1)
-
 # Plot the obstacles
 for box in obstacles:
     plot_three_dee_box(box, ax=ax1)
@@ -150,6 +114,7 @@ for i in range(len(path_list) - 1):
             [path_list[i][2], path_list[i + 1][2]], c='b', linewidth=2)
     path_length += np.linalg.norm(path_list[i] - path_list[i + 1])
 print('Length of path:', round(path_length, 2))
+
 # Plot the trajectory of the quadrotor
 real_trajectory['x'] = np.array(real_trajectory['x'])
 real_trajectory['y'] = np.array(real_trajectory['y'])
