@@ -6,22 +6,19 @@ import sys
 
 url1 = os.path.join(os.getcwd(), "model/")
 url2 = os.path.join(os.getcwd(), "traj_handles_ro47001/")
-url3 = os.path.join(os.getcwd(), "map/")
 sys.path.append(url1)
 sys.path.append(url2)
-sys.path.append(url3)
 
 #################################################################
 import numpy as np
 from matplotlib import pyplot as plt
-import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
 from model.quadrotor import Quadrotor
 from model.nonlinear_controller import GeometricController
 from traj_handles_ro47001.tj_handle_circle import tj_circle as tj_handle
 from traj_handles_ro47001.tj_handle_circle import get_T_circle
-from map.map_3d import create_voxmap
-
+from box_plotter import plot_three_dee_box
+from Obstacle import Obstacle
 #################################################################
 
 env = Quadrotor()
@@ -62,27 +59,32 @@ print("Sum of energy consumption (integration)", total_energy)
 ############################################################################
 # plot nice maps!
 
+# set the environment
+# Display the whole process(can be commented all below when importing the search function)
+boxes = list()
+boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
+boxes.append(np.array([[14, 5, 0], [15, 5.3, 2]]))
+boxes.append(np.array([[0, 4, 0], [1, 5, 1]]))
+boxes.append(np.array([[1.5, 4, 0], [2.5, 5, 1]]))
+boxes.append(np.array([[5, 0, 2], [5.3, 5, 3]]))
+boxes.append(np.array([[5, 1, 1], [5.3, 4, 2]]))
+boxes.append(np.array([[5, 0, 0], [5.3, 4, 1]]))
+boxes.append(np.array([[2, 2.5, 0], [5, 2.8, 3]]))
+
+obstacles = list()
+for box in boxes:
+    obstacles.append(Obstacle(box[0, :], box[1, :]))
+
 fig = plt.figure()
-#ax1 = p3.Axes3D(fig, auto_add_to_figure=False)  # 3D place for drawing
-#fig.add_axes(ax1)
-ax1 = p3.Axes3D(fig)  # 3D place for drawing
+ax1 = fig.add_subplot(111, projection="3d")
+ax1.set_xlim(0, 15)
+ax1.set_ylim(-5, 10)
+ax1.set_zlim(0, 15)
 plt.rcParams['figure.figsize'] = 16, 16
 
-############################################################################
-# plot of the map
-filename = 'colliders.csv'
-data = np.loadtxt(filename, delimiter=',', dtype=np.float64, skiprows=2)
-print(data)
-voxmap = create_voxmap(data, 10)
-print(voxmap.shape)
-
-ax1.voxels(voxmap, edgecolor='k')
-ax1.set_xlim(voxmap.shape[0], 0)
-ax1.set_ylim(0, voxmap.shape[1])
-# add a bit to z-axis height for visualization
-ax1.set_zlim(0, voxmap.shape[2] + 20)
-
-############################################################################
+# Plot the obstacles
+for box in obstacles:
+    plot_three_dee_box(box, ax=ax1)
 
 real_trajectory['x'] = np.array(real_trajectory['x'])
 real_trajectory['y'] = np.array(real_trajectory['y'])
