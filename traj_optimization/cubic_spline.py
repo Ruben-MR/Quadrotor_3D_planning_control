@@ -37,22 +37,29 @@ def cubic_spline(path_list, T):
     Y = path_array[:,1][::-1]
     Z = path_array[:,2][::-1]
     
-    fx = CubicSpline(t_array, X, bc_type='natural')
+    # The boundary type is set to be 'clamped', which means 
+    # the first derivative at curves ends are zero. 
+    fx = CubicSpline(t_array, X, bc_type='clamped')
     t_new = np.linspace(0, T, 100)
     x_new = fx(t_new)
-    
-    fy = CubicSpline(t_array, Y, bc_type='natural')
-    t_new = np.linspace(0, T, 100)
+    vel_x = fx(t_new, 1)
+    acc_x = fx(t_new, 2)
+        
+    fy = CubicSpline(t_array, Y, bc_type='clamped')
     y_new = fy(t_new)
+    vel_y = fy(t_new, 1)
+    acc_y = fy(t_new, 2)
     
-    fz = CubicSpline(t_array, Z, bc_type='natural')
-    t_new = np.linspace(0, T, 100)
+    fz = CubicSpline(t_array, Z, bc_type='clamped')
     z_new = fz(t_new)
+    vel_z = fz(t_new, 1)
+    acc_z = fz(t_new, 2)
     
-    new_path_list = np.vstack((x_new, y_new, z_new))
-    new_path_list = np.transpose(new_path_list)
+    pos = np.vstack((x_new, y_new, z_new)).T   
+    vel = np.vstack((vel_x, vel_y, vel_z)).T   
+    acc = np.vstack((acc_x, acc_y, acc_z)).T
     
-    return new_path_list
+    return pos, vel, acc
 
 
 # Initialization and import the obstacle array in a real environment
@@ -96,13 +103,13 @@ path_list = np.array([[ 3.        ,  7.        ,  3.        ],
                       [ 0.        ,  0.        ,  0.        ]])
 
 T = 10 
-new_path_list = cubic_spline(path_list, T)
+pos, vel, acc = cubic_spline(path_list, T)
 
 # Draw the start and goal point
 ax.plot([x_start[0]], [x_start[1]], [x_start[2]], marker='o', c='r', markersize=10)
 ax.plot([x_goal[0]], [x_goal[1]], [x_goal[2]], marker='o', c='b', markersize=10)
 
-ax.plot(new_path_list[:,0], new_path_list[:,1], new_path_list[:,2], c='g', linewidth=2)
+ax.plot(pos[:,0], pos[:,1], pos[:,2], c='g', linewidth=2)
 
 path_length = 0
 for i in range(len(path_list) - 1):
