@@ -19,6 +19,7 @@ from traj_handles_ro47001.tj_handle_BangBang import tj_bangbang as tj_handle
 from box_plotter import plot_three_dee_box
 from Obstacle import Obstacle
 from RRT_3D.RRT_star import RRT_star
+from scipy.spatial.transform import Rotation
 #################################################################
 env = Quadrotor()
 # circle trajectory has different initial position
@@ -27,7 +28,6 @@ current_state = env.reset(position=[0, 0, 0])
 dt = 0.01
 t = 0
 time_step = 1e-2
-real_trajectory = {'x': [], 'y': [], 'z': []}
 total_SE = 0
 total_energy = 0
 #################################################################
@@ -67,6 +67,8 @@ print(path_exists)
 path_list = RRT.get_path()
 #########################################################################
 
+real_trajectory = np.zeros((1, 3))
+real_orientation = np.zeros((1, 4))
 # follow the path in segments
 len_path = len(path_list)
 for i in range(len_path - 1):
@@ -85,9 +87,12 @@ for i in range(len_path - 1):
         # print('des_position: ', state_des['pos'])
         # print('error: ', np.round(obs['x'] - state_des['pos'], 3))
         # print("time: ", t)
-        real_trajectory['x'].append(obs['x'][0])
-        real_trajectory['y'].append(obs['x'][1])
-        real_trajectory['z'].append(obs['x'][2])
+        if i == 0:
+            real_trajectory = np.reshape(obs['x'], (1, 3))
+            real_orientation = np.reshape(obs['q'], (1, 4))
+        else:
+            real_trajectory = np.vstack((real_trajectory, np.reshape(obs['x'], (1, 3))))
+            real_orientation = np.vstack((real_orientation, np.reshape(obs['q'], (1, 4))))
         current_state = obs
         local_t += dt
         t += dt
@@ -116,12 +121,17 @@ for i in range(len(path_list) - 1):
 print('Length of path:', round(path_length, 2))
 
 # Plot the trajectory of the quadrotor
-real_trajectory['x'] = np.array(real_trajectory['x'])
-real_trajectory['y'] = np.array(real_trajectory['y'])
-real_trajectory['z'] = np.array(real_trajectory['z'])
-point, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'r+', markersize=20,
-                  label='Quadrotor')
-line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'g',
+rot = Rotation.from_quat(real_orientation[0, :]).as_matrix()
+print(rot)
+rotor_dists = np.array([[0.046*np.sqrt(2), -0.046*np.sqrt(2), 0],
+                        [0.046*np.sqrt(2), 0.046*np.sqrt(2), 0],
+                        [-0.046*np.sqrt(2), 0.046*np.sqrt(2), 0],
+                        [-0.046*np.sqrt(2), -0.046*np.sqrt(2), 0]])
+rots = rotor_dists @ rot
+rots = rots + real_trajectory[0, :]
+points = np.vstack((real_trajectory[0, :], rots))
+point, = ax1.plot(points[:, 0], points[:, 1], points[:, 2], 'r.', label='Quadrotor')
+line, = ax1.plot([real_trajectory[0, 0]], [real_trajectory[0, 1]], [real_trajectory[0, 2]], 'g',
                  label='Real_Trajectory')
 
 # RRT.plotTree()
@@ -135,14 +145,18 @@ ax1.legend(loc='lower right')
 
 
 def animate(i):
-    line.set_xdata(real_trajectory['x'][:i + 1])
-    line.set_ydata(real_trajectory['y'][:i + 1])
-    line.set_3d_properties(real_trajectory['z'][:i + 1])
-    point.set_xdata(real_trajectory['x'][i])
-    point.set_ydata(real_trajectory['y'][i])
-    point.set_3d_properties(real_trajectory['z'][i])
+    line.set_xdata(real_trajectory[:i + 1, 0])
+    line.set_ydata(real_trajectory[:i + 1, 1])
+    line.set_3d_properties(real_trajectory[:i + 1, 2])
+    rot = Rotation.from_quat(real_orientation[i, :]).as_matrix()
+    rots = rotor_dists @ rot
+    rots = rots + real_trajectory[i, :]
+    points = np.vstack((real_trajectory[i, :], rots))
+    point.set_xdata(points[:, 0])
+    point.set_ydata(points[:, 1])
+    point.set_3d_properties(points[:, 2])
 
 
-ani = animation.FuncAnimation(fig=fig, func=animate, frames=len(real_trajectory['x']), interval=1, repeat=False,
+ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(real_trajectory,0), interval=1, repeat=False,
                               blit=False)
 plt.show()
