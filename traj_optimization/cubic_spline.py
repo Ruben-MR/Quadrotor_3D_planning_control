@@ -40,7 +40,7 @@ def cubic_spline(path_list, T):
     # The boundary type is set to be 'clamped', which means 
     # the first derivative at curves ends are zero. 
     fx = CubicSpline(t_array, X, bc_type='clamped')
-    t_new = np.linspace(0, T, 100)
+    t_new = np.linspace(0, T, int(T/0.01))
     x_new = fx(t_new)
     vel_x = fx(t_new, 1)
     acc_x = fx(t_new, 2)
@@ -104,7 +104,6 @@ path_list = np.array([[ 3.        ,  7.        ,  3.        ],
 
 T = 10 
 pos, vel, acc = cubic_spline(path_list, T)
-
 # Draw the start and goal point
 ax.plot([x_start[0]], [x_start[1]], [x_start[2]], marker='o', c='r', markersize=10)
 ax.plot([x_goal[0]], [x_goal[1]], [x_goal[2]], marker='o', c='b', markersize=10)
