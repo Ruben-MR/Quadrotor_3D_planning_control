@@ -76,6 +76,29 @@ class Quadrotor(core.Env):
         s_dot[5] = u[1]/self.Ixx
         return s_dot
 
+
+def _s_dot_fn(t, s, u):
+    s_dot = np.zeros((6,))
+    s_dot[0:3] = s[3:6]
+    s_dot[3] = -u[0]/env.mass*np.sin(s[2])
+    s_dot[4] = -env.g+u[0]/env.mass*np.cos(s[2])
+    s_dot[5] = u[1]/env.Ixx
+    return s_dot
+
+def s_dot_fn(t, s):
+    return _s_dot_fn(t, s, u)
+
+def step(s, u):
+    '''
+    The next state can be obtained through integration
+    '''
+    sol = scipy.integrate.solve_ivp(s_dot_fn, (0, 0.01), s, first_step=0.01)
+    s_next = sol['y'][:,-1]
+    reward = 0
+    done = 0
+    info = {}
+    return s_next, reward, done, info
+
 class MPC():
     def __init__(self):
         self.dt = 0.01
@@ -98,10 +121,10 @@ class MPC():
                       [0.3333, 0],
                       [0, 699.3]])
         C = np.array([0, -0.0004905, 0, 0, -0.0981, 0])
-        if state[2] > 1.5:
-            state[2] = 1.5
-        elif state[2] < -1.5:
-            state[2] =-1.5
+        # if state[2] > 1.5:
+        #     state[2] = 1.5
+        # elif state[2] < -1.5:
+        #     state[2] =-1.5
         x_0 = np.array([state[0], state[1], state[2], state[3], state[4], state[5]])
         T = 20  # the number of predicted steps
         x = cp.Variable((6, T + 1))
@@ -115,11 +138,16 @@ class MPC():
         Moreover, minimize ||[y, z]-[yt, zt]|| + ||[Fz, Mx]|| to save energy 
         """
         for t in range(T):
-            cost += cp.sum_squares(x[0:2, t + 1]-np.array([0,0.5])) # cost: distance to the goal
+            cost += cp.sum_squares(x[0:2, t + 1]-np.array([0, 0.5])) # cost: distance to the goal
+            # print(type(x[:, t].value), x[:, t].value) # before solving optimizatio problem, the type is None
+            # print(type(u[:, t].value), u[:, t].value)
+            # this means we cannot use our model as constraints
             constr += [x[:, t + 1] == A @ x[:, t] + B @ u[:, t] + C, # constraint: equatio of motion
+            #constr +=  [x[:, t + 1] == step(u[:, t].squeeze(), x[:, t].squeeze())[0],
                        cp.norm(x[2,t], 'inf') <= 1, # constraint: max theta
                        u[0, t] <= 0.75,  #3 constraint: acceleration
                        cp.norm(u[1, t], 'inf') <= 0.072] # constraint: max moment
+        # print(type(A @ x[:, t] + B @ u[:, t] + C)) type is AddExpression object
         # sums problem objectives and concatenates constraints.
         constr += [x[:, 0] == x_0] # constraint: initial condition
         problem = cp.Problem(cp.Minimize(cost), constr)
@@ -127,7 +155,8 @@ class MPC():
         action = np.random.randn(2)
         action[0] = u[0, 0].value
         action[1] = u[1, 0].value
-        print("u1 u2:",action)
+        # print(type(x[:, 5].value), x[:, 5]) # after solving optimization problem, the type becomes ndarray
+        # print(type(u[:, 5].value), u[:, 5])
         return action
 
 def animate(i):
