@@ -1,6 +1,5 @@
 import os
 import sys
-
 ##################################################################
 # deal with the folders
 
@@ -31,7 +30,7 @@ time_step = 1e-2
 total_SE = 0
 total_energy = 0
 #################################################################
-# set the environment
+# set the obstables
 # Display the whole process(can be commented all below when importing the search function)
 
 boxes = list()
