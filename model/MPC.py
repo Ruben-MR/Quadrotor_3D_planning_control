@@ -155,7 +155,7 @@ class MPC():
         action = np.random.randn(2)
         action[0] = u[0, 0].value
         action[1] = u[1, 0].value
-        # print(type(x[:, 5].value), x[:, 5]) # after solving optimization problem, the type becomes ndarray
+        # print(type(x[:, 5].value), x[:, 5]) #after solving optimization problem, the type becomes ndarray
         # print(type(u[:, 5].value), u[:, 5])
         return action
 
