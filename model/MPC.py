@@ -115,13 +115,13 @@ class MPC():
         Moreover, minimize ||[y, z]-[yt, zt]|| + ||[Fz, Mx]|| to save energy 
         """
         for t in range(T):
-            cost += cp.sum_squares(x[0:2, t + 1]-np.array([0,0.5]))
-            constr += [x[:, t + 1] == A @ x[:, t] + B @ u[:, t] + C,
-                       cp.norm(x[2,t], 'inf') <= 1,
-                       u[0, t] <= 0.75,  #3
-                       cp.norm(u[1, t], 'inf') <= 0.072]
+            cost += cp.sum_squares(x[0:2, t + 1]-np.array([0,0.5])) # cost: distance to the goal
+            constr += [x[:, t + 1] == A @ x[:, t] + B @ u[:, t] + C, # constraint: equatio of motion
+                       cp.norm(x[2,t], 'inf') <= 1, # constraint: max theta
+                       u[0, t] <= 0.75,  #3 constraint: acceleration
+                       cp.norm(u[1, t], 'inf') <= 0.072] # constraint: max moment
         # sums problem objectives and concatenates constraints.
-        constr += [x[:, 0] == x_0]
+        constr += [x[:, 0] == x_0] # constraint: initial condition
         problem = cp.Problem(cp.Minimize(cost), constr)
         problem.solve(solver=cp.ECOS)
         action = np.random.randn(2)
