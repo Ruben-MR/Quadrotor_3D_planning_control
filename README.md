@@ -41,6 +41,8 @@ This README file will contain the links to the resources used in the project, re
 - Kinodynamic motion planning for quadrotor-like aerial robots: [source](https://oatao.univ-toulouse.fr/20169/1/Boeuf.pdf)
     - A Thesis on quadrotors, covers a very wide range of information on the topic. Chapter on steering function included.
 - Very extensive project on path planning algorithms, it does not use any library for collisions, but implements it itself. Can be useful for inspiration: [source](https://github.com/zhm-real/PathPlanning)
+- Non-linear MPC control from University of Zuerich, they used casadi optimization solver and non-linear quadrotor model.We can refer to their code for setting optimizer and Q, R matrices. https://github.com/uzh-rpg/high_mpc
+- Linear MPC, we can refer to their Q,R matrices.https://github.com/b4sgren/mpc
 
 ## Various
 
