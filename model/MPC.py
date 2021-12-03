@@ -137,6 +137,9 @@ class MPC():
         minimize ||[y, z]-[yt, zt]||
         Moreover, minimize ||[y, z]-[yt, zt]|| + ||[Fz, Mx]|| to save energy 
         """
+        
+        # forces pro
+        
         for t in range(T):
             cost += cp.sum_squares(x[0:2, t + 1]-np.array([0, 0.5])) # cost: distance to the goal
             # print(type(x[:, t].value), x[:, t].value) # before solving optimizatio problem, the type is None
