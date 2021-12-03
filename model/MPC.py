@@ -95,10 +95,26 @@ class MPC():
         self.t_step = 0.01
         self.dt = 0.01
         self.model = forcespro.nlp.SymbolicModel() # create a empty model
+        # objective (cost function)
         self.model.objective = lambda x: casadi.sumsqr(x[0:2, t + 1]-np.array([0, 0.5])) # cost: distance to the goal
+        # equality constraints (quadrotor model)
         # z[0:2] action z[2:8] state
         self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[2:8], z[0:2], integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
-        
+        self.model.E = np.concatenate([np.zeros(6, 2), np.eye(6)], axis=1) # construction of indices of the left hand side of the dynamical constraints: E @ [u z].T
+        #  upper/lower variable bounds lb <= z <= ub
+        #                     inputs         |  states
+        #                     thrust  moment     y        z      theta     dy      dz       dtheta
+        self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
+        self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
+        # # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
+        # model.ineq = lambda z, p: np.array([z[2] ** 2 + z[3] ** 2,  # x^2 + y^2
+        #                                     (z[2] - p[0]) ** 2 + (z[3] - p[1]) ** 2])  # (x-p_x)^2 + (y-p_y)^2
+        #
+        # # Upper/lower bounds for inequalities
+        # model.hu = np.array([9, +np.inf])
+        # model.hl = np.array([1, 0.7 ** 2])
+
+
 
 
     def control(self, state):
