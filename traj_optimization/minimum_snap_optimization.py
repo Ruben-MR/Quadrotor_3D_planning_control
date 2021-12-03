@@ -14,7 +14,7 @@ def get_q(n_seg, n_order, ts):
             for l in range(4, n_order+1):
                 q_k[i, l] = i*(i-1)*(i-2)*(i-3)*l*(l-1)*(l-2)*(l-3)*pow(ts[k], (i+l-7))/(i+l-7)
         # Assign it to the corresponding position of the general Q matrix
-        q[8*k:(8*k+8), 8*k:(8*k+8)] = q_k
+        q[(8*k):(8*k+8), (8*k):(8*k+8)] = q_k
     return q
 
 
@@ -29,7 +29,6 @@ def get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond):
             aeq_end[k, -(n_order + 1 - i)] = (math.factorial(i)*pow(ts[-1], (i-k)))/math.factorial(i-k)
     beq_start = start_cond
     beq_end = end_cond
-    beq_edge = np.array([beq_start, beq_end])
 
     # position constraints for waypoints
     aeq_wp = np.zeros((n_seg-1, n_all_poly))
@@ -72,7 +71,7 @@ def get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond):
     aeq_cont = np.vstack((aeq_contp, aeq_contv, aeq_conta, aeq_contj))
     beq_cont = np.concatenate((beq_contp, beq_contv, beq_conta, beq_contj))
     aeq = np.vstack((aeq_start, aeq_end, aeq_wp, aeq_cont))
-    beq = np.concatenate((beq_edge, beq_wp, beq_cont))
+    beq = np.concatenate((beq_start, beq_end, beq_wp, beq_cont))
     return aeq, beq
 
 
@@ -95,8 +94,6 @@ def minimum_snap_qp(waypoints, ts, n_seg, n_order):
     end_cond = np.array([path[-1, 0], 0, 0, 0])
     qs = get_q(n_seg, n_order, ts)
     aeq, beq = get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond)
-    print(aeq.shape)
-    print(beq.shape)
     x = cp.Variable(n_seg * (n_order + 1))
     prob = cp.Problem(cp.Minimize(cp.quad_form(x, qs)), [aeq @ x == beq])
     prob.solve()
@@ -111,8 +108,15 @@ ts = np.full((n_seg,), 1)
 poly_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
 poly_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
 
-fig = plt.figure()
-plt.scatter(path[:, 0], path[:, 1])
+Xn = []
+Yn = []
+tstep = 0.01
 
-
-
+for i in range(n_seg):
+    Pxi = poly_coef_x[(8*i):(8*(i+1))]
+    Pyi = poly_coef_y[(8*i):(8*(i+1))]
+    for t in np.arange(0, ts[i], tstep):
+        Xn.append(np.polyval(Pxi[::-1], t))
+        Yn.append(np.polyval(Pyi[::-1], t))
+Xn = np.array(Xn)
+Yn = np.array(Yn)
