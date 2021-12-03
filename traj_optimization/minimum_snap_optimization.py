@@ -1,7 +1,7 @@
 import numpy as np
 import math
 import cvxpy as cp
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 
 
 def get_q(n_seg, n_order, ts):
@@ -100,14 +100,14 @@ def minimum_snap_qp(waypoints, ts, n_seg, n_order):
     return x.value
 
 
-path = np.array([[0, 0], [1, 4], [2, 2], [3, 6]])
+path = np.array([[0, 0], [1, 4], [2, 2], [4, 6]])
 n_order = 7
 n_seg = np.size(path, axis=0) - 1
 #ts = compute_proportional_t(path, 25, n_seg)
 ts = np.full((n_seg,), 1)
 poly_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
 poly_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
-
+print(np.sum(poly_coef_y[-9:-1]))
 Xn = []
 Yn = []
 tstep = 0.01
@@ -118,5 +118,7 @@ for i in range(n_seg):
     for t in np.arange(0, ts[i], tstep):
         Xn.append(np.polyval(Pxi[::-1], t))
         Yn.append(np.polyval(Pyi[::-1], t))
-Xn = np.array(Xn)
-Yn = np.array(Yn)
+
+plt.scatter(path[:, 0], path[:, 1])
+plt.plot(Xn, Yn)
+plt.show()
