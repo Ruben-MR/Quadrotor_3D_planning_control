@@ -7,11 +7,10 @@ function Q = getQ(n_seg, n_order, ts)
         t_k = ts(k);
         for m = 4:n_order
             for n = 4:n_order
-                den = m+n-7;
+                den = m+n-n_order;
                 Q_k(m+1,n+1) = m*(m-1)*(m-2)*(m-3)*n*(n-1)*(n-2)*(n-3)/den*(t_k^den);
             end
         end
         Q = blkdiag(Q, Q_k);
     end
-    size(Q)
 end

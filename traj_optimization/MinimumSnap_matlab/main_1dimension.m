@@ -42,29 +42,36 @@ for i=0:n_seg-1
     %#####################################################
     % STEP 3: get the coefficients of i-th segment of both x-axis
     % and y-axis
+    Pxi = flipud(poly_coef_x(i*(n_order+1)+1:(i+1)*(n_order+1)));
+    Pvi = polyder(Pxi);
+    Pai = polyder(Pvi);
+    Pji = polyder(Pai);
+    Psi = polyder(Pji);
     for t = 0:tstep:ts(i+1)
-        X(k)  = polyval(poly_coef_x, t);
-        V(k)  = polyval(poly_coef_v, t);
-        A(k)  = polyval(poly_coef_a, t);
-        J(k)  = polyval(poly_coef_j, t);
-        S(k)  = polyval(poly_coef_s, t);
+        X(k)  = polyval(Pxi, t);
+        V(k)  = polyval(Pvi, t);
+        A(k)  = polyval(Pai, t);
+        J(k)  = polyval(Pji, t);
+        S(k)  = polyval(Psi, t);
         
         T(k) = t + sum(ts(1:i));
         k = k + 1;
     end
 end
-% 
+
+% plot
 plot(T, X);
-% hold on
-% plot(T, V);
-% hold on
-% plot(T, A);
-% hold on
-% plot(T, J);
-% hold on
-% plot(T, S);
 hold on
+plot(T, V);
+hold on
+plot(T, A);
+hold on
+plot(T, J);
+hold on
+plot(T, S);
+% hold on
 scatter(0:n_seg, path);
+legend('pos','vel','acc','jerk','snap','points')
 
 
 function poly_coef = MinimumSnapQPSolver(waypoints, ts, n_seg, n_order)

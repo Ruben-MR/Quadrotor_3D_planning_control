@@ -13,7 +13,7 @@ function [Aeq beq]= getAbeq(n_seg, n_order, waypoints, ts, start_cond, end_cond)
     % p,v,a constraint in end
     Aeq_end = zeros(4, n_all_poly);
     % STEP 2.2: write expression of Aeq_end and beq_end
-    t_end = ts(n_seg);
+    t_end = ts(end);
     for m =1:4
         for n=m:n_order+1
             Aeq_end(m,(n_seg-1)*(n_order+1)+n) = (t_end^(n-m))*factorial(n-1)/factorial(n-m);
@@ -26,10 +26,6 @@ function [Aeq beq]= getAbeq(n_seg, n_order, waypoints, ts, start_cond, end_cond)
     Aeq_wp = zeros(n_seg-1, n_all_poly);
     beq_wp = zeros(n_seg-1, 1);
     % STEP 2.3: write expression of Aeq_wp and beq_wp
-%     for i = 1:n_seg-1
-%         Aeq_wp(i, i*(n_order+1)+1) = 1;   %!!!!
-%         beq_wp(i, 1) = waypoints(i+1);
-%     end
     for m = 1:n_seg-1
         t_m = ts(m);
         for n = 1:n_order+1
