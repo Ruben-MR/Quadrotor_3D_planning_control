@@ -43,6 +43,7 @@ This README file will contain the links to the resources used in the project, re
 - Very extensive project on path planning algorithms, it does not use any library for collisions, but implements it itself. Can be useful for inspiration: [source](https://github.com/zhm-real/PathPlanning)
 - Non-linear MPC control from University of Zuerich, they used casadi optimization solver and non-linear quadrotor model.We can refer to their code for setting optimizer and Q, R matrices. [source](https://github.com/uzh-rpg/high_mpc)
 - Linear MPC, we can refer to their Q,R matrices.[source](https://github.com/b4sgren/mpc)
+- Hai Zhu's program for testing different solvers.[source](https://github.com/hai-zhu/solver_test)
 
 ## Various
 
