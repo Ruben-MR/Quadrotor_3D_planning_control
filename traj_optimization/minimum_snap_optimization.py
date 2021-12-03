@@ -1,0 +1,73 @@
+import numpy as np
+import math
+
+def get_q(n_seg, n_order, ts):
+    q = np.zeros((n_seg*(n_order+1), n_seg*(n_order+1)))
+    for k in range(n_seg):
+        q_k = np.zeros((n_order + 1, n_order + 1))
+
+        # Get the Q matrix for each segment of the trajectory
+        for i in range(4, n_order+1):
+            for l in range(4, n_order+1):
+                q_k[i, l] = i*(i-1)*(i-2)*(i-3)*l*(l-1)*(l-2)*(l-3)*pow(ts[k], (i+l-7))/(i+l-7)
+
+        # Assign it to the corresponding position of the general Q matrix
+        q[8*k:(8*k+7), 8*k:(8*k+7)] = q_k
+    return q
+
+
+def get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond):
+    n_all_poly = n_seg * (n_order + 1)
+    # set initial and final point constraints
+    aeq_start = np.zeros((4, n_all_poly))
+    aeq_start[:4, :4] = np.diag([1, 1, 2, 6])
+    aeq_end = np.zeros((4, n_all_poly))
+    for k in range(4):
+        for i in range(k, n_order+1):
+            aeq_end[k, -(n_order + 1 - i)] = (math.factorial(i)*pow(ts[-1], (i-k)))/math.factorial(i-k)
+    beq_start = start_cond
+    beq_end = end_cond
+
+    # position constraints for waypoints
+    aeq_wp = np.zeros((n_seg-1, n_all_poly))
+    for j in range(n_seg-1):
+        aeq_wp[j, 8*(j+1)] = 1
+    beq_wp = waypoints[1:-2]
+
+    # position continuity
+    aeq_contp = np.zeros((n_seg - 1, n_all_poly))
+    for j in range(n_seg-1):
+        for i in range(n_order + 1):
+            aeq_contp[j, 8*j+i] = pow(ts[j], i)
+        aeq_contp[j, 8*(j+1)] = -1
+    beq_contp = np.zeros((n_seg - 1,))
+
+    # velocity continuity
+    aeq_contv = np.zeros((n_seg - 1, n_all_poly))
+    for j in range(n_seg - 1):
+        for i in range(1, n_order + 1):
+            aeq_contv[j, 8 * j + i] = math.factorial(i)*pow(ts[j], i-1)/math.factorial(i-1)
+        aeq_contv[j, 8 * (j + 1) + 1] = -1
+    beq_contv = np.zeros((n_seg - 1,))
+
+    # acceleration continuity
+    aeq_conta = np.zeros((n_seg - 1, n_all_poly))
+    for j in range(n_seg - 1):
+        for i in range(2, n_order + 1):
+            aeq_conta[j, 8 * j + i] = math.factorial(i) * pow(ts[j], i-2) / math.factorial(i - 2)
+        aeq_conta[j, 8 * (j + 1) + 2] = -1
+    beq_conta = np.zeros((n_seg - 1,))
+
+    # jerk continuity
+    aeq_contj = np.zeros((n_seg - 1, n_all_poly))
+    for j in range(n_seg - 1):
+        for i in range(3, n_order + 1):
+            aeq_contj[j, 8 * j + i] = math.factorial(i) * pow(ts[j], i-3) / math.factorial(i - 3)
+        aeq_contj[j, 8 * (j + 1) + 3] = -1
+    beq_contj = np.zeros((n_seg - 1,))
+
+    aeq_cont = np.vstack((aeq_contp, aeq_contv, aeq_conta, aeq_contj))
+    beq_cont = np.vstack((beq_contp, beq_contv, beq_conta, beq_contj))
+    aeq = np.vstack((aeq_start, aeq_end, aeq_wp, aeq_cont))
+    beq = np.vstack((beq_start, beq_end, beq_wp, beq_cont))
+    return aeq, beq
