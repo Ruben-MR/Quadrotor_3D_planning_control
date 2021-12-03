@@ -8,6 +8,8 @@ import scipy.integrate
 from scipy.spatial.transform import Rotation
 import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
+import forcespro
+import casadi
 
 class Quadrotor(core.Env):
     """
@@ -76,32 +78,28 @@ class Quadrotor(core.Env):
         s_dot[5] = u[1]/self.Ixx
         return s_dot
 
-
-def _s_dot_fn(t, s, u):
-    s_dot = np.zeros((6,))
-    s_dot[0:3] = s[3:6]
-    s_dot[3] = -u[0]/env.mass*np.sin(s[2])
-    s_dot[4] = -env.g+u[0]/env.mass*np.cos(s[2])
-    s_dot[5] = u[1]/env.Ixx
-    return s_dot
-
-def s_dot_fn(t, s):
-    return _s_dot_fn(t, s, u)
-
-def step(s, u):
-    '''
-    The next state can be obtained through integration
-    '''
-    sol = scipy.integrate.solve_ivp(s_dot_fn, (0, 0.01), s, first_step=0.01)
-    s_next = sol['y'][:,-1]
-    reward = 0
-    done = 0
-    info = {}
-    return s_next, reward, done, info
-
 class MPC():
     def __init__(self):
+        """
+        Parameters of the quadrotor
+        """
+        self.mass            =  0.030  # kg
+        self.Ixx             = 1.43e-5  # kg*m^2
+        self.arm_length      = 0.046  # meters
+        self.rotor_speed_min = 0  # rad/s
+        self.rotor_speed_max = 2500  # rad/s
+        self.k_thrust        = 2.3e-08  # N/(rad/s)**2
+        self.k_drag          = 7.8e-11   # Nm/(rad/s)**2
+        self.g = 9.81 # m/s^2
+        # Precomputes
+        self.t_step = 0.01
         self.dt = 0.01
+        self.model = forcespro.nlp.SymbolicModel() # create a empty model
+        self.model.objective = lambda x: casadi.sumsqr(x[0:2, t + 1]-np.array([0, 0.5])) # cost: distance to the goal
+        # z[0:2] action z[2:8] state
+        self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[2:8], z[0:2], integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
+        
+
 
     def control(self, state):
         """
@@ -121,10 +119,10 @@ class MPC():
                       [0.3333, 0],
                       [0, 699.3]])
         C = np.array([0, -0.0004905, 0, 0, -0.0981, 0])
-        # if state[2] > 1.5:
-        #     state[2] = 1.5
-        # elif state[2] < -1.5:
-        #     state[2] =-1.5
+        if state[2] > 1.5:
+            state[2] = 1.5
+        elif state[2] < -1.5:
+            state[2] =-1.5
         x_0 = np.array([state[0], state[1], state[2], state[3], state[4], state[5]])
         T = 20  # the number of predicted steps
         x = cp.Variable((6, T + 1))
@@ -137,8 +135,6 @@ class MPC():
         minimize ||[y, z]-[yt, zt]||
         Moreover, minimize ||[y, z]-[yt, zt]|| + ||[Fz, Mx]|| to save energy 
         """
-        
-        # forces pro
         
         for t in range(T):
             cost += cp.sum_squares(x[0:2, t + 1]-np.array([0, 0.5])) # cost: distance to the goal
@@ -161,6 +157,14 @@ class MPC():
         # print(type(x[:, 5].value), x[:, 5]) #after solving optimization problem, the type becomes ndarray
         # print(type(u[:, 5].value), u[:, 5])
         return action
+
+    def continuous_dynamics(self, s, u):
+        s_dot = np.zeros((6,))
+        s_dot[0:3] = s[3:6]
+        s_dot[3] = -u[0] / env.mass * np.sin(s[2])
+        s_dot[4] = -env.g + u[0] / env.mass * np.cos(s[2])
+        s_dot[5] = u[1] / env.Ixx
+        return s_dot
 
 def animate(i):
     line.set_xdata(real_trajectory['x'][:i + 1])
