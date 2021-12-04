@@ -1,5 +1,5 @@
 import numpy as np
-import math
+from math import factorial
 import cvxpy as cp
 from matplotlib import pyplot as plt
 
@@ -26,7 +26,7 @@ def get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond):
     aeq_end = np.zeros((4, n_all_poly))
     for k in range(4):
         for i in range(k, n_order+1):
-            aeq_end[k, -(n_order + 1 - i)] = (math.factorial(i)*pow(ts[-1], (i-k)))/math.factorial(i-k)
+            aeq_end[k, -(n_order + 1 - i)] = (factorial(i)*pow(ts[-1], (i-k)))/factorial(i-k)
     beq_start = start_cond
     beq_end = end_cond
 
