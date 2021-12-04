@@ -96,7 +96,7 @@ class MPC():
         self.dt = 0.01
         self.model = forcespro.nlp.SymbolicModel(50) # create a empty model
         # objective (cost function)
-        self.model.objective = lambda z: 100 * casadi.sumsqr(z[2:4]-np.array([0.5, 0.5])) # cost: distance to the goal
+        self.model.objective = lambda z: 100 * (z[2] - 0.5)**2 + 100 * (z[3] - 0.5)**2 # cost: distance to the goal
         # equality constraints (quadrotor model)
         # z[0:2] action z[2:8] state
         self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[2:8], z[0:2], integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
@@ -167,7 +167,9 @@ class MPC():
         action[1] = output['x01'][1]
 
         return action
-
+#########################################################################################################################
+# You can check the results of a single optimization step here, be sure to comment the main function below
+#########################################################################################################################
 # mpc = MPC()
 #
 # # Set initial guess to start solver from (here, middle of upper and lower bound)
@@ -188,9 +190,7 @@ class MPC():
 #
 # print(output)
 # print(output['x01'].shape)
-
-
-
+#########################################################################################################################
 def animate(i):
     line.set_xdata(real_trajectory['x'][:i + 1])
     line.set_ydata(real_trajectory['y'][:i + 1])
