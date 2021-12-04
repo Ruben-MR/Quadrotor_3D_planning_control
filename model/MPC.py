@@ -103,7 +103,7 @@ class MPC():
         self._Q_goal_N = np.diag([
             200, 200, 10, # y, z, theta
             10, 10, 10]) # dy, dz, dtheta
-        self.goal = np.array([0.5, 0.5, 0, 0, 0, 0])
+        self.goal = np.array([1.5, 2.5, 0, 0, 0, 0])
         self.model.objective = lambda z: (z[2:] - self.goal).T @ self._Q_goal @ (z[2:]-self.goal) + 0.1 * z[0]**2 + 0.1 * z[1]**2 # cost: distance to the goal
         self.model.objectiveN = lambda z: (z[2:] - self.goal).T @ self._Q_goal_N @ (z[2:]-self.goal) + 0.2 * z[0]**2 + 0.2 * z[1]**2 # specially deal with the cost for the last stage
         #self.model.objective = lambda z: 100 * (z[2]**2 + z[3]**2) # cost: hovering
@@ -227,7 +227,7 @@ if __name__ == '__main__':
     iter = 0
     controller = MPC()
     real_trajectory = {'x': [], 'y': [], 'z': []}
-    while (t < 3):
+    while (t < 10):
         print('iteration: ', iter)
         action = controller.control(current_state)
         obs, reward, done, info = env.step(action)
