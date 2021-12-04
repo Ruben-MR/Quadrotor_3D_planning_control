@@ -13,7 +13,7 @@ T        = 25;
 t_sum    = 0;
 
 for i = 1:n_seg
-    dist(i) = sqrt((path(i+1, 1)-path(i, 1))^2 + (path(i+1, 2) - path(i, 2))^2);
+    dist(i) = sqrt((path(i+1)-path(i))^2 );
     dist_sum = dist_sum+dist(i);
 end
 for i = 1:n_seg-1
