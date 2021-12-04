@@ -96,7 +96,7 @@ class MPC():
         self.dt = 0.01
         self.model = forcespro.nlp.SymbolicModel(50) # create a empty model
         # objective (cost function)
-        self.model.objective = lambda z: casadi.sumsqr(z[2:4]-np.array([0.5, 0.5])) # cost: distance to the goal
+        self.model.objective = lambda z: 100 * casadi.sumsqr(z[2:4]-np.array([0.5, 0.5])) # cost: distance to the goal
         # equality constraints (quadrotor model)
         # z[0:2] action z[2:8] state
         self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[2:8], z[0:2], integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
@@ -106,6 +106,7 @@ class MPC():
         #                     thrust  moment     y        z      theta     dy      dz       dtheta
         self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, -np.deg2rad(40), -np.inf, -np.inf, -np.inf])
         self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, np.deg2rad(40), np.inf, np.inf, np.inf])
+
         # # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
         # model.ineq = lambda z, p: np.array([z[2] ** 2 + z[3] ** 2,  # x^2 + y^2
         #                                     (z[2] - p[0]) ** 2 + (z[3] - p[1]) ** 2])  # (x-p_x)^2 + (y-p_y)^2
@@ -137,8 +138,8 @@ class MPC():
         self.codeoptions.nlp.bfgs_init = 3.0 * np.identity(8)  # initialization of the hessian approximation
         self.codeoptions.noVariableElimination = 1.
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
-        #self.solver = self.model.generate_solver(self.codeoptions)
-        self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
+        self.solver = self.model.generate_solver(self.codeoptions)
+        #self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
 
     def continuous_dynamics(self, s, u):
         return np.array([s[3], s[4], s[5], -u[0] / self.mass * np.sin(s[2]), -self.g + u[0] / self.mass * np.cos(s[2]), u[1] / self.Ixx])
@@ -147,11 +148,9 @@ class MPC():
         """
         Sovling NLP prolem in N-step-horizon for optimal control, take the first control input
         """
-        mpc = MPC()
-
         # Set initial guess to start solver from (here, middle of upper and lower bound)
-        xi = np.zeros(8)
-        x0 = np.transpose(np.tile(xi, (1, mpc.model.N)))
+        xi = np.hstack((np.zeros(2), state))
+        x0 = np.transpose(np.tile(xi, (1, self.model.N)))
         problem = {"x0": x0}
         # # Set runtime parameters
         # params = np.array(
@@ -159,7 +158,7 @@ class MPC():
         # problem["all_parameters"] = np.transpose(np.tile(params, (1, model.N)))
 
         # Time to solve the NLP!
-        output, exitflag, info = mpc.solver.solve(problem)
+        output, exitflag, info = self.solver.solve(problem)
         # Make sure the solver has exited properly.
         assert exitflag == 1, "bad exitflag"
         # print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
@@ -172,15 +171,8 @@ class MPC():
 # mpc = MPC()
 #
 # # Set initial guess to start solver from (here, middle of upper and lower bound)
-# x0i = (mpc.lb + mpc.ub) / 2
+# x0i = np.zeros(8)
 # x0 = np.transpose(np.tile(x0i, (1, mpc.model.N)))
-#
-# # set initial condition
-# xinit = np.transpose(np.array([0., 0., 0., 0., 0., 0.]))
-# xfinal = np.transpose(np.array([0., 2., 0., 0., 0., 0.]))
-# # problem = {"x0": x0,
-# #            "xinit": xinit,
-# #            "xfinal": xfinal}
 # problem = {"x0": x0}
 # # # Set runtime parameters
 # # params = np.array(
@@ -197,7 +189,6 @@ class MPC():
 # print(output)
 # print(output['x01'].shape)
 
-#TODO: for MPC problem, the last stage should have different N!
 
 
 def animate(i):
@@ -218,7 +209,7 @@ if __name__ == '__main__':
     iter = 0
     controller = MPC()
     real_trajectory = {'x': [], 'y': [], 'z': []}
-    while (t < 2):
+    while (t < 6):
         print('iteration: ', iter)
         action = controller.control(current_state)
         obs, reward, done, info = env.step(action)
