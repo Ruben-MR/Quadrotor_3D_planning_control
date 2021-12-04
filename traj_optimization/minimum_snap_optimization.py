@@ -17,6 +17,13 @@ def get_q(n_seg, n_order, ts):
         q[(8*k):(8*k+8), (8*k):(8*k+8)] = q_k
     return q
 
+def get_aeq_cont(n_seg, n_order, ts, k):
+    aeq_cont = np.zeros((n_seg - 1, n_seg * (n_order + 1)))
+    for j in range(n_seg - 1):
+        for i in range(k, n_order + 1):
+            aeq_cont[j, (n_order+1) * j + i] = factorial(i)*pow(ts[j], i-k)/factorial(i-k)
+        aeq_cont[j, (n_order+1) * (j + 1) + k] = -factorial(k)
+    return aeq_cont
 
 def get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond):
     n_all_poly = n_seg * (n_order + 1)
@@ -37,39 +44,19 @@ def get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond):
     beq_wp = waypoints[1:-1]
 
     # position continuity
-    aeq_contp = np.zeros((n_seg - 1, n_all_poly))
-    for j in range(n_seg-1):
-        for i in range(n_order + 1):
-            aeq_contp[j, 8*j+i] = pow(ts[j], i)
-        aeq_contp[j, 8*(j+1)] = -1
-    beq_contp = np.zeros((n_seg - 1,))
+    aeq_contp = get_aeq_cont(n_seg, n_order, ts, k=0)
 
     # velocity continuity
-    aeq_contv = np.zeros((n_seg - 1, n_all_poly))
-    for j in range(n_seg - 1):
-        for i in range(1, n_order + 1):
-            aeq_contv[j, 8 * j + i] = math.factorial(i)*pow(ts[j], i-1)/math.factorial(i-1)
-        aeq_contv[j, 8 * (j + 1) + 1] = -1
-    beq_contv = np.zeros((n_seg - 1,))
+    aeq_contv = get_aeq_cont(n_seg, n_order, ts, k=1)
 
     # acceleration continuity
-    aeq_conta = np.zeros((n_seg - 1, n_all_poly))
-    for j in range(n_seg - 1):
-        for i in range(2, n_order + 1):
-            aeq_conta[j, 8 * j + i] = math.factorial(i) * pow(ts[j], i-2) / math.factorial(i - 2)
-        aeq_conta[j, 8 * (j + 1) + 2] = -2
-    beq_conta = np.zeros((n_seg - 1,))
+    aeq_conta = get_aeq_cont(n_seg, n_order, ts, k=2)
 
     # jerk continuity
-    aeq_contj = np.zeros((n_seg - 1, n_all_poly))
-    for j in range(n_seg - 1):
-        for i in range(3, n_order + 1):
-            aeq_contj[j, 8 * j + i] = math.factorial(i) * pow(ts[j], i-3) / math.factorial(i - 3)
-        aeq_contj[j, 8 * (j + 1) + 3] = -6
-    beq_contj = np.zeros((n_seg - 1,))
+    aeq_contj = get_aeq_cont(n_seg, n_order, ts, k=3)
 
     aeq_cont = np.vstack((aeq_contp, aeq_contv, aeq_conta, aeq_contj))
-    beq_cont = np.concatenate((beq_contp, beq_contv, beq_conta, beq_contj))
+    beq_cont = np.zeros(4*(n_seg - 1),)
     aeq = np.vstack((aeq_start, aeq_end, aeq_wp, aeq_cont))
     beq = np.concatenate((beq_start, beq_end, beq_wp, beq_cont))
     return aeq, beq
