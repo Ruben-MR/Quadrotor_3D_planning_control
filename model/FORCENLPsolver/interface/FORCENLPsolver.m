@@ -3,7 +3,7 @@
 %   OUTPUT = FORCENLPsolver(PARAMS) solves a multistage problem
 %   subject to the parameters supplied in the following struct:
 %       PARAMS.xinit - column vector of length 6
-%       PARAMS.x0 - column vector of length 160
+%       PARAMS.x0 - column vector of length 400
 %       PARAMS.reinitialize - scalar
 %
 %   OUTPUT returns the values of the last iteration of the solver where
@@ -27,6 +27,36 @@
 %       OUTPUT.x18 - column vector of size 8
 %       OUTPUT.x19 - column vector of size 8
 %       OUTPUT.x20 - column vector of size 8
+%       OUTPUT.x21 - column vector of size 8
+%       OUTPUT.x22 - column vector of size 8
+%       OUTPUT.x23 - column vector of size 8
+%       OUTPUT.x24 - column vector of size 8
+%       OUTPUT.x25 - column vector of size 8
+%       OUTPUT.x26 - column vector of size 8
+%       OUTPUT.x27 - column vector of size 8
+%       OUTPUT.x28 - column vector of size 8
+%       OUTPUT.x29 - column vector of size 8
+%       OUTPUT.x30 - column vector of size 8
+%       OUTPUT.x31 - column vector of size 8
+%       OUTPUT.x32 - column vector of size 8
+%       OUTPUT.x33 - column vector of size 8
+%       OUTPUT.x34 - column vector of size 8
+%       OUTPUT.x35 - column vector of size 8
+%       OUTPUT.x36 - column vector of size 8
+%       OUTPUT.x37 - column vector of size 8
+%       OUTPUT.x38 - column vector of size 8
+%       OUTPUT.x39 - column vector of size 8
+%       OUTPUT.x40 - column vector of size 8
+%       OUTPUT.x41 - column vector of size 8
+%       OUTPUT.x42 - column vector of size 8
+%       OUTPUT.x43 - column vector of size 8
+%       OUTPUT.x44 - column vector of size 8
+%       OUTPUT.x45 - column vector of size 8
+%       OUTPUT.x46 - column vector of size 8
+%       OUTPUT.x47 - column vector of size 8
+%       OUTPUT.x48 - column vector of size 8
+%       OUTPUT.x49 - column vector of size 8
+%       OUTPUT.x50 - column vector of size 8
 %
 %   [OUTPUT, EXITFLAG] = FORCENLPsolver(PARAMS) returns additionally
 %   the integer EXITFLAG indicating the state of the solution with 

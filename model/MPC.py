@@ -94,9 +94,18 @@ class MPC():
         # Precomputes
         self.t_step = 0.01
         self.dt = 0.01
-        self.model = forcespro.nlp.SymbolicModel(20) # create a empty model
+        self.model = forcespro.nlp.SymbolicModel(50) # create a empty model
         # objective (cost function)
-        self.model.objective = lambda z: 100 * (z[2] - 0.5)**2 + 100 * (z[3] - 0.5)**2 + 0.2 * z[0]**2 + 0.2 * z[1]**2 # cost: distance to the goal
+        # cost matrix for tracking the goal point
+        self._Q_goal = np.diag([
+            100, 100, 10, # y, z, theta
+            10, 10, 10]) # dy, dz, dtheta
+        self._Q_goal_N = np.diag([
+            200, 200, 10, # y, z, theta
+            10, 10, 10]) # dy, dz, dtheta
+        self.goal = np.array([0.5, 0.5, 0, 0, 0, 0])
+        self.model.objective = lambda z: (z[2:] - self.goal).T @ self._Q_goal @ (z[2:]-self.goal) + 0.1 * z[0]**2 + 0.1 * z[1]**2 # cost: distance to the goal
+        self.model.objectiveN = lambda z: (z[2:] - self.goal).T @ self._Q_goal_N @ (z[2:]-self.goal) + 0.2 * z[0]**2 + 0.2 * z[1]**2 # specially deal with the cost for the last stage
         #self.model.objective = lambda z: 100 * (z[2]**2 + z[3]**2) # cost: hovering
         # equality constraints (quadrotor model)
         # z[0:2] action z[2:8] state
@@ -184,7 +193,7 @@ class MPC():
 # # Set initial guess to start solver from (here, middle of upper and lower bound)
 # x0i = np.zeros(8)
 # x0 = np.transpose(np.tile(x0i, (1, mpc.model.N)))
-# problem = {"x0": x0}
+# problem = {"x0": x0, "xinit": np.transpose(np.zeros(6))}
 # # # Set runtime parameters
 # # params = np.array(
 # #     [-1.5, 1.])  # In this example, the user can change these parameters by clicking into an interactive window
@@ -218,7 +227,7 @@ if __name__ == '__main__':
     iter = 0
     controller = MPC()
     real_trajectory = {'x': [], 'y': [], 'z': []}
-    while (t < 6):
+    while (t < 3):
         print('iteration: ', iter)
         action = controller.control(current_state)
         obs, reward, done, info = env.step(action)

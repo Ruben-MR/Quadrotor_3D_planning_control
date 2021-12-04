@@ -63,7 +63,7 @@ extern void FORCENLPsolver_casadi2forces(FORCENLPsolver_float *x,        /* prim
 	
     /* temporary storage for CasADi sparse output */
     FORCENLPsolver_callback_float this_f;
-    FORCENLPsolver_float nabla_f_sparse[2];
+    FORCENLPsolver_float nabla_f_sparse[8];
     
     
     FORCENLPsolver_float c_sparse[6];
@@ -81,7 +81,7 @@ extern void FORCENLPsolver_casadi2forces(FORCENLPsolver_float *x,        /* prim
     in[2] = l;
     in[3] = y;
 
-	if ((0 <= stage && stage <= 18))
+	if ((0 <= stage && stage <= 48))
 	{
 		
 		
@@ -124,7 +124,7 @@ extern void FORCENLPsolver_casadi2forces(FORCENLPsolver_float *x,        /* prim
 			sparse2fullcopy(nrow, ncol, colind, row, nabla_c_sparse, nabla_c);
 		}
 	}
-	if ((19 == stage))
+	if ((49 == stage))
 	{
 		
 		
