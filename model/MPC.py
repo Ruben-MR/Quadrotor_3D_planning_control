@@ -94,13 +94,13 @@ class MPC():
         # Precomputes
         self.t_step = 0.01
         self.dt = 0.01
-        self.model = forcespro.nlp.SymbolicModel() # create a empty model
+        self.model = forcespro.nlp.SymbolicModel(50) # create a empty model
         # objective (cost function)
-        self.model.objective = lambda x: casadi.sumsqr(x[0:2]-np.array([0, 0.5])) # cost: distance to the goal
+        self.model.objective = lambda z: casadi.sumsqr(z[2:4]-np.array([0.5, 0.5])) # cost: distance to the goal
         # equality constraints (quadrotor model)
         # z[0:2] action z[2:8] state
         self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[2:8], z[0:2], integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
-        self.model.E = np.concatenate([np.zeros((6, 2)), np.eye(6)], axis=1) # construction of indices of the left hand side of the dynamical constraints: E @ [u z].T
+        self.model.E = np.concatenate([np.zeros((6, 2)), np.eye(6)], axis=1) # inter-stage equality Ek @ zk+1 = f(zk, pk)
         #  upper/lower variable bounds lb <= z <= ub
         #                     inputs         |  states
         #                     thrust  moment     y        z      theta     dy      dz       dtheta
@@ -115,11 +115,20 @@ class MPC():
         # model.hl = np.array([1, 0.7 ** 2])
 
         # set dimensions of the problem
-        self.model.N = 50 # horizon length
+        # self.model.N = 50 # horizon length
         self.model.nvar = 8 # number of variables
         self.model.neq = 6 # number of equality constraints
         self.nh = 2 # number of inequality constraints functions
         self.xinitidx = range(2, 8) # indices of the state variables
+
+        # handle the last stage separately
+        # self.model.objectiveN = lambda z: casadi.sumsqr(z[0:2]-np.array([0, 0.5])) # cost: distance to the goal
+        # self.model.nvarN = 8 - 2
+        # self.model.EN = np.eye(6)
+        # self.model.ineqN = lambda z: z[2:]
+        # self.model.lbN = self.model.lb[2:]
+        # self.model.ubN = self.model.ub[2:]
+
         # Set solver options
         self.codeoptions = forcespro.CodeOptions('FORCESNLPsolver')
         self.codeoptions.maxit = 400  # Maximum number of iterations
@@ -129,6 +138,7 @@ class MPC():
         self.codeoptions.noVariableElimination = 1.
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
         self.solver = self.model.generate_solver(self.codeoptions)
+        # self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
 
     def continuous_dynamics(self, s, u):
         return np.array([s[3], s[4], s[5], -u[0] / self.mass * np.sin(s[2]), -self.g + u[0] / self.mass * np.cos(s[2]), u[1] / self.Ixx])
@@ -184,7 +194,7 @@ assert exitflag == 1, "bad exitflag"
 print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
 
 print(output)
-print(output['x01'].shape)
+#print(output['x01'].shape)
 
 #TODO: for MPC problem, the last stage should have different N!
 
