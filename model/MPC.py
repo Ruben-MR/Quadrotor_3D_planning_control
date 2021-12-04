@@ -94,9 +94,10 @@ class MPC():
         # Precomputes
         self.t_step = 0.01
         self.dt = 0.01
-        self.model = forcespro.nlp.SymbolicModel(50) # create a empty model
+        self.model = forcespro.nlp.SymbolicModel(20) # create a empty model
         # objective (cost function)
-        self.model.objective = lambda z: 100 * (z[2] - 0.5)**2 + 100 * (z[3] - 0.5)**2 # cost: distance to the goal
+        self.model.objective = lambda z: 100 * (z[2] - 0.5)**2 + 100 * (z[3] - 0.5)**2 + 0.2 * z[0]**2 + 0.2 * z[1]**2 # cost: distance to the goal
+        #self.model.objective = lambda z: 100 * (z[2]**2 + z[3]**2) # cost: hovering
         # equality constraints (quadrotor model)
         # z[0:2] action z[2:8] state
         self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[2:8], z[0:2], integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
@@ -119,8 +120,8 @@ class MPC():
         # self.model.N = 50 # horizon length
         self.model.nvar = 8 # number of variables
         self.model.neq = 6 # number of equality constraints
-        self.nh = 2 # number of inequality constraints functions
-        self.xinitidx = range(2, 8) # indices of the state variables
+        #self.model.nh = 2 # number of inequality constraints functions
+        self.model.xinitidx = range(2, 8) # indices of the state variables
 
         # handle the last stage separately
         # self.model.objectiveN = lambda z: casadi.sumsqr(z[0:2]-np.array([0, 0.5])) # cost: distance to the goal
@@ -131,15 +132,25 @@ class MPC():
         # self.model.ubN = self.model.ub[2:]
 
         # Set solver options
-        self.codeoptions = forcespro.CodeOptions('FORCESNLPsolver')
-        self.codeoptions.maxit = 400  # Maximum number of iterations
+        self.codeoptions = forcespro.CodeOptions('FORCENLPsolver')
+        self.codeoptions.maxit = 200  # Maximum number of iterations
         self.codeoptions.printlevel = 0
         self.codeoptions.optlevel = 0  # 0 no optimization, 1 optimize for size, 2 optimize for speed, 3 optimize for size & speed
-        self.codeoptions.nlp.bfgs_init = 3.0 * np.identity(8)  # initialization of the hessian approximation
-        self.codeoptions.noVariableElimination = 1.
+        self.codeoptions.cleanup = False
+        self.codeoptions.timing = 1
+        self.codeoptions.nlp.hessian_approximation = 'bfgs'  # when using solvemethod = 'SQP_NLP' and LSobjective, try out 'gauss-newton' here (original: bfgs)
+        self.codeoptions.nlp.bfgs_init = 2.5 * np.identity(8)  # initialization of the hessian approximation
+        self.codeoptions.solvemethod = "SQP_NLP"
+        self.codeoptions.sqp_nlp.maxqps = 1  # maximum number of quadratic problems to be solved
+        self.codeoptions.sqp_nlp.reg_hessian = 5e-9  # increase this if exitflag=-8
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
         self.solver = self.model.generate_solver(self.codeoptions)
         #self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
+
+        # Set initial guess to start solver from (here, middle of upper and lower bound)
+        x0i = np.zeros([self.model.nvar, 1])
+        x0 = np.transpose(np.tile(x0i, (1, self.model.N)))
+        self.problem = {"x0": x0, "xinit": np.transpose(np.zeros(6))}
 
     def continuous_dynamics(self, s, u):
         return np.array([s[3], s[4], s[5], -u[0] / self.mass * np.sin(s[2]), -self.g + u[0] / self.mass * np.cos(s[2]), u[1] / self.Ixx])
@@ -148,19 +159,17 @@ class MPC():
         """
         Sovling NLP prolem in N-step-horizon for optimal control, take the first control input
         """
-        # Set initial guess to start solver from (here, middle of upper and lower bound)
-        xi = np.hstack((np.zeros(2), state))
-        x0 = np.transpose(np.tile(xi, (1, self.model.N)))
-        problem = {"x0": x0}
+        x_current = np.transpose(state)
+        self.problem["xinit"] = x_current
         # # Set runtime parameters
         # params = np.array(
         #     [-1.5, 1.])  # In this example, the user can change these parameters by clicking into an interactive window
         # problem["all_parameters"] = np.transpose(np.tile(params, (1, model.N)))
 
         # Time to solve the NLP!
-        output, exitflag, info = self.solver.solve(problem)
+        output, exitflag, info = self.solver.solve(self.problem)
         # Make sure the solver has exited properly.
-        assert exitflag == 1, "bad exitflag"
+        #assert exitflag == 1, "bad exitflag"
         # print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
         action = np.zeros(2)
         action[0] = output['x01'][0]
@@ -217,6 +226,7 @@ if __name__ == '__main__':
         real_trajectory['y'].append(obs[0])
         real_trajectory['z'].append(obs[1])
         print("y, z:",obs[0],obs[1])
+        print("action", action)
         print("--------------------------")
         current_state = obs
         t += dt
