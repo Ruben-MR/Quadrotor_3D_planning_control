@@ -137,8 +137,8 @@ class MPC():
         self.codeoptions.nlp.bfgs_init = 3.0 * np.identity(8)  # initialization of the hessian approximation
         self.codeoptions.noVariableElimination = 1.
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
-        self.solver = self.model.generate_solver(self.codeoptions)
-        # self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
+        #self.solver = self.model.generate_solver(self.codeoptions)
+        self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
 
     def continuous_dynamics(self, s, u):
         return np.array([s[3], s[4], s[5], -u[0] / self.mass * np.sin(s[2]), -self.g + u[0] / self.mass * np.cos(s[2]), u[1] / self.Ixx])
@@ -150,8 +150,8 @@ class MPC():
         mpc = MPC()
 
         # Set initial guess to start solver from (here, middle of upper and lower bound)
-        #x0i = np.array([0., 0., 0., 0., 0., 0., 0., 0.])
-        x0 = np.transpose(np.tile(state, (1, mpc.model.N)))
+        xi = np.zeros(8)
+        x0 = np.transpose(np.tile(xi, (1, mpc.model.N)))
         problem = {"x0": x0}
         # # Set runtime parameters
         # params = np.array(
@@ -163,96 +163,97 @@ class MPC():
         # Make sure the solver has exited properly.
         assert exitflag == 1, "bad exitflag"
         # print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
+        action = np.zeros(2)
         action[0] = output['x01'][0]
         action[1] = output['x01'][1]
 
         return action
 
-mpc = MPC()
-
-# Set initial guess to start solver from (here, middle of upper and lower bound)
-x0i = np.array([0., 0., 0., 0., 0., 0., 0., 0.])
-x0 = np.transpose(np.tile(x0i, (1, mpc.model.N)))
-
-# set initial condition
-xinit = np.transpose(np.array([0., 0., 0., 0., 0., 0.]))
-xfinal = np.transpose(np.array([0., 2., 0., 0., 0., 0.]))
-# problem = {"x0": x0,
-#            "xinit": xinit,
-#            "xfinal": xfinal}
-problem = {"x0": x0}
-# # Set runtime parameters
-# params = np.array(
-#     [-1.5, 1.])  # In this example, the user can change these parameters by clicking into an interactive window
-# problem["all_parameters"] = np.transpose(np.tile(params, (1, model.N)))
-
-# Time to solve the NLP!
-output, exitflag, info = mpc.solver.solve(problem)
-
-# Make sure the solver has exited properly.
-assert exitflag == 1, "bad exitflag"
-print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
-
-print(output)
-#print(output['x01'].shape)
+# mpc = MPC()
+#
+# # Set initial guess to start solver from (here, middle of upper and lower bound)
+# x0i = (mpc.lb + mpc.ub) / 2
+# x0 = np.transpose(np.tile(x0i, (1, mpc.model.N)))
+#
+# # set initial condition
+# xinit = np.transpose(np.array([0., 0., 0., 0., 0., 0.]))
+# xfinal = np.transpose(np.array([0., 2., 0., 0., 0., 0.]))
+# # problem = {"x0": x0,
+# #            "xinit": xinit,
+# #            "xfinal": xfinal}
+# problem = {"x0": x0}
+# # # Set runtime parameters
+# # params = np.array(
+# #     [-1.5, 1.])  # In this example, the user can change these parameters by clicking into an interactive window
+# # problem["all_parameters"] = np.transpose(np.tile(params, (1, model.N)))
+#
+# # Time to solve the NLP!
+# output, exitflag, info = mpc.solver.solve(problem)
+#
+# # Make sure the solver has exited properly.
+# assert exitflag == 1, "bad exitflag"
+# print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
+#
+# print(output)
+# print(output['x01'].shape)
 
 #TODO: for MPC problem, the last stage should have different N!
 
-#
-# def animate(i):
-#     line.set_xdata(real_trajectory['x'][:i + 1])
-#     line.set_ydata(real_trajectory['y'][:i + 1])
-#     line.set_3d_properties(real_trajectory['z'][:i + 1])
-#     point.set_xdata(real_trajectory['x'][i])
-#     point.set_ydata(real_trajectory['y'][i])
-#     point.set_3d_properties(real_trajectory['z'][i])
-#
-#
-# if __name__ == '__main__':
-#     env = Quadrotor()
-#     current_state = env.reset()
-#     print("current:", current_state)
-#     dt = 0.01
-#     t = 0
-#     iter = 0
-#     controller = MPC()
-#     real_trajectory = {'x': [], 'y': [], 'z': []}
-#     while (t < 2):
-#         print('iteration: ', iter)
-#         action = controller.control(current_state)
-#         obs, reward, done, info = env.step(action)
-#         real_trajectory['x'].append(0)
-#         real_trajectory['y'].append(obs[0])
-#         real_trajectory['z'].append(obs[1])
-#         print("y, z:",obs[0],obs[1])
-#         print("--------------------------")
-#         current_state = obs
-#         t += dt
-#         iter += 1
-#     fig = plt.figure()
-#     ax1 = p3.Axes3D(fig)  # 3D place for drawing
-#     ax1.set_xlim3d(-0.2, 0.2)
-#     ax1.set_ylim3d(-0.5, 0.5)
-#     ax1.set_zlim3d(0, 1.5)
-#     real_trajectory['x'] = np.array(real_trajectory['x'])
-#     real_trajectory['y'] = np.array(real_trajectory['y'])
-#     real_trajectory['z'] = np.array(real_trajectory['z'])
-#     point, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'ro',
-#                       label='Quadrotor')
-#     line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]],
-#                      label='Real_Trajectory')
-#
-#     ax1.set_xlabel('x')
-#     ax1.set_ylabel('y')
-#     ax1.set_zlabel('z')
-#     ax1.set_title('3D animate')
-#     ax1.view_init(30, 35)
-#     ax1.legend(loc='lower right')
-#
-#     ani = animation.FuncAnimation(fig=fig,
-#                                   func=animate,
-#                                   frames=len(real_trajectory['x']),
-#                                   interval=10,
-#                                   repeat=False,
-#                                   blit=False)
-#     plt.show()
+
+def animate(i):
+    line.set_xdata(real_trajectory['x'][:i + 1])
+    line.set_ydata(real_trajectory['y'][:i + 1])
+    line.set_3d_properties(real_trajectory['z'][:i + 1])
+    point.set_xdata(real_trajectory['x'][i])
+    point.set_ydata(real_trajectory['y'][i])
+    point.set_3d_properties(real_trajectory['z'][i])
+
+
+if __name__ == '__main__':
+    env = Quadrotor()
+    current_state = env.reset()
+    print("current:", current_state)
+    dt = 0.01
+    t = 0
+    iter = 0
+    controller = MPC()
+    real_trajectory = {'x': [], 'y': [], 'z': []}
+    while (t < 2):
+        print('iteration: ', iter)
+        action = controller.control(current_state)
+        obs, reward, done, info = env.step(action)
+        real_trajectory['x'].append(0)
+        real_trajectory['y'].append(obs[0])
+        real_trajectory['z'].append(obs[1])
+        print("y, z:",obs[0],obs[1])
+        print("--------------------------")
+        current_state = obs
+        t += dt
+        iter += 1
+    fig = plt.figure()
+    ax1 = p3.Axes3D(fig)  # 3D place for drawing
+    ax1.set_xlim3d(-0.2, 0.2)
+    ax1.set_ylim3d(-0.5, 0.5)
+    ax1.set_zlim3d(0, 1.5)
+    real_trajectory['x'] = np.array(real_trajectory['x'])
+    real_trajectory['y'] = np.array(real_trajectory['y'])
+    real_trajectory['z'] = np.array(real_trajectory['z'])
+    point, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'ro',
+                      label='Quadrotor')
+    line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]],
+                     label='Real_Trajectory')
+
+    ax1.set_xlabel('x')
+    ax1.set_ylabel('y')
+    ax1.set_zlabel('z')
+    ax1.set_title('3D animate')
+    ax1.view_init(30, 35)
+    ax1.legend(loc='lower right')
+
+    ani = animation.FuncAnimation(fig=fig,
+                                  func=animate,
+                                  frames=len(real_trajectory['x']),
+                                  interval=10,
+                                  repeat=False,
+                                  blit=False)
+    plt.show()
