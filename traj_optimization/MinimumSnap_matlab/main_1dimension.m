@@ -6,26 +6,26 @@ n_seg         = size(path,2)-1;% segment number
 n_poly_perseg = (n_order+1); % coef number of perseg
 
 ts = zeros(n_seg, 1);
-% % calculate time distribution in proportion to distance between 2 points
-% dist     = zeros(n_seg, 1);
-% dist_sum = 0;
-% T        = 25;
-% t_sum    = 0;
-% 
-% for i = 1:n_seg
-%     dist(i) = sqrt((path(i+1, 1)-path(i, 1))^2 + (path(i+1, 2) - path(i, 2))^2);
-%     dist_sum = dist_sum+dist(i);
-% end
-% for i = 1:n_seg-1
-%     ts(i) = dist(i)/dist_sum*T;
-%     t_sum = t_sum+ts(i);
-% end
-% ts(n_seg) = T - t_sum;
+% calculate time distribution in proportion to distance between 2 points
+dist     = zeros(n_seg, 1);
+dist_sum = 0;
+T        = 25;
+t_sum    = 0;
+
+for i = 1:n_seg
+    dist(i) = sqrt((path(i+1, 1)-path(i, 1))^2 + (path(i+1, 2) - path(i, 2))^2);
+    dist_sum = dist_sum+dist(i);
+end
+for i = 1:n_seg-1
+    ts(i) = dist(i)/dist_sum*T;
+    t_sum = t_sum+ts(i);
+end
+ts(n_seg) = T - t_sum;
 
 % simply set all time distribution as 1
-for i = 1:n_seg
-    ts(i) = 1.0;
-end
+% for i = 1:n_seg
+%     ts(i) = 1.0;
+% end
 
 poly_coef_x = MinimumSnapQPSolver(path, ts, n_seg, n_order);
 poly_coef_v = polyder(poly_coef_x);

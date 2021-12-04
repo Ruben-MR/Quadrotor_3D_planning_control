@@ -62,12 +62,12 @@ def get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond):
     return aeq, beq
 
 
-def compute_proportional_t(waypoints, T, n_seg):
+def compute_proportional_t(path, T, n_seg):
     ts = np.zeros((n_seg,))
     dist = np.zeros((n_seg,))
     dist_sum, t_sum = 0, 0
     for i in range(n_seg):
-        dist[i] = np.linalg.norm(waypoints[i+1, :] - waypoints[i, :])
+        dist[i] = np.linalg.norm(path[i+1, :] - path[i, :])
         dist_sum += dist[i]
     for i in range(n_seg-1):
         ts[i] = T*dist[i]/dist_sum
