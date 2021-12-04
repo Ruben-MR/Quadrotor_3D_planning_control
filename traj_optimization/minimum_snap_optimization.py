@@ -90,8 +90,8 @@ def compute_proportional_t(waypoints, T, n_seg):
 
 
 def minimum_snap_qp(waypoints, ts, n_seg, n_order):
-    start_cond = np.array([path[0, 0], 0, 0, 0])
-    end_cond = np.array([path[-1, 0], 0, 0, 0])
+    start_cond = np.array([waypoints[0], 0, 0, 0])
+    end_cond = np.array([waypoints[-1], 0, 0, 0])
     qs = get_q(n_seg, n_order, ts)
     aeq, beq = get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond)
     x = cp.Variable(n_seg * (n_order + 1))
