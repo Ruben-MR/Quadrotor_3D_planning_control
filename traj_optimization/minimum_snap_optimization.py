@@ -90,8 +90,8 @@ def minimum_snap_qp(waypoints, ts, n_seg, n_order):
 path = np.array([[0, 0], [1, 4], [2, 2], [4, 6]])
 n_order = 7
 n_seg = np.size(path, axis=0) - 1
-#ts = compute_proportional_t(path, 25, n_seg)
-ts = np.full((n_seg,), 1)
+ts = compute_proportional_t(path, 3, n_seg)
+#ts = np.full((n_seg,), 1)
 poly_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
 poly_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
 print(np.sum(poly_coef_y[-9:-1]))
