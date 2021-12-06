@@ -2,8 +2,7 @@ import numpy as np
 from math import factorial
 import cvxpy as cp
 from matplotlib import pyplot as plt
-from Obstacle import Obstacle
-from box_plotter import plot_three_dee_box
+from Obstacle import Obstacle, plot_three_dee_box
 
 
 def get_q(n_seg, n_order, ts):

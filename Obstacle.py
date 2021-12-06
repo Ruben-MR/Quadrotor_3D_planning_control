@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Nov 23 20:14:47 2021
-
-@author: richard
+Contains the source code for defining the obstacle class and function for collision detection along a path
 """
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Obstacle(object):
     '''
-    Obstacle object using AABB representation
+    Obstacle object using AABB min-max coordinate representation
+    In addition to the min-max point coordinates, it also stores such values for the collision object given
+    a robot of given redius
     '''
-    def __init__(self, point_min=[0, 0, 0], point_max=[0, 0, 0], radius=0.005):
+    def __init__(self, point_min=[0, 0, 0], point_max=[0, 0, 0], radius=0.05):
         self.point_min_ = point_min
         self.point_max_ = point_max
-        self.r_ = 0.005
+        self.r_ = radius
         self.x_min_ = self.point_min_[0]
         self.y_min_ = self.point_min_[1]
         self.z_min_ = self.point_min_[2]
@@ -28,7 +29,7 @@ class Obstacle(object):
         self.collision_y_max_ = self.y_max_+self.r_
         self.collision_z_max_ = self.z_max_+self.r_
 
-    # Function for checking collisioin with a given point
+    # Function for checking collision with a given point
     # return True if there is collision
     def collision_check(self, point):
         if self.collision_x_min_ <= point[0] <= self.collision_x_max_ and \
@@ -37,24 +38,9 @@ class Obstacle(object):
             return True
         else:
             return False
-    
-    def physical_vertices(self):
-        self.length_x_ = self.x_max_ - self.x_min_
-        self.length_y_ = self.y_max_ - self.y_min_
-        self.length_z_ = self.z_max_ - self.z_min_
-        vertex_1 = np.array([self.x_min_, self.y_min_, self.z_min_])
-        vertex_2 = np.array([self.x_min_, self.y_min_+self.length_y_, self.z_min_])
-        vertex_3 = np.array([self.x_min_+self.length_x_, self.y_min_+self.length_y_, self.z_min_])
-        vertex_4 = np.array([self.x_min_+self.length_x_, self.y_min_, self.z_min_])
-        vertex_5 = np.array([self.x_min_, self.y_min_, self.z_max_])
-        vertex_6 = np.array([self.x_min_, self.y_min_+self.length_y_, self.z_max_])
-        vertex_7 = np.array([self.x_min_+self.length_x_, self.y_min_+self.length_y_, self.z_max_])
-        vertex_8 = np.array([self.x_min_+self.length_x_, self.y_min_, self.z_max_])
-        vertices = np.vstack((vertex_1, vertex_2, vertex_3, vertex_4, vertex_5, vertex_6, vertex_7, vertex_8))
-        return vertices
 
 
-
+# Function for checking collision along the path connecting two points in a straight line
 def collision_check_path(startPose, goalPose, obstacle_array, boundary=None):
     '''
     collision check function for a path (discretization)
@@ -72,13 +58,41 @@ def collision_check_path(startPose, goalPose, obstacle_array, boundary=None):
                 return True
     return False
 
-"""
-obs = Obstacle([0, 0, 0], [1, 1, 1])
-point = np.array([0.5, 0.5, 2])
-print(obs.collision_check(point))
-print(obs.physical_vertices())
-start = [0.5, 0.5, 0.5]
-end = [1, 1, 2]
-obs_lst = [obs]
-print(collision_check_path(start, end, obs_lst))
-"""
+
+def plot_three_dee_box(points, ax=None, rgb=(1, 0, 0), opacity=0.6, show=False):
+    """
+    This function takes 2 3D points, defining a 3D orthogonal box, and plots it.
+
+    :param points: the box-defining points, a set of two 3D coordinates,
+    format can be a np.array of shape (2, 3), or an Obstacle object.
+    :param ax: the parent plotting environment, if none is provided, one will be created automatically
+    :param rgb: the color to use, by default red, format is a tuple of RGB values
+    :param opacity: determines the opacity og the box, format is a float, must be between 0 and 1
+    :param show: if set to True, the function will automatically plot the box
+    :return: None
+    """
+    if type(points) == Obstacle:
+        points = np.array([points.point_min_, points.point_max_])
+
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+    x = points[:, 0]    # the box's x-coordinate extremities
+    y = points[:, 1]    # the box's y-coordinate extremities
+    z = points[:, 2]    # the box's z-coordinate extremities
+
+    yy_x, zz_x = np.meshgrid(y, z)      # the grids of points for the planes perpendicular to the x-axis
+    xx_y, zz_y = np.meshgrid(x, z)      # the grids of points for the planes perpendicular to the y-axis
+    xx_z, yy_z = np.meshgrid(x, y)      # the grids of points for the planes perpendicular to the z-axis
+
+    # plotting all 6 faces of the cuboid
+    ax.plot_surface(points[0, 0].reshape(1, 1), yy_x, zz_x, color=rgb, alpha=opacity)
+    ax.plot_surface(points[1, 0].reshape(1, 1), yy_x, zz_x, color=rgb, alpha=opacity)
+    ax.plot_surface(xx_y, points[0, 1].reshape(1, 1), zz_y, color=rgb, alpha=opacity)
+    ax.plot_surface(xx_y, points[1, 1].reshape(1, 1), zz_y, color=rgb, alpha=opacity)
+    ax.plot_surface(xx_z, yy_z, points[0, 2].reshape(1, 1), color=rgb, alpha=opacity)
+    ax.plot_surface(xx_z, yy_z, points[1, 2].reshape(1, 1), color=rgb, alpha=opacity)
+
+    if show:
+        plt.show()

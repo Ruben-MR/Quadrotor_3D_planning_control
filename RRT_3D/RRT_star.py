@@ -3,15 +3,15 @@
 
 import os
 import sys
+
 url1 = os.path.abspath(os.path.join(os.getcwd(), "../map/"))
 url2 = os.path.abspath(os.path.join(os.getcwd(), "../box_plotter/"))
 sys.path.append(url1)
 sys.path.append(url2)
+
 import numpy as np
-import matplotlib.pyplot as plt
 from numpy.linalg import norm
-from box_plotter import plot_three_dee_box
-from Obstacle import Obstacle, collision_check_path
+from Obstacle import collision_check_path
 
 
 # Definition of Class Node
@@ -94,7 +94,7 @@ class RRT_star:
                 path_idx = self.node_list[path_idx].parent_idx
         else:
             print('No path found')
-        return path_list
+        return np.array(path_list)
 
     # Function for generating a new sample and the index of the closest neighbor
     def new_and_closest(self, map_boundary):
