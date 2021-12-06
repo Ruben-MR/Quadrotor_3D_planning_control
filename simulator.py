@@ -4,7 +4,7 @@ import sys
 # deal with the folders
 
 url1 = os.path.join(os.getcwd(), "model/")
-url2 = os.path.join(os.getcwd(), "traj_handles_ro47001/")
+url2 = os.path.join(os.getcwd(), "no_longer_needed/traj_handles_ro47001/")
 sys.path.append(url1)
 sys.path.append(url2)
 #################################################################
@@ -30,7 +30,7 @@ time_step = 1e-2
 total_SE = 0
 total_energy = 0
 #################################################################
-# Define the obstables
+# Define the obstacles
 
 boxes = list()
 boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
@@ -46,7 +46,7 @@ obstacles = list()
 for box in boxes:
     obstacles.append(Obstacle(box[0, :], box[1, :]))
 
-# Setup the plotting tools and elements
+# Set up the plotting tools and elements
 
 fig = plt.figure()
 ax1 = fig.add_subplot(111, projection="3d")

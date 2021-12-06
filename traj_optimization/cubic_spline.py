@@ -18,25 +18,25 @@ def cubic_spline(path_list, T):
     for i in range(num-1):
         t_array[i] = sum(dis_list[0:i]) / sum(dis_list) * T
     t_array[num-1] = T
-    # get the X, Y, X array in reverse order
-    X = path_array[:,0][::-1]
-    Y = path_array[:,1][::-1]
-    Z = path_array[:,2][::-1]
+    # get the x, y, x array in reverse order
+    x = path_array[:, 0][::-1]
+    y = path_array[:, 1][::-1]
+    z = path_array[:, 2][::-1]
     
     # The boundary type is set to be 'clamped', which means 
     # the first derivative at curves ends are zero. 
-    fx = CubicSpline(t_array, X, bc_type='clamped')
+    fx = CubicSpline(t_array, x, bc_type='clamped')
     t_new = np.linspace(0, T, int(T/0.01))
     x_new = fx(t_new)
     vel_x = fx(t_new, 1)
     acc_x = fx(t_new, 2)
         
-    fy = CubicSpline(t_array, Y, bc_type='clamped')
+    fy = CubicSpline(t_array, y, bc_type='clamped')
     y_new = fy(t_new)
     vel_y = fy(t_new, 1)
     acc_y = fy(t_new, 2)
     
-    fz = CubicSpline(t_array, Z, bc_type='clamped')
+    fz = CubicSpline(t_array, z, bc_type='clamped')
     z_new = fz(t_new)
     vel_z = fz(t_new, 1)
     acc_z = fz(t_new, 2)
