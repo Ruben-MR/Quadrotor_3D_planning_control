@@ -18,6 +18,7 @@ def get_q(n_seg, n_order, ts):
         q[(8*k):(8*k+8), (8*k):(8*k+8)] = q_k
     return q
 
+
 def get_aeq_cont(n_seg, n_order, ts, k):
     aeq_cont = np.zeros((n_seg - 1, n_seg * (n_order + 1)))
     for j in range(n_seg - 1):
@@ -25,6 +26,7 @@ def get_aeq_cont(n_seg, n_order, ts, k):
             aeq_cont[j, (n_order+1) * j + i] = factorial(i)*pow(ts[j], i-k)/factorial(i-k)
         aeq_cont[j, (n_order+1) * (j + 1) + k] = -factorial(k)
     return aeq_cont
+
 
 def get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond):
     n_all_poly = n_seg * (n_order + 1)
