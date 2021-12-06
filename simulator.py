@@ -24,7 +24,6 @@ env = Quadrotor()
 policy = GeometricController()
 
 # Define some initial values and state
-current_state = env.reset(position=[0, 0, 0])
 dt = 0.01
 t = 0
 time_step = 1e-2
@@ -62,11 +61,12 @@ ax1.set_title('3D animate')
 ax1.view_init(30, 35)
 #########################################################################
 # global path planning using RRT*
-x_start = np.array([0, 0, 0])
-x_goal = np.array([5, 7, 3])
+x_start = np.array([5, 7, 3])
+x_goal = np.array([0.5, 4.5, 1.5])
 map_boundary = [17, 8, 3]
 
-RRT = RRT_star(x_start, 1000, obstacles, ax1, 1.5)
+current_state = env.reset(position=x_start)
+RRT = RRT_star(x_start, 1000, obstacles, ax1, 1)
 path_exists = RRT.find_path(x_goal, map_boundary)
 #########################################################################
 # If a path has been found proceed to follow it
