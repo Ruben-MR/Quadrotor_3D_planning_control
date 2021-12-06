@@ -37,11 +37,6 @@ def quat_dot(quat, omega):
     return quat_dot
 
 
-'''
-Note that order for the function above is different!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-'''
-
-
 class Quadrotor():
     """
     Quadrotor forward dynamics model.
