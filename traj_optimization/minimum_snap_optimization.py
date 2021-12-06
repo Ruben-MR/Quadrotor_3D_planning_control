@@ -2,6 +2,8 @@ import numpy as np
 from math import factorial
 import cvxpy as cp
 from matplotlib import pyplot as plt
+from Obstacle import Obstacle
+from box_plotter import plot_three_dee_box
 
 
 def get_q(n_seg, n_order, ts):
@@ -87,25 +89,67 @@ def minimum_snap_qp(waypoints, ts, n_seg, n_order):
     return x.value
 
 
-path = np.array([[0, 0], [1, 4], [2, 2], [4, 6]])
-n_order = 7
-n_seg = np.size(path, axis=0) - 1
-ts = compute_proportional_t(path, 3, n_seg)
-#ts = np.full((n_seg,), 1)
-poly_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
-poly_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
-print(np.sum(poly_coef_y[-9:-1]))
-Xn = []
-Yn = []
-tstep = 0.01
+def min_snap_optimizer_3d(path, T, time_proportional=True):
+    n_order = 7
+    n_seg = np.size(path, axis=0) - 1
+    if time_proportional:
+        ts = compute_proportional_t(path, T, n_seg)
+    else:
+        ts = np.full((n_seg,), 1)
 
-for i in range(n_seg):
-    Pxi = poly_coef_x[(8*i):(8*(i+1))]
-    Pyi = poly_coef_y[(8*i):(8*(i+1))]
-    for t in np.arange(0, ts[i], tstep):
-        Xn.append(np.polyval(Pxi[::-1], t))
-        Yn.append(np.polyval(Pyi[::-1], t))
+    poly_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
+    poly_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
+    poly_coef_z = minimum_snap_qp(path[:, 2], ts, n_seg, n_order)
 
-plt.scatter(path[:, 0], path[:, 1])
-plt.plot(Xn, Yn)
+    Xn, Yn, Zn = [], [], []
+    tstep = 0.01
+
+    for i in range(n_seg):
+        Pxi = poly_coef_x[(8 * i):(8 * (i + 1))]
+        Pyi = poly_coef_y[(8 * i):(8 * (i + 1))]
+        Pzi = poly_coef_z[(8 * i):(8 * (i + 1))]
+        for t in np.arange(0, ts[i], tstep):
+            Xn.append(np.polyval(Pxi[::-1], t))
+            Yn.append(np.polyval(Pyi[::-1], t))
+            Zn.append(np.polyval(Pzi[::-1], t))
+
+    return Xn, Yn, Zn
+
+
+# path = np.array([[0, 0, 0], [1, 4, 2], [2, 2, 5], [4, 6, 3]])
+
+path = np.array([[ 3.        ,  7.        ,  3.        ],
+                [ 6.92606402,  6.4886619 ,  2.78161884],
+                [10.40370897,  6.34005625,  2.3551076 ],
+                [13.44698332,  5.71876861,  2.09500267],
+                [14.33150833,  5.07787231,  2.13299712],
+                [10.48657387,  3.38083826,  1.92649853],
+                [ 6.68370723,  1.45014583,  1.46772085],
+                [ 3.9502406 ,  0.52754665,  0.75817076],
+                [ 0.        ,  0.        ,  0.        ]])
+
+Xn, Yn, Zn = min_snap_optimizer_3d(path, 1, False)
+
+# Initialization and import the obstacle array in a real environment
+boxes = list()
+boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
+boxes.append(np.array([[14, 5, 0], [15, 5.3, 2]]))
+boxes.append(np.array([[0, 4, 0], [1, 5, 1]]))
+boxes.append(np.array([[1.5, 4, 0], [2.5, 5, 1]]))
+boxes.append(np.array([[5, 0, 2], [5.3, 5, 3]]))
+boxes.append(np.array([[5, 1, 1], [5.3, 4, 2]]))
+boxes.append(np.array([[5, 0, 0], [5.3, 4, 1]]))
+boxes.append(np.array([[2, 2.5, 0], [5, 2.8, 3]]))
+
+obstacles = list()
+for box in boxes:
+    obstacles.append(Obstacle(box[0, :], box[1, :]))
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.scatter(path[:, 0], path[:, 1], path[:, 2])
+ax.plot(Xn, Yn, Zn)
+for box in obstacles:
+    plot_three_dee_box(box, ax=ax)
+
 plt.show()
