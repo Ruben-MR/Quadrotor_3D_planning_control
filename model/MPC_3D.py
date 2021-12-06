@@ -120,8 +120,13 @@ class MPC():
         #return np.array([s[3], s[4], s[5], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[0], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[1],/
         #                ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[2], ])
         #return np.hstack((s[3], s[4], s[5], (self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass, quat_dot(s[6:10], s[10:13]), self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13]))))
+        '''
         return np.array([s[3], s[4], s[5], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[0], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[1], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[2],
                           quat_dot(s[6:10], s[10:13])[0], quat_dot(s[6:10], s[10:13])[1], quat_dot(s[6:10], s[10:13])[2], quat_dot(s[6:10], s[10:13])[3],
+                         (self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))[0], (self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))[1], (self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))[2]])
+        '''
+        return np.array([s[3], s[4], s[5], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[0], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[1], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[2],
+                          0, 0, 0, 1,
                          (self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))[0], (self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))[1], (self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))[2]])
 
     def control(self, state):
