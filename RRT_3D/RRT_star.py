@@ -25,12 +25,12 @@ class Node:
 # Definition of the RRT* search class
 class RRT_star:
     '''
-    Given the start position, goal position and map boundary, 
+    Given the start pos, goal pos and map boundary,
     RRT* method is used to generate a waypoints list, 
     return the path_list.
     '''
 
-    # Class constructor given an initial position
+    # Class constructor given an initial pos
     def __init__(self, x_start, num_iter, obstacles, ax, thr=0.5):
         # Set parameters
         self.num_dim = 3        # number of dimensions to search for
@@ -65,8 +65,8 @@ class RRT_star:
             # Rewire the new node for optimal cost and get the close points
             neigh_list = self.rewire_node(x_new, idx, True)
 
-            # Rewire the neighbouring points to the new sample, for existent nodes, pass its position on the list rather
-            # than their position
+            # Rewire the neighbouring points to the new sample, for existent nodes, pass its pos on the list rather
+            # than their pos
             for j in neigh_list:
                 self.rewire_node(j, [], False)
 
@@ -94,7 +94,7 @@ class RRT_star:
                 path_idx = self.node_list[path_idx].parent_idx
         else:
             print('No path found')
-        return np.array(path_list)
+        return np.flip(np.array(path_list), axis=0)
 
     # Function for generating a new sample and the index of the closest neighbor
     def new_and_closest(self, map_boundary):
@@ -113,7 +113,7 @@ class RRT_star:
             if dis < nearest_dis:
                 nearest_node = i
                 nearest_dis = dis
-        # Return the position of the newly generated random point and the position of the nearest node in the list
+        # Return the pos of the newly generated random point and the pos of the nearest node in the list
         return x_rand, nearest_node
 
     # Function for node rewiring, takes a bool to rewire depending on whether a new sample is given or an existing one

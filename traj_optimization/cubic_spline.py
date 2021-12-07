@@ -18,10 +18,10 @@ def cubic_spline(path_list, T):
     for i in range(num-1):
         t_array[i] = sum(dis_list[0:i]) / sum(dis_list) * T
     t_array[num-1] = T
-    # get the x, y, x array in reverse order
-    x = path_array[:, 0][::-1]
-    y = path_array[:, 1][::-1]
-    z = path_array[:, 2][::-1]
+    # get the x, y, z array in reverse order
+    x = path_array[:, 0]
+    y = path_array[:, 1]
+    z = path_array[:, 2]
     
     # The boundary type is set to be 'clamped', which means 
     # the first derivative at curves ends are zero. 

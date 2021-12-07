@@ -14,7 +14,7 @@ def get_q(n_seg, n_order, ts):
         for i in range(4, n_order+1):
             for l in range(4, n_order+1):
                 q_k[i, l] = i*(i-1)*(i-2)*(i-3)*l*(l-1)*(l-2)*(l-3)*pow(ts[k], (i+l-7))/(i+l-7)
-        # Assign it to the corresponding position of the general Q matrix
+        # Assign it to the corresponding pos of the general Q matrix
         q[(8*k):(8*k+8), (8*k):(8*k+8)] = q_k
     return q
 
@@ -40,13 +40,13 @@ def get_ab(n_seg, n_order, waypoints, ts, start_cond, end_cond):
     beq_start = start_cond
     beq_end = end_cond
 
-    # position constraints for waypoints
+    # pos constraints for waypoints
     aeq_wp = np.zeros((n_seg-1, n_all_poly))
     for j in range(n_seg-1):
         aeq_wp[j, 8*(j+1)] = 1
     beq_wp = waypoints[1:-1]
 
-    # position continuity
+    # pos continuity
     aeq_contp = get_aeq_cont(n_seg, n_order, ts, k=0)
 
     # velocity continuity
@@ -87,70 +87,59 @@ def minimum_snap_qp(waypoints, ts, n_seg, n_order):
     x = cp.Variable(n_seg * (n_order + 1))
     prob = cp.Problem(cp.Minimize(cp.quad_form(x, qs)), [aeq @ x == beq])
     prob.solve()
-    return x.value
+    return np.array(x.value)
 
 
-def min_snap_optimizer_3d(path, T, time_proportional=True):
+def min_snap_optimizer_3d(path, time_proportional=True, total_time=10):
     n_order = 7
     n_seg = np.size(path, axis=0) - 1
     if time_proportional:
-        ts = compute_proportional_t(path, T, n_seg)
+        ts = compute_proportional_t(path, total_time, n_seg)
     else:
         ts = np.full((n_seg,), 1)
 
-    poly_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
-    poly_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
-    poly_coef_z = minimum_snap_qp(path[:, 2], ts, n_seg, n_order)
+    pos_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
+    pos_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
+    pos_coef_z = minimum_snap_qp(path[:, 2], ts, n_seg, n_order)
 
-    Xn, Yn, Zn = [], [], []
+    vel_coef_x = (pos_coef_x.reshape((-1, n_order+1))[:, 1:] * np.arange(start=1, stop=n_order+1).reshape(1, -1)).reshape((-1,))
+    vel_coef_y = (pos_coef_y.reshape((-1, n_order+1))[:, 1:] * np.arange(start=1, stop=n_order+1).reshape(1, -1)).reshape((-1,))
+    vel_coef_z = (pos_coef_z.reshape((-1, n_order+1))[:, 1:] * np.arange(start=1, stop=n_order+1).reshape(1, -1)).reshape((-1,))
+
+    acc_coef_x = (vel_coef_x.reshape((-1, n_order))[:, 1:] * np.arange(start=1, stop=n_order).reshape(1, -1)).reshape((-1,))
+    acc_coef_y = (vel_coef_y.reshape((-1, n_order))[:, 1:] * np.arange(start=1, stop=n_order).reshape(1, -1)).reshape((-1,))
+    acc_coef_z = (vel_coef_z.reshape((-1, n_order))[:, 1:] * np.arange(start=1, stop=n_order).reshape(1, -1)).reshape((-1,))
+
+    pos, vel, acc = [], [], []
     tstep = 0.01
 
     for i in range(n_seg):
-        Pxi = poly_coef_x[(8 * i):(8 * (i + 1))]
-        Pyi = poly_coef_y[(8 * i):(8 * (i + 1))]
-        Pzi = poly_coef_z[(8 * i):(8 * (i + 1))]
+        pxi = pos_coef_x[(8 * i):(8 * (i + 1))].tolist()
+        pyi = pos_coef_y[(8 * i):(8 * (i + 1))].tolist()
+        pzi = pos_coef_z[(8 * i):(8 * (i + 1))].tolist()
+
+        vxi = vel_coef_x[(7 * i):(7 * (i + 1))].tolist()
+        vyi = vel_coef_y[(7 * i):(7 * (i + 1))].tolist()
+        vzi = vel_coef_z[(7 * i):(7 * (i + 1))].tolist()
+
+        axi = acc_coef_x[(6 * i):(6 * (i + 1))].tolist()
+        ayi = acc_coef_y[(6 * i):(6 * (i + 1))].tolist()
+        azi = acc_coef_z[(6 * i):(6 * (i + 1))].tolist()
+
         for t in np.arange(0, ts[i], tstep):
-            Xn.append(np.polyval(Pxi[::-1], t))
-            Yn.append(np.polyval(Pyi[::-1], t))
-            Zn.append(np.polyval(Pzi[::-1], t))
+            pos.append(np.polyval(pxi[::-1], t))
+            pos.append(np.polyval(pyi[::-1], t))
+            pos.append(np.polyval(pzi[::-1], t))
 
-    return Xn, Yn, Zn
+            vel.append(np.polyval(vxi[::-1], t))
+            vel.append(np.polyval(vyi[::-1], t))
+            vel.append(np.polyval(vzi[::-1], t))
 
+            acc.append(np.polyval(axi[::-1], t))
+            acc.append(np.polyval(ayi[::-1], t))
+            acc.append(np.polyval(azi[::-1], t))
 
-# path = np.array([[0, 0, 0], [1, 4, 2], [2, 2, 5], [4, 6, 3]])
-
-path = np.array([[ 3.        ,  7.        ,  3.        ],
-                [ 6.92606402,  6.4886619 ,  2.78161884],
-                [10.40370897,  6.34005625,  2.3551076 ],
-                [13.44698332,  5.71876861,  2.09500267],
-                [14.33150833,  5.07787231,  2.13299712],
-                [10.48657387,  3.38083826,  1.92649853],
-                [ 6.68370723,  1.45014583,  1.46772085],
-                [ 3.9502406 ,  0.52754665,  0.75817076],
-                [ 0.        ,  0.        ,  0.        ]])
-
-Xn, Yn, Zn = min_snap_optimizer_3d(path, 1, False)
-
-# Initialization and import the obstacle array in a real environment
-boxes = list()
-boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
-boxes.append(np.array([[14, 5, 0], [15, 5.3, 2]]))
-boxes.append(np.array([[0, 4, 0], [1, 5, 1]]))
-boxes.append(np.array([[1.5, 4, 0], [2.5, 5, 1]]))
-boxes.append(np.array([[5, 0, 2], [5.3, 5, 3]]))
-boxes.append(np.array([[5, 1, 1], [5.3, 4, 2]]))
-boxes.append(np.array([[5, 0, 0], [5.3, 4, 1]]))
-boxes.append(np.array([[2, 2.5, 0], [5, 2.8, 3]]))
-
-obstacles = list()
-for box in boxes:
-    obstacles.append(Obstacle(box[0, :], box[1, :]))
-
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-ax.scatter(path[:, 0], path[:, 1], path[:, 2])
-ax.plot(Xn, Yn, Zn)
-for box in obstacles:
-    plot_three_dee_box(box, ax=ax)
-
-plt.show()
+    pos = np.array(pos).reshape((-1, 3))
+    vel = np.array(vel).reshape((-1, 3))
+    acc = np.array(acc).reshape((-1, 3))
+    return pos, vel, acc

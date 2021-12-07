@@ -17,6 +17,7 @@ from Obstacle import Obstacle, plot_three_dee_box
 from RRT_3D.RRT_star import RRT_star
 from scipy.spatial.transform import Rotation
 from traj_optimization.cubic_spline import cubic_spline
+from traj_optimization.minimum_snap_optimization import min_snap_optimizer_3d
 #################################################################
 
 # Create the quadrotor class and controller
@@ -36,6 +37,7 @@ boxes = list()
 boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
 boxes.append(np.array([[14, 5, 0], [15, 5.3, 2]]))
 boxes.append(np.array([[0, 4, 0], [1, 5, 1]]))
+boxes.append(np.array([[0, 2, 0], [1, 3, 1]]))
 boxes.append(np.array([[1.5, 4, 0], [2.5, 5, 1]]))
 boxes.append(np.array([[5, 0, 2], [5.3, 5, 3]]))
 boxes.append(np.array([[5, 1, 1], [5.3, 4, 2]]))
@@ -62,7 +64,7 @@ ax1.view_init(30, 35)
 #########################################################################
 # global path planning using RRT*
 x_start = np.array([5, 7, 3])
-x_goal = np.array([0.5, 4.5, 1.5])
+x_goal = np.array([0.5, 2.5, 1.5])
 map_boundary = [17, 8, 3]
 
 current_state = env.reset(position=x_start)
@@ -75,7 +77,8 @@ if not path_exists:
 else:
     T = 15
     path_list = RRT.get_path()
-    pos, vel, acc = cubic_spline(path_list, T)
+    # pos, vel, acc = cubic_spline(path_list, T)
+    pos, vel, acc = min_snap_optimizer_3d(path_list, False)
     ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
     real_trajectory = np.zeros((1, 3))
     real_orientation = np.zeros((1, 4))
