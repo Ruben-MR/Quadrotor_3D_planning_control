@@ -90,11 +90,12 @@ def minimum_snap_qp(waypoints, ts, n_seg, n_order):
     return np.array(x.value)
 
 
-def min_snap_optimizer_3d(path, time_proportional=True, total_time=10):
+def min_snap_optimizer_3d(path, total_time, time_proportional=True):
     n_order = 7
     n_seg = np.size(path, axis=0) - 1
     if time_proportional:
         ts = compute_proportional_t(path, total_time, n_seg)
+        print(ts)
     else:
         ts = np.full((n_seg,), 1)
 
