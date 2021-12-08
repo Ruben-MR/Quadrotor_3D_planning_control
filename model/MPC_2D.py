@@ -162,7 +162,7 @@ class MPC():
         self.problem = {"x0": x0, "xinit": np.transpose(np.zeros(6))}
 
     def continuous_dynamics(self, s, u):
-        return np.array([s[3], s[4], s[5], -u[0] / self.mass * np.sin(s[2]), -self.g + u[0] / self.mass * np.cos(s[2]), u[1] / self.Ixx])
+        return np.array([s[3], s[4], s[5], -u[0] / self.mass * casadi.sin(s[2]), -self.g + u[0] / self.mass * casadi.cos(s[2]), u[1] / self.Ixx])
 
     def control(self, state):
         """
