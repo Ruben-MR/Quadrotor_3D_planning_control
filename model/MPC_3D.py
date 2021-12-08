@@ -10,20 +10,21 @@ import forcespro
 import casadi
 from quadrotor import quat_dot, Quadrotor
 
-class MPC():
+
+class MPC:
     def __init__(self):
         """
         Parameters of the quadrotor
         """
-        self.mass = 0.030  # kg
-        self.Ixx = 1.43e-5  # kg*m^2
-        self.Iyy = 1.43e-5  # kg*m^2
-        self.Izz = 2.89e-5  # kg*m^2
-        self.arm_length = 0.046  # meters
-        self.rotor_speed_min = 0  # rad/s
-        self.rotor_speed_max = 2700  # rad/s, satisfy the constraint of max thrust
-        self.k_thrust = 2.3e-08  # N/(rad/s)**2
-        self.k_drag = 7.8e-11  # Nm/(rad/s)**2
+        self.mass = 0.030               # kg
+        self.Ixx = 1.43e-5              # kg*m^2
+        self.Iyy = 1.43e-5              # kg*m^2
+        self.Izz = 2.89e-5              # kg*m^2
+        self.arm_length = 0.046         # meters
+        self.rotor_speed_min = 0        # rad/s
+        self.rotor_speed_max = 2700     # rad/s, satisfy the constraint of max thrust
+        self.k_thrust = 2.3e-08         # N/(rad/s)**2
+        self.k_drag = 7.8e-11           # Nm/(rad/s)**2
 
         # Additional constants.
         self.inertia = np.diag(np.array([self.Ixx, self.Iyy, self.Izz]))  # kg*m^2
@@ -38,12 +39,12 @@ class MPC():
                                [-L, 0, L, 0],
                                [k, -k, k, -k]])
         self.inv_inertia = inv(self.inertia)
-        self.inv_inertia_casadi = casadi.SX([[1/self.Ixx, 0, 0], [0, 1/self.Iyy, 0], [0, 0, self.Izz]])
+        self.inv_inertia_casadi = casadi.SX([[1/self.Ixx, 0, 0],
+                                             [0, 1/self.Iyy, 0],
+                                             [0, 0, 1/self.Izz]])
         self.weight = np.array([0, 0, -self.mass * self.g])
         self.t_step = 0.01
         self.dt = 0.01
-
-
         """
         Parameters for the MPC controller
         """
@@ -51,28 +52,33 @@ class MPC():
         # objective (cost function)
         # cost matrix for tracking the goal point
         self._Q_goal = np.diag([
-            100, 100, 100,  # x, y, z
-            10, 10, 10,  # dx, dy, dz
-            10, 10, 10, 10, # qx, qy, qz, qw
-            10, 10, 10])  # r, p, q
+            100, 100, 100,      # x, y, z
+            10, 10, 10,         # dx, dy, dz
+            10, 10, 10, 10,     # qx, qy, qz, qw
+            10, 10, 10])        # r, p, q
         self._Q_goal_N = np.diag([
-            200, 200, 200, # x, y, z
-            10, 10, 10,    # dx, dy, dz
-            10, 10, 10, 10, # qx, qy, qz, qw
-            10, 10, 10]) # r, p, q
+            200, 200, 200,      # x, y, z
+            10, 10, 10,         # dx, dy, dz
+            10, 10, 10, 10,     # qx, qy, qz, qw
+            10, 10, 10])        # r, p, q
         self.goal = np.array([1, 0, 6, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]) # TODO: unnecessary to bound the final orientation
-        self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2 # cost: distance to the goal
-        self.model.objectiveN = lambda z: (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:]-self.goal) + 0.2 * z[0]**2 # specially deal with the cost for the last stage
-        #self.model.objective = lambda z: 100 * (z[4]**2 + z[5]**2 + z[6]**2) # cost: hovering
+        # cost: distance to the goal
+        self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
+        # specially deal with the cost for the last stage
+        self.model.objectiveN = lambda z: (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:]-self.goal) + 0.2 * z[0]**2
+        # self.model.objective = lambda z: 100 * (z[4]**2 + z[5]**2 + z[6]**2) # cost: hovering
         # equality constraints (quadrotor model)
         # z[0:4] action z[4:14] state
-        self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[4:], z[0:4], integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
-        self.model.E = np.concatenate([np.zeros((13, 4)), np.eye(13)], axis=1) # inter-stage equality Ek @ zk+1 = f(zk, pk)
+        self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[4:], z[0:4],
+                                                          integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
+        self.model.E = np.concatenate([np.zeros((13, 4)), np.eye(13)], axis=1)  # inter-stage equality Ek@ zk+1=f(zk,pk)
         #  upper/lower variable bounds lb <= z <= ub
-        #                     inputs         |  states
-        #                     thrust  moment_x  moment_y moment_z,  x,      y        z      dx        dy      dz       qx        qy       qz       qw      r          p        q
-        self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
-        self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
+        #  inputs | states
+        # thrust moment_x moment_y moment_z x y z dx dy dz qx qy qz qw r p q
+        self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf,
+                                  -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
+        self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf,
+                                  np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
 
         # # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
         # model.ineq = lambda z, p: np.array([z[2] ** 2 + z[3] ** 2,  # x^2 + y^2
@@ -84,10 +90,10 @@ class MPC():
 
         # set dimensions of the problem
         # self.model.N = 50 # horizon length
-        self.model.nvar = 17 # number of variables
-        self.model.neq = 13 # number of equality constraints
-        #self.model.nh = 2 # number of inequality constraints functions
-        self.model.xinitidx = range(4, 17) # indices of the state variables
+        self.model.nvar = 17    # number of variables
+        self.model.neq = 13     # number of equality constraints
+        #self.model.nh = 2      # number of inequality constraints functions
+        self.model.xinitidx = range(4, 17)  # indices of the state variables
 
         # handle the last stage separately
         # self.model.objectiveN = lambda z: casadi.sumsqr(z[0:2]-np.array([0, 0.5])) # cost: distance to the goal
@@ -114,7 +120,7 @@ class MPC():
         #self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
 
         # Set initial guess to start solver from (here, middle of upper and lower bound)
-        x0i = np.zeros([self.model.nvar, 1]) # TODO: change the initial guess?
+        x0i = np.zeros([self.model.nvar, 1])    # TODO: change the initial guess?
         x0 = np.transpose(np.tile(x0i, (1, self.model.N)))
         self.problem = {"x0": x0}
 

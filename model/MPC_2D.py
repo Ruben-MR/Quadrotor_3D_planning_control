@@ -81,14 +81,14 @@ class MPC:
         """
         Parameters of the quadrotor
         """
-        self.mass = 0.030  # kg
-        self.Ixx = 1.43e-5  # kg*m^2
-        self.arm_length = 0.046  # meters
-        self.rotor_speed_min = 0  # rad/s
-        self.rotor_speed_max = 2500  # rad/s
-        self.k_thrust = 2.3e-08  # N/(rad/s)**2
-        self.k_drag = 7.8e-11  # Nm/(rad/s)**2
-        self.g = 9.81  # m/s^2
+        self.mass = 0.030               # kg
+        self.Ixx = 1.43e-5              # kg*m^2
+        self.arm_length = 0.046         # meters
+        self.rotor_speed_min = 0        # rad/s
+        self.rotor_speed_max = 2500     # rad/s
+        self.k_thrust = 2.3e-08         # N/(rad/s)**2
+        self.k_drag = 7.8e-11           # Nm/(rad/s)**2
+        self.g = 9.81                   # m/s^2
         # Precomputes
         self.t_step = 0.01
         self.dt = 0.01
@@ -96,11 +96,11 @@ class MPC:
         # objective (cost function)
         # cost matrix for tracking the goal point
         self._Q_goal = np.diag([
-            100, 100, 10,  # y, z, theta
-            10, 10, 10])  # dy, dz, dtheta
+            100, 100, 10,       # y, z, theta
+            10, 10, 10])        # dy, dz, dtheta
         self._Q_goal_N = np.diag([
-            200, 200, 10,  # y, z, theta
-            10, 10, 10])  # dy, dz, dtheta
+            200, 200, 10,       # y, z, theta
+            10, 10, 10])        # dy, dz, dtheta
         self.goal = np.array([1.5, 2.5, 0, 0, 0, 0])
         self.model.objective = lambda z: (z[2:] - self.goal).T @ self._Q_goal @ (z[2:] - self.goal) + 0.1 * z[0] ** 2 + 0.1 * z[1] ** 2  # cost: distance to the goal
         self.model.objectiveN = lambda z: (z[2:] - self.goal).T @ self._Q_goal_N @ (z[2:] - self.goal) + 0.2 * z[0] ** 2 + 0.2 * z[1] ** 2  # specially deal with the cost for the last stage
