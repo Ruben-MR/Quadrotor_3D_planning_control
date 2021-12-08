@@ -65,20 +65,20 @@ ax1.view_init(30, 35)
 # global path planning using RRT*
 x_start = np.array([5, 7, 3])
 x_goal = np.array([0.5, 2.5, 1.5])
-map_boundary = [17, 8, 3]
+map_boundary = [15, 8, 3]
 
 current_state = env.reset(position=x_start)
-RRT = RRT_star(x_start, 1000, obstacles, ax1, 1)
+RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
 path_exists = RRT.find_path(x_goal, map_boundary)
 #########################################################################
 # If a path has been found proceed to follow it
 if not path_exists:
     print("No path was found for the given number of iterations")
 else:
-    T = 15
+    T = 9
     path_list = RRT.get_path()
     # pos, vel, acc = cubic_spline(path_list, T)
-    pos, vel, acc = min_snap_optimizer_3d(path_list, False)
+    pos, vel, acc = min_snap_optimizer_3d(path_list, T, False)
     ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
     real_trajectory = np.zeros((1, 3))
     real_orientation = np.zeros((1, 4))
@@ -153,4 +153,5 @@ else:
     ax1.legend(loc='lower right')
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(real_trajectory,0), interval=1, repeat=False,
                                   blit=False)
+    # RRT.plotTree()
     plt.show()

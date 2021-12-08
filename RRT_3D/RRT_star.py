@@ -123,6 +123,9 @@ class RRT_star:
             optimal_neigh = closest_idx
             lowest_cost = self.node_list[closest_idx].cost + norm(pos - self.node_list[closest_idx].pos)
 
+            n = len(self.node_list)
+            self.neigh_dist = 7*((np.log(n)/n)**(1/4))
+
             # Iterate over the list of nodes to find those within distance threshold and in collision-free connection
             for j in range(len(self.node_list)):
                 if j == closest_idx:
@@ -150,10 +153,7 @@ class RRT_star:
 
     def plotTree(self):
         for node in range(1, len(self.node_list)):
-
             parent_idx = self.node_list[node].parent_idx
             self.ax.plot([self.node_list[parent_idx].pos[0], self.node_list[node].pos[0]],
                          [self.node_list[parent_idx].pos[1], self.node_list[node].pos[1]],
                          [self.node_list[parent_idx].pos[2], self.node_list[node].pos[2]])
-
-            self.ax.scatter([self.node_list[node].pos[0]], [self.node_list[node].pos[1]], [self.node_list[node].pos[2]])

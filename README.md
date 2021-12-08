@@ -34,6 +34,10 @@ This README file will contain the links to the resources used in the project, re
     - RRT* with multiple considerations on the kinodynamics of the system
 - Path Planning Followed by Kinodynamic Smoothing for Multirotor Aerial Vehicles (MAVs): [source](https://ieeexplore.ieee.org/document/9290162)
     - RRT*
+- Polynomial Trajectory Planning for Aggressive Quadrotor Flight in Dense Indoor Environments: [source](https://dspace.mit.edu/bitstream/handle/1721.1/106840/Roy_Polynomial%20trajectory.pdf?sequence=1&isAllowed=y)
+    - Polynomial trajectory
+    - Time allocation optimization
+    - we can also get some inspiration for our report from the article's structure
 
 ## Useful projects for inspiration or reference
 
