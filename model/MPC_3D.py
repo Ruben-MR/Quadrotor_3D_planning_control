@@ -61,7 +61,7 @@ class MPC():
             10, 10, 10,    # dx, dy, dz
             10, 10, 10, 10, # qx, qy, qz, qw
             10, 10, 10]) # r, p, q
-        self.goal = np.array([0, 0, 6, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]) # TODO: unnecessary to bound the final orientation
+        self.goal = np.array([1, 0, 6, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]) # TODO: unnecessary to bound the final orientation
         self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2 # cost: distance to the goal
         self.model.objectiveN = lambda z: (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:]-self.goal) + 0.2 * z[0]**2 # specially deal with the cost for the last stage
         #self.model.objective = lambda z: 100 * (z[4]**2 + z[5]**2 + z[6]**2) # cost: hovering
