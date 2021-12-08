@@ -134,18 +134,19 @@ class MPC():
         quat_err = np.sum( np.array([s[6], s[7], s[8], s[9]]) ** 2) - 1
         quat_err_grad = 2 * np.array([s[6], s[7], s[8], s[9]])
         quat_dot = quat_dot - quat_err * quat_err_grad
+        quat_dot = casadi.SX(quat_dot)
+        print(type(quat_dot))
 
         # Angular velocity derivative
         #moment = np.array([u[1], u[2], u[3]])]
-        cc = self.inertia_casadi @ s[11:]
-        w_dot = self.inv_inertia_casadi @ (u[1:] - casadi.cross(s[11:], self.inertia_casadi @ s[11:], 2))
+        w_dot = self.inv_inertia_casadi @ (u[1:] - casadi.cross(s[10:], self.inertia_casadi @ s[10:], 1))
         #w_dot = casadi.SX.sym('w_dot', 3)
         #w_dot = w_dot_np
 
         #return np.array([s[3], s[4], s[5], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[0], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[1],/
         #                ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[2], ])
         #return np.hstack((s[3], s[4], s[5], (self.weight + u[0] * np.array([2 * (s[6] * s[8] + s[7] * s[9]), 2 * (s[7] * s[8] - s[6] * s[9]), 1 - 2 * (s[6] ** 2 + s[7] ** 2)]) / self.mass, quat_dot(s[6:10], s[10:13]), self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))))
-        return np.hstack((s[3], s[4], s[5], (self.weight + u[0] * rotate_k) / self.mass, quat_dot, w_dot))
+        return [s[3], s[4], s[5], (self.weight + u[0] * rotate_k) / self.mass, quat_dot, w_dot]
         # return np.array([s[3], s[4], s[5], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[0], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[1], ((self.weight + u[0] * Quadrotor.rotate_k(s[6:10])) / self.mass)[2],
         #                   quat_dot(s[6:10], s[10:13])[0], quat_dot(s[6:10], s[10:13])[1], quat_dot(s[6:10], s[10:13])[2], quat_dot(s[6:10], s[10:13])[3],
         #                  (self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))[0], (self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))[1], (self.inv_inertia @ (u[1:] - np.cross(s[10:13], self.inertia @ s[10:13])))[2]])

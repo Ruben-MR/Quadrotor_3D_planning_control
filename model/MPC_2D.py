@@ -162,7 +162,11 @@ class MPC():
         self.problem = {"x0": x0, "xinit": np.transpose(np.zeros(6))}
 
     def continuous_dynamics(self, s, u):
-        return np.array([s[3], s[4], s[5], -u[0] / self.mass * casadi.sin(s[2]), -self.g + u[0] / self.mass * casadi.cos(s[2]), u[1] / self.Ixx])
+        s_dot_3 = casadi.SX(-u[0] / self.mass * casadi.sin(s[2]))
+        s_dot_4 = casadi.SX(-self.g + u[0] / self.mass * casadi.cos(s[2]))
+        s_dot_5 = casadi.SX(u[1] / self.Ixx)
+        s_dot = casadi.vertcat(s[3], s[4], s[5], s_dot_3, s_dot_4, s_dot_5)
+        return s_dot
 
     def control(self, state):
         """
