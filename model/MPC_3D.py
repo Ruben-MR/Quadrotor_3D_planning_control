@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy as np
-from gym import core, spaces
 from numpy.linalg import inv, norm
 import scipy.integrate
 from scipy.spatial.transform import Rotation
