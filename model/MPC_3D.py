@@ -12,7 +12,7 @@ from quadrotor import quat_dot, Quadrotor
 
 
 class MPC:
-    def __init__(self):
+    def __init__(self, goal):
         """
         Parameters of the quadrotor
         """
@@ -61,7 +61,7 @@ class MPC:
             10, 10, 10,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
-        self.goal = np.array([1, 0, 6, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]) # TODO: unnecessary to bound the final orientation
+        self.goal = np.array([goal[0], goal[1], goal[2], 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])  # TODO: unnecessary to bound the final orientation
         # cost: distance to the goal
         self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
         # specially deal with the cost for the last stage
@@ -92,7 +92,7 @@ class MPC:
         # self.model.N = 50 # horizon length
         self.model.nvar = 17    # number of variables
         self.model.neq = 13     # number of equality constraints
-        #self.model.nh = 2      # number of inequality constraints functions
+        # self.model.nh = 2      # number of inequality constraints functions
         self.model.xinitidx = range(4, 17)  # indices of the state variables
 
         # handle the last stage separately
@@ -138,7 +138,7 @@ class MPC:
         # G = np.array([[q3, q2, -q1, -q0],
         #               [-q2, q3, q0, -q1],
         #               [q1, -q0, q3, -q2]])
-        omega = casadi.vertcat(s[10], s[11], s[12]) # angular velocity
+        omega = casadi.vertcat(s[10], s[11], s[12])  # angular velocity
         quaternion = casadi.vertcat(s[6], s[7], s[8], s[9])
         quat_dot = 0.5 * G.T @ omega
         # Augment to maintain unit quaternion.
@@ -198,9 +198,9 @@ class MPC:
         cmd_moment[2] = u[3]
 
         return cmd_motor_speeds
-#########################################################################################################################
+#######################################################################################################################
 # You can check the results of a single optimization step here, be sure to comment the main function below
-#########################################################################################################################
+#######################################################################################################################
 # mpc = MPC()
 #
 # # Set initial guess to start solver from (here, middle of upper and lower bound)
@@ -223,7 +223,9 @@ class MPC:
 #
 # print(output)
 # print(output['x01'].shape)
-#########################################################################################################################
+#######################################################################################################################
+
+
 def animate(i):
     line.set_xdata(real_trajectory['x'][:i + 1])
     line.set_ydata(real_trajectory['y'][:i + 1])
@@ -239,27 +241,29 @@ if __name__ == '__main__':
     print("current:", current_state)
     dt = 0.01
     t = 0
-    iter = 0
-    controller = MPC()
+    i = 0
+    endpoint = [0.5, 0.5, 1]
+    controller = MPC(endpoint)
     real_trajectory = {'x': [], 'y': [], 'z': []}
-    while (t < 8):
-        print('iteration: ', iter)
+    while t < 4:
+        print('iteration: ', i)
         action = controller.control(current_state)
         obs, reward, done, info = env.step(action)
         real_trajectory['x'].append(obs['x'][0])
         real_trajectory['y'].append(obs['x'][1])
         real_trajectory['z'].append(obs['x'][2])
-        print("x, y, z:",obs['x'][0],obs['x'][1],obs['x'][2])
+        print("x, y, z:", obs['x'][0], obs['x'][1], obs['x'][2])
         print("action", action)
         print("--------------------------")
         current_state = obs
         t += dt
-        iter += 1
+        i += 1
+
     fig = plt.figure()
-    ax1 = p3.Axes3D(fig)  # 3D place for drawing
-    ax1.set_xlim3d(-0.2, 0.2)
-    ax1.set_ylim3d(-0.5, 0.5)
-    ax1.set_zlim3d(0, 1.5)
+    ax1 = fig.add_subplot(111, projection="3d")  # 3D place for drawing
+    ax1.set_xlim3d(0, np.max(endpoint))
+    ax1.set_ylim3d(0, np.max(endpoint))
+    ax1.set_zlim3d(0, np.max(endpoint))
     real_trajectory['x'] = np.array(real_trajectory['x'])
     real_trajectory['y'] = np.array(real_trajectory['y'])
     real_trajectory['z'] = np.array(real_trajectory['z'])
