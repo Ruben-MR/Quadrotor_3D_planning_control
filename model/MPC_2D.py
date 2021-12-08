@@ -1,42 +1,39 @@
-import numpy as np
-import cvxpy as cp
 import matplotlib.pyplot as plt
 import numpy as np
-from gym import core, spaces
-from numpy.linalg import inv, norm
 import scipy.integrate
-from scipy.spatial.transform import Rotation
 import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
 import forcespro
 import casadi
 
-class Quadrotor(core.Env):
+
+class Quadrotor:
     """
     Quadrotor forward dynamics model.
     """
+
     def __init__(self):
         """
         Parameters of the quadrotor
         """
-        self.mass            =  0.030  # kg
-        self.Ixx             = 1.43e-5  # kg*m^2
-        self.arm_length      = 0.046  # meters
+        self.mass = 0.030  # kg
+        self.Ixx = 1.43e-5  # kg*m^2
+        self.arm_length = 0.046  # meters
         self.rotor_speed_min = 0  # rad/s
         self.rotor_speed_max = 2500  # rad/s
-        self.k_thrust        = 2.3e-08  # N/(rad/s)**2
-        self.k_drag          = 7.8e-11   # Nm/(rad/s)**2
-        self.g = 9.81 # m/s^2
+        self.k_thrust = 2.3e-08  # N/(rad/s)**2
+        self.k_drag = 7.8e-11  # Nm/(rad/s)**2
+        self.g = 9.81  # m/s^2
         # Precomputes
         self.t_step = 0.01
+        self.state = np.zeros(6)
 
     def reset(self):
-        '''
+        """
         state is a 6 dimensional vector
         state = [ y z theta dy dz dtheta ]
         dot_state = [ dy dz dtheta ddy ddz ddtheta]
-        '''
-        self.state = np.zeros(6)
+        """
         self.state[0] = 0
         self.state[1] = 0
         self.state[2] = 0
@@ -47,23 +44,23 @@ class Quadrotor(core.Env):
 
     def step(self, action):
         # Form autonomous ODE for constant inputs and integrate one time step.
-        '''
+        """
         action is a 2 dimensional vector
         action = [Fz Mx]
-        '''
+        """
         s = self.state
+
         def s_dot_fn(t, s):
             return self._s_dot_fn(t, s, action)
+
         # turn state into list
-        '''
+        """
         The next state can be obtained through integration
-        '''
+        """
         sol = scipy.integrate.solve_ivp(s_dot_fn, (0, self.t_step), s, first_step=self.t_step)
-        self.state = sol['y'][:,-1]
-        reward = 0
-        done = 0
-        info = {}
-        return self.state, reward, done, info
+        self.state = sol['y'][:, -1]
+
+        return self.state
 
     def _s_dot_fn(self, t, s, u):
         """
@@ -73,49 +70,53 @@ class Quadrotor(core.Env):
         # Pack into vector of derivatives.
         s_dot = np.zeros((6,))
         s_dot[0:3] = s[3:6]
-        s_dot[3] = -u[0]/self.mass*np.sin(s[2])
-        s_dot[4] = -self.g+u[0]/self.mass*np.cos(s[2])
-        s_dot[5] = u[1]/self.Ixx
+        s_dot[3] = -u[0] / self.mass * np.sin(s[2])
+        s_dot[4] = -self.g + u[0] / self.mass * np.cos(s[2])
+        s_dot[5] = u[1] / self.Ixx
         return s_dot
 
-class MPC():
+
+class MPC:
     def __init__(self):
         """
         Parameters of the quadrotor
         """
-        self.mass            =  0.030  # kg
-        self.Ixx             = 1.43e-5  # kg*m^2
-        self.arm_length      = 0.046  # meters
+        self.mass = 0.030  # kg
+        self.Ixx = 1.43e-5  # kg*m^2
+        self.arm_length = 0.046  # meters
         self.rotor_speed_min = 0  # rad/s
         self.rotor_speed_max = 2500  # rad/s
-        self.k_thrust        = 2.3e-08  # N/(rad/s)**2
-        self.k_drag          = 7.8e-11   # Nm/(rad/s)**2
-        self.g = 9.81 # m/s^2
+        self.k_thrust = 2.3e-08  # N/(rad/s)**2
+        self.k_drag = 7.8e-11  # Nm/(rad/s)**2
+        self.g = 9.81  # m/s^2
         # Precomputes
         self.t_step = 0.01
         self.dt = 0.01
-        self.model = forcespro.nlp.SymbolicModel(50) # create a empty model
+        self.model = forcespro.nlp.SymbolicModel(50)  # create an empty model
         # objective (cost function)
         # cost matrix for tracking the goal point
         self._Q_goal = np.diag([
-            100, 100, 10, # y, z, theta
-            10, 10, 10]) # dy, dz, dtheta
+            100, 100, 10,  # y, z, theta
+            10, 10, 10])  # dy, dz, dtheta
         self._Q_goal_N = np.diag([
-            200, 200, 10, # y, z, theta
-            10, 10, 10]) # dy, dz, dtheta
+            200, 200, 10,  # y, z, theta
+            10, 10, 10])  # dy, dz, dtheta
         self.goal = np.array([1.5, 2.5, 0, 0, 0, 0])
-        self.model.objective = lambda z: (z[2:] - self.goal).T @ self._Q_goal @ (z[2:]-self.goal) + 0.1 * z[0]**2 + 0.1 * z[1]**2 # cost: distance to the goal
-        self.model.objectiveN = lambda z: (z[2:] - self.goal).T @ self._Q_goal_N @ (z[2:]-self.goal) + 0.2 * z[0]**2 + 0.2 * z[1]**2 # specially deal with the cost for the last stage
-        #self.model.objective = lambda z: 100 * (z[2]**2 + z[3]**2) # cost: hovering
+        self.model.objective = lambda z: (z[2:] - self.goal).T @ self._Q_goal @ (z[2:] - self.goal) + 0.1 * z[0] ** 2 + 0.1 * z[1] ** 2  # cost: distance to the goal
+        self.model.objectiveN = lambda z: (z[2:] - self.goal).T @ self._Q_goal_N @ (z[2:] - self.goal) + 0.2 * z[0] ** 2 + 0.2 * z[1] ** 2  # specially deal with the cost for the last stage
+        # self.model.objective = lambda z: 100 * (z[2]**2 + z[3]**2) # cost: hovering
         # equality constraints (quadrotor model)
         # z[0:2] action z[2:8] state
-        self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[2:8], z[0:2], integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
-        self.model.E = np.concatenate([np.zeros((6, 2)), np.eye(6)], axis=1) # inter-stage equality Ek @ zk+1 = f(zk, pk)
+        self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[2:8], z[0:2],
+                                                          integrator=forcespro.nlp.integrators.RK4, stepsize=self.dt)
+        self.model.E = np.concatenate([np.zeros((6, 2)), np.eye(6)],
+                                      axis=1)  # inter-stage equality Ek @ zk+1 = f(zk, pk)
         #  upper/lower variable bounds lb <= z <= ub
         #                     inputs         |  states
         #                     thrust  moment     y        z      theta     dy      dz       dtheta
         self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, -np.deg2rad(40), -np.inf, -np.inf, -np.inf])
-        self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, np.deg2rad(40), np.inf, np.inf, np.inf])
+        self.model.ub = np.array(
+            [2.5 * self.mass * self.g, np.inf, np.inf, np.inf, np.deg2rad(40), np.inf, np.inf, np.inf])
 
         # # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
         # model.ineq = lambda z, p: np.array([z[2] ** 2 + z[3] ** 2,  # x^2 + y^2
@@ -127,10 +128,10 @@ class MPC():
 
         # set dimensions of the problem
         # self.model.N = 50 # horizon length
-        self.model.nvar = 8 # number of variables
-        self.model.neq = 6 # number of equality constraints
-        #self.model.nh = 2 # number of inequality constraints functions
-        self.model.xinitidx = range(2, 8) # indices of the state variables
+        self.model.nvar = 8  # number of variables
+        self.model.neq = 6  # number of equality constraints
+        # self.model.nh = 2 # number of inequality constraints functions
+        self.model.xinitidx = range(2, 8)  # indices of the state variables
 
         # handle the last stage separately
         # self.model.objectiveN = lambda z: casadi.sumsqr(z[0:2]-np.array([0, 0.5])) # cost: distance to the goal
@@ -154,7 +155,7 @@ class MPC():
         self.codeoptions.sqp_nlp.reg_hessian = 5e-9  # increase this if exitflag=-8
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
         self.solver = self.model.generate_solver(self.codeoptions)
-        #self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
+        # self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
 
         # Set initial guess to start solver from (here, middle of upper and lower bound)
         x0i = np.zeros([self.model.nvar, 1])
@@ -182,13 +183,15 @@ class MPC():
         # Time to solve the NLP!
         output, exitflag, info = self.solver.solve(self.problem)
         # Make sure the solver has exited properly.
-        #assert exitflag == 1, "bad exitflag"
+        # assert exitflag == 1, "bad exitflag"
         # print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
         action = np.zeros(2)
         action[0] = output['x01'][0]
         action[1] = output['x01'][1]
 
         return action
+
+
 #########################################################################################################################
 # You can check the results of a single optimization step here, be sure to comment the main function below
 #########################################################################################################################
@@ -234,11 +237,11 @@ if __name__ == '__main__':
     while (t < 10):
         print('iteration: ', iter)
         action = controller.control(current_state)
-        obs, reward, done, info = env.step(action)
+        obs = env.step(action)
         real_trajectory['x'].append(0)
         real_trajectory['y'].append(obs[0])
         real_trajectory['z'].append(obs[1])
-        print("y, z:",obs[0],obs[1])
+        print("y, z:", obs[0], obs[1])
         print("action", action)
         print("--------------------------")
         current_state = obs
