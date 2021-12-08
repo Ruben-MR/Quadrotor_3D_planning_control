@@ -38,6 +38,7 @@ This README file will contain the links to the resources used in the project, re
     - Polynomial trajectory
     - Time allocation optimization
     - we can also get some inspiration for our report from the article's structure
+    - The c++ code of the nonlinear programming based time allocation and trajectory generation can be found at: [ethz-asl](https://github.com/ethz-asl/mav_trajectory_generation) 
 
 ## Useful projects for inspiration or reference
 
