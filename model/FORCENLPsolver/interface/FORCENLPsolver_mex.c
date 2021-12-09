@@ -403,6 +403,8 @@ void mexFunction( solver_int32_default nlhs, mxArray *plhs[], solver_int32_defau
 	copyCArrayToM_double( output.x50, mxGetPr(outvar), 17);
 	mxSetField(plhs[0], 0, "x50", outvar);
 
+
+
 	/* copy exitflag */
 	if( nlhs > 1 )
 	{

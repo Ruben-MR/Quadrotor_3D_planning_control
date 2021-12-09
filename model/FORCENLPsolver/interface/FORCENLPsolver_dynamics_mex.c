@@ -181,22 +181,29 @@ void mexFunction( solver_int nlhs, mxArray *plhs[], solver_int nrhs, const mxArr
 	mxArray *arr;
     solver_int nvar, neq, dimh, dimp, diml, dimu, dimhl, dimhu, stage, dimmul;
 
+    // Allocate memory 
+    solver_float *z, *p, *y, *l, *obj, *jacobj, *c, *jacc, *h, *jach, *hess;
+
+	mxArray* c_mex;
+	mxArray* jacc_mex;
+
+
     // get data
     assignData(nrhs, prhs, &stage, &nvar, &neq, &dimh, &dimp, &diml, &dimu, &dimhl, &dimhu);
     dimmul = diml+dimu+dimhl+dimhu;
 
     // Allocate memory 
-    solver_float *z = (solver_float *) malloc(sizeof(solver_float)*MAX(nvar,1));
-    solver_float *p = (solver_float *) malloc(sizeof(solver_float)*MAX(dimp,1));
-    solver_float *y = (solver_float *) malloc(sizeof(solver_float)*MAX(neq,1));
-    solver_float *l = (solver_float *) malloc(sizeof(solver_float)*MAX(dimmul,1));
-    solver_float *obj = (solver_float *) malloc(sizeof(solver_float));
-    solver_float *jacobj = (solver_float *) malloc(sizeof(solver_float)*MAX(nvar,1));
-    solver_float *c = (solver_float *) malloc(sizeof(solver_float)*MAX(neq,1));
-    solver_float *jacc = (solver_float *) malloc(sizeof(solver_float)*MAX(neq*nvar,1));
-    solver_float *h = (solver_float *) malloc(sizeof(solver_float)*MAX(dimh,1));
-    solver_float *jach = (solver_float *) malloc(sizeof(solver_float)*MAX(nvar*dimh,1));
-    solver_float *hess = (solver_float *) malloc(sizeof(solver_float)*MAX(nvar*nvar,1));
+    z = (solver_float *) malloc(sizeof(solver_float)*MAX(nvar,1));
+    p = (solver_float *) malloc(sizeof(solver_float)*MAX(dimp,1));
+    y = (solver_float *) malloc(sizeof(solver_float)*MAX(neq,1));
+    l = (solver_float *) malloc(sizeof(solver_float)*MAX(dimmul,1));
+    obj = (solver_float *) malloc(sizeof(solver_float));
+    jacobj = (solver_float *) malloc(sizeof(solver_float)*MAX(nvar,1));
+    c = (solver_float *) malloc(sizeof(solver_float)*MAX(neq,1));
+    jacc = (solver_float *) malloc(sizeof(solver_float)*MAX(neq*nvar,1));
+    h = (solver_float *) malloc(sizeof(solver_float)*MAX(dimh,1));
+    jach = (solver_float *) malloc(sizeof(solver_float)*MAX(nvar*dimh,1));
+    hess = (solver_float *) malloc(sizeof(solver_float)*MAX(nvar*nvar,1));
 
     /* Initialize all inputs */
     arr = prhs[0];
@@ -221,8 +228,8 @@ void mexFunction( solver_int nlhs, mxArray *plhs[], solver_int nrhs, const mxArr
 
     // Evaluate fcns and read output into mex format
 	(z, y, l, p, obj, jacobj, c, jacc, h, jach, hess, stage, 0, 0);
-	mxArray* c_mex = mxCreateDoubleMatrix(neq, 1, mxREAL);
-	mxArray* jacc_mex = mxCreateDoubleMatrix(neq, nvar, mxREAL);
+	c_mex = mxCreateDoubleMatrix(neq, 1, mxREAL);
+	jacc_mex = mxCreateDoubleMatrix(neq, nvar, mxREAL);
 	copyCArrayToM_FORCENLPsolver(c, mxGetPr(c_mex), neq);
 	copyCArrayToM_FORCENLPsolver(jacc, mxGetPr(jacc_mex), neq*nvar);
 	plhs[0] = c_mex;

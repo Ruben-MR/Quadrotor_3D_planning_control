@@ -61,11 +61,12 @@ class MPC:
             10, 10, 10,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
+        # TODO: as TA says, add terminal cost is a promising way! see: https://forces.embotech.com/Documentation/examples/high_level_basic_example/index.html#sec-high-level-basic-example
         self.goal = np.array([goal[0], goal[1], goal[2], 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])  # TODO: unnecessary to bound the final orientation
         # cost: distance to the goal
         self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
-        # specially deal with the cost for the last stage
-        self.model.objectiveN = lambda z: (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:]-self.goal) + 0.2 * z[0]**2
+        # specially deal with the cost for the last stage (terminal cost)
+        self.model.objectiveN = lambda z: (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:]-self.goal) + 0.2 * z[0]**2
         # self.model.objective = lambda z: 100 * (z[4]**2 + z[5]**2 + z[6]**2) # cost: hovering
         # equality constraints (quadrotor model)
         # z[0:4] action z[4:14] state
@@ -242,7 +243,7 @@ if __name__ == '__main__':
     dt = 0.01
     t = 0
     i = 0
-    endpoint = [0.5, 0.5, 1]
+    endpoint = [5, 5.5, 5]
     controller = MPC(endpoint)
     real_trajectory = {'x': [], 'y': [], 'z': []}
     while t < 4:
