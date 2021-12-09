@@ -60,13 +60,13 @@ Model {
       }
     }
   }
-  Created		  "12/9/2021 7:24:07 PM"
+  Created		  "12/9/2021 7:44:19 PM"
   Creator		  "embotech AG"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "embotech AG"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "12/9/2021 7:24:07 PM"
+  LastModifiedDate	  "12/9/2021 7:44:19 PM"
   RTWModifiedTimeStamp	  315310195
   ModelVersionFormat	  "1.%<AutoIncrement:2>"
   ConfigurationManager	  "None"
@@ -767,7 +767,7 @@ Model {
       BlockType		      S-Function
       Name		      "FORCENLPsolver"
       SID		      "1"
-      Ports		      [3, 1]
+      Ports		      [4, 1]
       Position		      [170, 99, 650, 180]
       ZOrder		      1
       FunctionName	      "FORCENLPsolver_simulinkBlockcompact"
@@ -807,6 +807,7 @@ Model {
 	" - reinitialize - column vector of length 0\n "
 " - xinit - column vector of length 13\n "
 " - x0 - column vector of length 850\n "
+" - all_parameters - column vector of length 150\n "
 
 	"\nOUTPUTS:\n"
 	" - outputs - column vector of length 850\n "
@@ -816,6 +817,7 @@ Model {
 	Display			"port_label('input', 1, 'reinitialize') \n  "
 "port_label('input', 2, 'xinit') \n  "
 "port_label('input', 3, 'x0') \n  "
+"port_label('input', 4, 'all_parameters') \n  "
 "port_label('output', 1, 'outputs') \n "
 "if( exist('FORCES_PRO_Logo.jpg','file') ), image(imread('FORCES_PRO_Logo.jpg'),'center','on'); elseif( exist(['interface',filesep,'FORCES_PRO_Logo.jpg'],'file') ), image(imread(['interface',filesep,'FORCES_PRO_Logo.jpg']),'center','on'); elseif( exist(['FORCENLPsolver',filesep,'interface',filesep,'FORCES_PRO_Logo.jpg'],'file') ), image(imread(['FORCENLPsolver',filesep,'interface',filesep,'FORCES_PRO_Logo.jpg']),'center','on'); end \n "
 

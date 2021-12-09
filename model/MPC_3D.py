@@ -12,7 +12,7 @@ from quadrotor import quat_dot, Quadrotor
 
 
 class MPC:
-    def __init__(self, goal):
+    def __init__(self):
         """
         Parameters of the quadrotor
         """
@@ -61,12 +61,13 @@ class MPC:
             10, 10, 10,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
-        # TODO: as TA says, add terminal cost is a promising way! see: https://forces.embotech.com/Documentation/examples/high_level_basic_example/index.html#sec-high-level-basic-example
-        self.goal = np.array([goal[0], goal[1], goal[2], 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])  # TODO: unnecessary to bound the final orientation
+        # TODO: as TA says, adding terminal cost is a promising way! see: https://forces.embotech.com/Documentation/examples/high_level_basic_example/index.html#sec-high-level-basic-example
         # cost: distance to the goal
-        self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
+        #self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
+        self.model.objective = self.objective
         # specially deal with the cost for the last stage (terminal cost)
-        self.model.objectiveN = lambda z: (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:]-self.goal) + 0.2 * z[0]**2
+        #self.model.objectiveN = lambda z: (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:]-self.goal) + 0.2 * z[0]**2
+        self.model.objectiveN = self.objectiveN
         # self.model.objective = lambda z: 100 * (z[4]**2 + z[5]**2 + z[6]**2) # cost: hovering
         # equality constraints (quadrotor model)
         # z[0:4] action z[4:14] state
@@ -94,6 +95,7 @@ class MPC:
         self.model.nvar = 17    # number of variables
         self.model.neq = 13     # number of equality constraints
         # self.model.nh = 2      # number of inequality constraints functions
+        self.model.npar = 3  # number of runtime parameters
         self.model.xinitidx = range(4, 17)  # indices of the state variables
 
         # handle the last stage separately
@@ -153,13 +155,24 @@ class MPC:
 
         return casadi.vertcat(s[3], s[4], s[5], (self.weight + u[0] * rotate_k) / self.mass, quat_dot, w_dot)
 
-    def control(self, state):
+    def objective(self, z, goal):
+        self.goal = np.array([goal[0], goal[1], goal[2], 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
+        return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
+
+    def objectiveN(self, z, goal):
+        self.goal = np.array([goal[0], goal[1], goal[2], 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
+        return (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:] - self.goal) + 0.2 * z[0] ** 2
+
+    def control(self, state, goal):
         """
         Sovling NLP prolem in N-step-horizon for optimal control, take the first control input
         """
         state = Quadrotor._pack_state(state)
         x_current = np.transpose(state)
         self.problem["xinit"] = x_current
+        # Set runtime parameters
+        self.problem["all_parameters"] = np.transpose(np.tile(goal, (1, self.model.N)))
+
         # # Set runtime parameters
         # params = np.array(
         #     [-1.5, 1.])  # In this example, the user can change these parameters by clicking into an interactive window
@@ -243,12 +256,12 @@ if __name__ == '__main__':
     dt = 0.01
     t = 0
     i = 0
-    endpoint = [5, 5.5, 5]
-    controller = MPC(endpoint)
+    endpoint = np.array([5, 5, 5])
+    controller = MPC()
     real_trajectory = {'x': [], 'y': [], 'z': []}
-    while t < 4:
+    while t < 7:
         print('iteration: ', i)
-        action = controller.control(current_state)
+        action = controller.control(current_state, endpoint)
         obs, reward, done, info = env.step(action)
         real_trajectory['x'].append(obs['x'][0])
         real_trajectory['y'].append(obs['x'][1])

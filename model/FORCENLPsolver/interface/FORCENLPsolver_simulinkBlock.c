@@ -73,8 +73,8 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetNumContStates(S, 0);
     ssSetNumDiscStates(S, 0);
 
-	/* initialize input ports - there are 3 in total */
-    if (!ssSetNumInputPorts(S, 3)) return;
+	/* initialize input ports - there are 4 in total */
+    if (!ssSetNumInputPorts(S, 4)) return;
     	
 	/* Input Port 0 */
     ssSetInputPortMatrixDimensions(S,  0, 13, 1);
@@ -91,11 +91,18 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetInputPortRequiredContiguous(S, 1, 1); /*direct input signal access*/
 	
 	/* Input Port 2 */
-    ssSetInputPortMatrixDimensions(S,  2, 1, 1);
+    ssSetInputPortMatrixDimensions(S,  2, 150, 1);
     ssSetInputPortDataType(S, 2, SS_DOUBLE);
     ssSetInputPortComplexSignal(S, 2, COMPLEX_NO); /* no complex signals suppported */
     ssSetInputPortDirectFeedThrough(S, 2, 1); /* Feedthrough enabled */
     ssSetInputPortRequiredContiguous(S, 2, 1); /*direct input signal access*/
+	
+	/* Input Port 3 */
+    ssSetInputPortMatrixDimensions(S,  3, 1, 1);
+    ssSetInputPortDataType(S, 3, SS_DOUBLE);
+    ssSetInputPortComplexSignal(S, 3, COMPLEX_NO); /* no complex signals suppported */
+    ssSetInputPortDirectFeedThrough(S, 3, 1); /* Feedthrough enabled */
+    ssSetInputPortRequiredContiguous(S, 3, 1); /*direct input signal access*/
  
 
 
@@ -444,7 +451,8 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 	/* Simulink data */
 	const real_T *xinit = (const real_T*) ssGetInputPortSignal(S,0);
 	const real_T *x0 = (const real_T*) ssGetInputPortSignal(S,1);
-	const FORCENLPsolver_int *reinitialize = (const FORCENLPsolver_int*) ssGetInputPortSignal(S,2);
+	const real_T *all_parameters = (const real_T*) ssGetInputPortSignal(S,2);
+	const FORCENLPsolver_int *reinitialize = (const FORCENLPsolver_int*) ssGetInputPortSignal(S,3);
 	
     real_T *x01 = (real_T*) ssGetOutputPortSignal(S,0);
 	real_T *x02 = (real_T*) ssGetOutputPortSignal(S,1);
@@ -517,6 +525,11 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 	for( i=0; i<850; i++)
 	{ 
 		params.x0[i] = (double) x0[i]; 
+	}
+
+	for( i=0; i<150; i++)
+	{ 
+		params.all_parameters[i] = (double) all_parameters[i]; 
 	}
 
 	params.reinitialize = *reinitialize;

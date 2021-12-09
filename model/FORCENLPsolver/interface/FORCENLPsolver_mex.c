@@ -168,6 +168,26 @@ void mexFunction( solver_int32_default nlhs, mxArray *plhs[], solver_int32_defau
 		copyMArrayToC_double(mxGetPr(par), params.x0,850);
 
 	}
+	par = mxGetField(PARAMS, 0, "all_parameters");
+#ifdef MEXARGMUENTCHECKS
+    if( par == NULL )	
+	{
+        mexErrMsgTxt("PARAMS.all_parameters not found");
+    }
+    if( !mxIsDouble(par) )
+    {
+    mexErrMsgTxt("PARAMS.all_parameters must be a double.");
+    }
+    if( mxGetM(par) != 150 || mxGetN(par) != 1 ) 
+	{
+    mexErrMsgTxt("PARAMS.all_parameters must be of size [150 x 1]");
+    }
+#endif	 
+	if ( (mxGetN(par) != 0) && (mxGetM(par) != 0) )
+	{
+		copyMArrayToC_double(mxGetPr(par), params.all_parameters,150);
+
+	}
 	par = mxGetField(PARAMS, 0, "reinitialize");
 	if ( (par != NULL) && (mxGetN(par) != 0) && (mxGetM(par) != 0) )
 	{
