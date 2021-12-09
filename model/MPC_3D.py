@@ -53,12 +53,12 @@ class MPC:
         # cost matrix for tracking the goal point
         self._Q_goal = np.diag([
             100, 100, 100,      # x, y, z
-            10, 10, 10,         # dx, dy, dz
+            50, 50, 50,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
         self._Q_goal_N = np.diag([
             200, 200, 200,      # x, y, z
-            10, 10, 10,         # dx, dy, dz
+            50, 50, 50,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
         # TODO: as TA says, adding terminal cost is a promising way! see: https://forces.embotech.com/Documentation/examples/high_level_basic_example/index.html#sec-high-level-basic-example
@@ -95,7 +95,7 @@ class MPC:
         self.model.nvar = 17    # number of variables
         self.model.neq = 13     # number of equality constraints
         # self.model.nh = 2      # number of inequality constraints functions
-        self.model.npar = 3  # number of runtime parameters
+        self.model.npar = 6  # number of runtime parameters (pos and vel)
         self.model.xinitidx = range(4, 17)  # indices of the state variables
 
         # handle the last stage separately
@@ -156,11 +156,11 @@ class MPC:
         return casadi.vertcat(s[3], s[4], s[5], (self.weight + u[0] * rotate_k) / self.mass, quat_dot, w_dot)
 
     def objective(self, z, goal):
-        self.goal = np.array([goal[0], goal[1], goal[2], 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
+        self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
         return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
 
     def objectiveN(self, z, goal):
-        self.goal = np.array([goal[0], goal[1], goal[2], 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
+        self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
         return (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:] - self.goal) + 0.2 * z[0] ** 2
 
     def control(self, state, goal):
@@ -211,7 +211,11 @@ class MPC:
         cmd_moment[1] = u[2]
         cmd_moment[2] = u[3]
 
-        return cmd_motor_speeds
+        control_input = {'cmd_rotor_speeds': cmd_motor_speeds,
+                         'cmd_thrust': cmd_thrust,
+                         'cmd_moment': cmd_moment}
+
+        return control_input
 #######################################################################################################################
 # You can check the results of a single optimization step here, be sure to comment the main function below
 #######################################################################################################################
@@ -256,12 +260,12 @@ if __name__ == '__main__':
     dt = 0.01
     t = 0
     i = 0
-    endpoint = np.array([5, 5, 5])
+    endpoint = np.array([5, 5, 5, 0, 0, 0])
     controller = MPC()
     real_trajectory = {'x': [], 'y': [], 'z': []}
     while t < 7:
         print('iteration: ', i)
-        action = controller.control(current_state, endpoint)
+        action = controller.control(current_state, endpoint)["cmd_rotor_speeds"]
         obs, reward, done, info = env.step(action)
         real_trajectory['x'].append(obs['x'][0])
         real_trajectory['y'].append(obs['x'][1])
