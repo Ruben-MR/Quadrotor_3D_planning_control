@@ -101,11 +101,11 @@ else:
         total_SE += (np.sum((obs['x'] - state_des['pos']) ** 2) * time_step)
         total_energy += (np.sum(cmd_rotor_speeds ** 2) * time_step)
 
-    ############################################################################
+    ###########################################################################
     print("Sum of tracking error (integration): ", total_SE)
     print("Total time: ", t)
     print("Sum of energy consumption (integration)", total_energy)
-    ############################################################################
+    ###########################################################################
 
     # Plot the obstacles
     for box in obstacles:
