@@ -2,6 +2,7 @@ import numpy as np
 from math import factorial
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize
+import cvxpy as cp
 
 
 # get the matrix in objective function
@@ -134,16 +135,31 @@ def minimum_snap_np(path, n_seg, n_order, penalty):
 
     return ts, pos_coef_x, pos_coef_y, pos_coef_z
 
+# quadratic programming based minimum snap
+def minimum_snap_qp(waypoints, ts, n_seg, n_order):
+    qs = get_q(n_seg, n_order, ts)
+    aeq, beq = get_ab(n_seg, n_order, waypoints, ts)
+    x = cp.Variable(n_seg * (n_order + 1))
+    prob = cp.Problem(cp.Minimize(cp.quad_form(x, qs)), [aeq @ x == beq])
+    prob.solve()
+    return np.array(x.value)
+
 
 # trajectory optimization
-def min_snap_optimizer_3d(path, penalty):
+def min_snap_optimizer_3d(path, penalty, time_optimal):
     # general parameters of the minimum snap algorithm
     n_order = 7
     n_seg = np.size(path, axis=0) - 1
 
-    # this will introduce three optimization problems, ts are not independent
-    ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty)
-
+    # if time is optimal, then ts and solutions of x, y, z are dependent
+    if time_optimal:
+        ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty)
+    else:
+        ts = np.full((n_seg,), 1)
+        pos_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
+        pos_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
+        pos_coef_z = minimum_snap_qp(path[:, 2], ts, n_seg, n_order)
+        
     vel_coef_x = (pos_coef_x.reshape((-1, n_order + 1))[:, 1:] * np.arange(start=1, stop=n_order + 1).reshape(1, -1)).reshape((-1,))
     vel_coef_y = (pos_coef_y.reshape((-1, n_order + 1))[:, 1:] * np.arange(start=1, stop=n_order + 1).reshape(1, -1)).reshape((-1,))
     vel_coef_z = (pos_coef_z.reshape((-1, n_order + 1))[:, 1:] * np.arange(start=1, stop=n_order + 1).reshape(1, -1)).reshape((-1,))
@@ -208,7 +224,7 @@ if __name__ == "__main__":
     path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4],
                             [10, 7, 8], [9, 3, 10], [12, 5, 2]])
     # compute the optimal path
-    position, velocity, acceleration, times = min_snap_optimizer_3d(path_points, 5000)
+    position, velocity, acceleration, times = min_snap_optimizer_3d(path_points, penalty = 5000, time_optimal = False)
     print('Time distribution:\n', np.round(times, 2))
 
     # plot the results
