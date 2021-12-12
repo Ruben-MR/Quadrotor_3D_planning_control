@@ -16,8 +16,9 @@ from model.nonlinear_controller import GeometricController
 from Obstacle import Obstacle, plot_three_dee_box
 from RRT_3D.RRT_star import RRT_star
 from scipy.spatial.transform import Rotation
-from traj_optimization.cubic_spline import cubic_spline
-from traj_optimization.minimum_snap_optimization import min_snap_optimizer_3d
+# from traj_optimization.cubic_spline import cubic_spline
+# from traj_optimization.minimum_snap_optimization import min_snap_optimizer_3d
+from traj_optimization.mini_snap_time_optim import min_snap_optimizer_3d
 from model.MPC_3D import MPC
 #################################################################
 # Create the quadrotor class and controller
@@ -30,6 +31,7 @@ t = 0
 time_step = 1e-2
 total_SE = 0
 total_energy = 0
+penalty = 2500
 #################################################################
 # Define the obstacles
 
@@ -75,10 +77,12 @@ path_exists = RRT.find_path(x_goal, map_boundary)
 if not path_exists:
     print("No path was found for the given number of iterations")
 else:
-    T = 9
+    print("Path found, applying smoothing.")
     path_list = RRT.get_path()
     # pos, vel, acc = cubic_spline(path_list, T)
-    pos, vel, acc = min_snap_optimizer_3d(path_list, T, False)
+    print("Smoothing completed, tracking trajectory")
+    pos, vel, acc, ts = min_snap_optimizer_3d(path_list, penalty)
+    # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
     ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
     real_trajectory = np.zeros((1, 3))
     real_orientation = np.zeros((1, 4))
