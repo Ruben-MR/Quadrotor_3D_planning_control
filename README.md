@@ -13,47 +13,61 @@ This README file will contain the links to the resources used in the project, re
 
 ## Reference articles
 
-### For dynamic environments
+### Algorithm definition articles
 
-- A UAV Dynamic Path Planning Algorithm: [source](https://ieeexplore.ieee.org/document/9337581)
-	- Q-Learining algorithm (similar to RL) for global planning + artificial potential fields for local (dynamic) planning
-- Decision planning of a quadrotor in dynamical environment: [source](https://ieeexplore.ieee.org/document/8028421)
-	- Strictly Q-Learning algorithm (similar to RL). In this case integrating the dynamic planning under obstacle velocity assumptions.
+- RRT-star article: [source](https://dspace.mit.edu/handle/1721.1/81442)
+- Minimum snap article: [source](https://ieeexplore-ieee-org.tudelft.idm.oclc.org/stamp/stamp.jsp?tp=&arnumber=5980409&tag=1)
+- For MPC: [source](https://www-sciencedirect-com.tudelft.idm.oclc.org/science/article/pii/S0005109899002149?casa_token=EtRfAwnkYDUAAAAA:EAadMGgXlCD6tl9-J3qMGj7QPTF5t_8XDcqPwkkQ92rMBwqAzOZmewztJbQDFOSRI6yG7kmAhQ)
+
+### References inserted in the project report
+
 - Dynamic obstacle avoidance path planning for UAV: [source](https://ieeexplore.ieee.org/document/9274865)
-	- RRT* (Also, nice comparison between RRT, RRT* and RRT* Informed) for global planning plus dynamic winidow for local planning.
-- Real-Time Motion Planning for Quadrotor MAVs in Three-dimensional Complex Environment: [source](https://ieeexplore.ieee.org/document/9019196)
-	- RRT* for global planning and Path Oriented Prunging for local planning.
-- External Forces Resilient Safe Motion Planning for Quadrotor: [source](https://arxiv.org/pdf/2103.11178.pdf)
-    - Application of MPC to counteract wind force disturbances.
-- Dynamics analysis and time-optimal motion planning for unmanned quadrotor transportation systems: [source](https://pdf.sciencedirectassets.com/271456/1-s2.0-S0957415818X00026/1-s2.0-S0957415818300096/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEGUaCXVzLWVhc3QtMSJHMEUCIFRv%2FcGPfbNfMmCTE9G64iIOJrdXL9H0ZGu51C4IMKTRAiEA8NxAkzNF3zZzyNc8MdTXUW0XuloWnAmv1Ovud5PMV8Uq%2BgMILhAEGgwwNTkwMDM1NDY4NjUiDEoPuDjH39DaqbvgrirXA1v75UDciCHFhNCi1CyecTnvdhQkC%2BljR%2Fl5e3oCTHvcR84L02JRDONYxGdQwHIJxZMHS00BGjVefxZziZgqHcdCTJanCSKEvAEkqgXvk8OoJTulZs2O9%2FIB18MAKz25vFbHWEI8vbXG5ByEZz1Fo4aYVuGNij8wRdcWClQpMYddQlEkbzBa3OwGDRhmgIZfsR41XYhGgmK38wgwFafPoI95zFM03glJ9XPS%2B0VheoPTWeAyt8zXfKl5NnXVHw2FOuHUN5WVAlJkbw84%2BS8oo9jINHH%2Bu8aCusGkQrkHhVCXoWHF6rQOCpvQoMy7EWIJTvjzM4nqohFatQFGpSa8wkLm7t241l94wFGnF57crEuCEwDakIO6kjWEH9LqhBJv0lZKsvMYFrSJnc1432OUlJAY2RTHUuplTDYUB%2B%2BdYn1nBMnLzd9V7c8WRoUXa%2FFUk6CpBR98x4xDVYd4%2F5rE5hxtg2Hb8uEUdA%2F%2BrY3YYs%2BGHMrP7R9bdNIDxwn6BtA8TGl04OrEQPrYB15zCgRXn9aetyVkU5zjfz68vrMVK89PL5G05yOj%2BOu9bvaRuWe4i5DOpVgUlvZJUGgcc25jk0mhi5TBu33QsImYutvsCKzwsRBUHM2dwzC7oO6MBjqlAdrKhDXksXJ1jECfEvX0ttkKMsVJS1uXa3fVtiSOjUjuegRCy9FWjhcy0vgciZKMubwNLSvKhvtIdoMOOSNyH%2BM1ZPIrYA91R5ndg%2F63fKyh8pXuBsdmO6U2KxDnnvr%2BM7FS1wFG6Zrdm8umDXGe%2FOp4PWkTVrUD%2BSzXC7nbZfISSio%2Ftnkf1QE9WVeaptdlNMZ9aDq5jVmvG5ghJobQTh7af6BRfw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20211122T133904Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTY7PTZOIPU%2F20211122%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=401685a1ae12bcc196076f3551383c328821c40d97e61fd549dd229d8c4d5d2c&hash=29edc4ad39b3534e7c723753d88fb7a7c651cc631ba9dfc3267f429039b0f462&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0957415818300096&tid=spdf-9059ebfe-a743-403a-9278-7497ffc3b2b9&sid=2f8ce8b278f7c544729b9a84aa24447538bfgxrqb&type=client)
-    - No MPC, no RRT, some entirely different approach it seems (not certain about its utility for our project, might be too advanced).
-
-### For static environments
-
+    - RRT* (Also, nice comparison between RRT, RRT* and RRT* Informed) for global planning plus dynamic winidow for local planning.
 - A RRT* based kinodynamic trajectory planning algorithm for Multirotor Micro Air Vehicle: [source](https://ieeexplore.ieee.org/document/9277168)
     - RRT* with multiple considerations on the kinodynamics of the system
 - Path Planning Followed by Kinodynamic Smoothing for Multirotor Aerial Vehicles (MAVs): [source](https://ieeexplore.ieee.org/document/9290162)
     - RRT*
+- Model Predictive control-based trajectory planning for quadrotors with state and input constraints: [source](https://ieeexplore-ieee-org.tudelft.idm.oclc.org/document/7832517)
+    - MPC with RRT
+- Minimum Snap Trajectory Tracking for a Quadrotor UAV using Nonlinear Model Predictive Control [source](https://www.researchgate.net/publication/346782883_Minimum_Snap_Trajectory_Tracking_for_a_Quadrotor_UAV_using_Nonlinear_Model_Predictive_Control)
+- Geometric path following control for multirotor vehicles using nonlinear model predictive control and 3D spline paths: [source](https://ieeexplore-ieee-org.tudelft.idm.oclc.org/document/7502541)
+
+### For dynamic environments
+
+- Real-Time Motion Planning for Quadrotor MAVs in Three-dimensional Complex Environment: [source](https://ieeexplore.ieee.org/document/9019196)
+	- RRT* for global planning and Path Oriented Prunging for local planning.
+- External Forces Resilient Safe Motion Planning for Quadrotor: [source](https://arxiv.org/pdf/2103.11178.pdf)
+    - Application of MPC to counteract wind force disturbances.
+
+### Minimum snap sources
+
 - Polynomial Trajectory Planning for Aggressive Quadrotor Flight in Dense Indoor Environments: [source](https://dspace.mit.edu/bitstream/handle/1721.1/106840/Roy_Polynomial%20trajectory.pdf?sequence=1&isAllowed=y)
     - Polynomial trajectory
     - Time allocation optimization
     - we can also get some inspiration for our report from the article's structure
     - The c++ code of the nonlinear programming based time allocation and trajectory generation can be found at: [ethz-asl](https://github.com/ethz-asl/mav_trajectory_generation) 
 
-## Useful projects for inspiration or reference
+- Actuator Constrained Trajectory Generation and Control for Variable-Pitch Quadrotors: [source](https://www.researchgate.net/publication/259741166_Actuator_Constrained_Trajectory_Generation_and_Control_for_Variable-Pitch_Quadrotors)
+
+- Constrained Control Allocation Approaches in Trajectory Control of a Quadrotor Under Actuator Saturation: [source](https://escholarship.mcgill.ca/downloads/f1881r83x?locale=en)
+
+### Useful projects for inspiration or reference
 
 - [3D Motion Planning repo by abhiojha8](https://github.com/abhiojha8/3D-Motion-Planning)
+
 - Kinodynamic motion planning for quadrotor-like aerial robots: [source](https://oatao.univ-toulouse.fr/20169/1/Boeuf.pdf)
     - A Thesis on quadrotors, covers a very wide range of information on the topic. Chapter on steering function included.
+
 - Very extensive project on path planning algorithms, it does not use any library for collisions, but implements it itself. Can be useful for inspiration: [source](https://github.com/zhm-real/PathPlanning)
+
 - Non-linear MPC control from University of Zuerich, they used casadi optimization solver and non-linear quadrotor model.We can refer to their code for setting optimizer and Q, R matrices. [source](https://github.com/uzh-rpg/high_mpc)
+
 - Linear MPC, we can refer to their Q,R matrices.[source](https://github.com/b4sgren/mpc)
-- Hai Zhu's program for testing different solvers.[source](https://github.com/hai-zhu/solver_test)
 
 ## Various
 
 - Link to the first reference for the quaternion derivation of the quadrotor model: [Quaternions and dynamics](https://archive.org/details/arxiv-0811.2889/page/n5/mode/2up)
+
 - Very interesting approach for obstacle definition and collision detection. [source](https://gdbooks.gitbooks.io/3dcollisions/content/Chapter1/)
-- Clear and intuitive explanation of configuration space and DOF(degree of freedom). See chapter 2, Modern Robotics. [source](http://hades.mech.northwestern.edu/images/7/7f/MR.pdf)
-- Explanation of potential functions and fields. See chapter 4, Principles of Robot Motion. [source](http://mathdep.ifmo.ru/wp-content/uploads/2018/10/Intelligent-Robotics-and-Autonomous-Agents-series-Choset-H.-et-al.-Principles-of-Robot-Motion_-Theory-Algorithms-and-Implementations-MIT-2005.pdf)
+
 - Explanation of cubic spline interpolation from Python Numerical Methods, Berkley. [source](https://pythonnumericalmethods.berkeley.edu/notebooks/chapter17.03-Cubic-Spline-Interpolation.html)
