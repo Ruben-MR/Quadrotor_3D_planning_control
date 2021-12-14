@@ -67,6 +67,31 @@ def get_aeq_cont(n_seg, n_order, ts, k):
         aeq_cont[j, (n_order + 1) * (j + 1) + k] = -math.factorial(k)
     return aeq_cont
 
+
+# Function for obtaining the values of the different derivatives of the trajectory
+def get_point_values(coef_x, coef_y, coef_z, ts, n_seg, n_order, order_der=0, tstep=0.01):
+    values = []
+    num_terms = n_order + 1 - order_der
+    for i in range(n_seg):
+        xi = coef_x[(num_terms*i):(num_terms*(i + 1))].tolist()
+        yi = coef_y[(num_terms*i):(num_terms*(i + 1))].tolist()
+        zi = coef_z[(num_terms*i):(num_terms*(i + 1))].tolist()
+        for t in np.arange(0, ts[i], tstep):
+            values.append(np.polyval(xi[::-1], t))
+            values.append(np.polyval(yi[::-1], t))
+            values.append(np.polyval(zi[::-1], t))
+
+    return np.array(values).reshape((-1, 3))
+
+
+# Function for obtaining the coefficients with respect to the previous derivative coefficients
+def get_derivative_coef(coef_x, coef_y, coef_z, n_order, order_der):
+    num_terms = n_order + 2 - order_der
+    der_coef_x = (coef_x.reshape((-1, num_terms))[:, 1:] * np.arange(start=1, stop=num_terms).reshape(1, -1)).reshape((-1,))
+    der_coef_y = (coef_y.reshape((-1, num_terms))[:, 1:] * np.arange(start=1, stop=num_terms).reshape(1, -1)).reshape((-1,))
+    der_coef_z = (coef_z.reshape((-1, num_terms))[:, 1:] * np.arange(start=1, stop=num_terms).reshape(1, -1)).reshape((-1,))
+    return der_coef_x, der_coef_y, der_coef_z
+
 ########################################################################################################################
 # FUNCTIONS SPECIFIC FOR OPTIMAL TIME ALLOCATION
 ########################################################################################################################
@@ -124,7 +149,7 @@ def equal_constraint(variables, n_seg, n_order, path_list):
 ########################################################################################################################
 
 
-def compute_proportional_t(path, T, n_seg):
+def compute_proportional_t(path, total_time, n_seg):
     ts = np.zeros((n_seg,))
     dist = np.zeros((n_seg,))
     dist_sum, t_sum = 0, 0
@@ -132,9 +157,9 @@ def compute_proportional_t(path, T, n_seg):
         dist[i] = np.linalg.norm(path[i+1, :] - path[i, :])
         dist_sum += dist[i]
     for i in range(n_seg-1):
-        ts[i] = T*dist[i]/dist_sum
+        ts[i] = total_time*dist[i]/dist_sum
         t_sum += ts[i]
-    ts[-1] = T - t_sum
+    ts[-1] = total_time - t_sum
     return ts
 
 

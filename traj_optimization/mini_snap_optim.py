@@ -47,18 +47,9 @@ def minimum_snap_qp(waypoints, ts, n_seg, n_order):
                         options=opts)
     return np.array(solution.x)
 
-# # Quadratic programming based minimum snap (given segment times)
-# def minimum_snap_qp(waypoints, ts, n_seg, n_order):
-#     qs = get_q(n_seg, n_order, ts)
-#     aeq, beq = get_ab(n_seg, n_order, waypoints, ts)
-#     x = cp.Variable(n_seg * (n_order + 1))
-#     prob = cp.Problem(cp.Minimize(cp.quad_form(x, qs)), [aeq @ x == beq])
-#     prob.solve()
-#     return np.array(x.value)
-
 
 # trajectory optimization
-def min_snap_optimizer_3d(path, penalty, time_optimal=True):
+def min_snap_optimizer_3d(path, penalty, time_optimal=True, total_time=10):
     # general parameters of the minimum snap algorithm
     n_order = 7
     n_seg = np.size(path, axis=0) - 1
@@ -67,80 +58,23 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True):
     if time_optimal:
         ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty)
     else:
-        # ts = np.full((n_seg,), 1)
-        T = 10
-        ts = compute_proportional_t(path, T, n_seg)
+        ts = compute_proportional_t(path, total_time, n_seg)
         pos_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
         pos_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
         pos_coef_z = minimum_snap_qp(path[:, 2], ts, n_seg, n_order)
         
-    vel_coef_x = (pos_coef_x.reshape((-1, n_order + 1))[:, 1:] * np.arange(start=1, stop=n_order + 1).reshape(1, -1)).reshape((-1,))
-    vel_coef_y = (pos_coef_y.reshape((-1, n_order + 1))[:, 1:] * np.arange(start=1, stop=n_order + 1).reshape(1, -1)).reshape((-1,))
-    vel_coef_z = (pos_coef_z.reshape((-1, n_order + 1))[:, 1:] * np.arange(start=1, stop=n_order + 1).reshape(1, -1)).reshape((-1,))
+    vel_coef_x, vel_coef_y, vel_coef_z = get_derivative_coef(pos_coef_x, pos_coef_y, pos_coef_z, n_order, 1)
+    acc_coef_y,  acc_coef_x, acc_coef_z = get_derivative_coef(vel_coef_x, vel_coef_y, vel_coef_z, n_order, 2)
+    jerk_coef_y, jerk_coef_x, jerk_coef_z = get_derivative_coef(acc_coef_x, acc_coef_y, acc_coef_z, n_order, 3)
+    snap_coef_y, snap_coef_x, snap_coef_z = get_derivative_coef(jerk_coef_x, jerk_coef_y, jerk_coef_z, n_order, 4)
 
-    acc_coef_x = (vel_coef_x.reshape((-1, n_order))[:, 1:] * np.arange(start=1, stop=n_order).reshape(1, -1)).reshape((-1,))
-    acc_coef_y = (vel_coef_y.reshape((-1, n_order))[:, 1:] * np.arange(start=1, stop=n_order).reshape(1, -1)).reshape((-1,))
-    acc_coef_z = (vel_coef_z.reshape((-1, n_order))[:, 1:] * np.arange(start=1, stop=n_order).reshape(1, -1)).reshape((-1,))
-
-    # The jerk and the snap are required for actuator constraint calculation
-    jerk_coef_x = (acc_coef_x.reshape((-1, n_order-1))[:, 1:] * np.arange(start=1, stop=n_order-1).reshape(1, -1)).reshape((-1,))
-    jerk_coef_y = (acc_coef_y.reshape((-1, n_order-1))[:, 1:] * np.arange(start=1, stop=n_order-1).reshape(1, -1)).reshape((-1,))
-    jerk_coef_z = (acc_coef_z.reshape((-1, n_order-1))[:, 1:] * np.arange(start=1, stop=n_order-1).reshape(1, -1)).reshape((-1,))
-
-    snap_coef_x = (jerk_coef_x.reshape((-1, n_order - 2))[:, 1:] * np.arange(start=1, stop=n_order - 2).reshape(1, -1)).reshape((-1,))
-    snap_coef_y = (jerk_coef_y.reshape((-1, n_order - 2))[:, 1:] * np.arange(start=1, stop=n_order - 2).reshape(1, -1)).reshape((-1,))
-    snap_coef_z = (jerk_coef_z.reshape((-1, n_order - 2))[:, 1:] * np.arange(start=1, stop=n_order - 2).reshape(1, -1)).reshape((-1,))
-
-    pos, vel, acc, jerk, snap = [], [], [], [], []
     tstep = 0.01
+    pos = get_point_values(pos_coef_x, pos_coef_y, pos_coef_z, ts, n_seg, n_order, 0, tstep)
+    vel = get_point_values(vel_coef_x, vel_coef_y, vel_coef_z, ts, n_seg, n_order, 1, tstep)
+    acc = get_point_values(acc_coef_x, acc_coef_y, acc_coef_z, ts, n_seg, n_order, 2, tstep)
+    jerk = get_point_values(jerk_coef_x, jerk_coef_y, jerk_coef_z, ts, n_seg, n_order, 3, tstep)
+    snap = get_point_values(snap_coef_x, snap_coef_y, snap_coef_z, ts, n_seg, n_order, 4, tstep)
 
-    for i in range(n_seg):
-        pxi = pos_coef_x[(8 * i):(8 * (i + 1))].tolist()
-        pyi = pos_coef_y[(8 * i):(8 * (i + 1))].tolist()
-        pzi = pos_coef_z[(8 * i):(8 * (i + 1))].tolist()
-
-        vxi = vel_coef_x[(7 * i):(7 * (i + 1))].tolist()
-        vyi = vel_coef_y[(7 * i):(7 * (i + 1))].tolist()
-        vzi = vel_coef_z[(7 * i):(7 * (i + 1))].tolist()
-
-        axi = acc_coef_x[(6 * i):(6 * (i + 1))].tolist()
-        ayi = acc_coef_y[(6 * i):(6 * (i + 1))].tolist()
-        azi = acc_coef_z[(6 * i):(6 * (i + 1))].tolist()
-
-        jxi = jerk_coef_x[(5 * i):(5 * (i + 1))].tolist()
-        jyi = jerk_coef_y[(5 * i):(5 * (i + 1))].tolist()
-        jzi = jerk_coef_z[(5 * i):(5 * (i + 1))].tolist()
-
-        sxi = snap_coef_x[(4 * i):(4 * (i + 1))].tolist()
-        syi = snap_coef_y[(4 * i):(4 * (i + 1))].tolist()
-        szi = snap_coef_z[(4 * i):(4 * (i + 1))].tolist()
-
-        for t in np.arange(0, ts[i], tstep):
-            pos.append(np.polyval(pxi[::-1], t))
-            pos.append(np.polyval(pyi[::-1], t))
-            pos.append(np.polyval(pzi[::-1], t))
-
-            vel.append(np.polyval(vxi[::-1], t))
-            vel.append(np.polyval(vyi[::-1], t))
-            vel.append(np.polyval(vzi[::-1], t))
-
-            acc.append(np.polyval(axi[::-1], t))
-            acc.append(np.polyval(ayi[::-1], t))
-            acc.append(np.polyval(azi[::-1], t))
-
-            jerk.append(np.polyval(jxi[::-1], t))
-            jerk.append(np.polyval(jyi[::-1], t))
-            jerk.append(np.polyval(jzi[::-1], t))
-
-            snap.append(np.polyval(sxi[::-1], t))
-            snap.append(np.polyval(syi[::-1], t))
-            snap.append(np.polyval(szi[::-1], t))
-
-    pos = np.array(pos).reshape((-1, 3))
-    vel = np.array(vel).reshape((-1, 3))
-    acc = np.array(acc).reshape((-1, 3))
-    jerk = np.array(jerk).reshape((-1, 3))
-    snap = np.array(snap).reshape((-1, 3))
     return pos, vel, acc, jerk, snap, ts
 
 
@@ -166,11 +100,10 @@ if __name__ == "__main__":
                             [10, 7, 8], [9, 3, 10], [12, 5, 2]])
     """
     # compute the optimal path
-    time_optimal = False
+    time_optimal = True
     position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=10000, time_optimal=time_optimal)
     print('Time distribution:\n', np.round(times, 2))
     print('Commanded rotor speeds at time 1', get_input_from_ref(acceleration[100, :], jerk[100, :], snap[100, :]))
-    print(acceleration[100, :], jerk[100, :], snap[100, :])
     # plot the results
     N = len(velocity[:, 0])
     fig, axs = plt.subplots(3)
