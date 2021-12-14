@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-import os
-import sys
-
-url1 = os.path.abspath(os.path.join(os.getcwd(), "../map/"))
-url2 = os.path.abspath(os.path.join(os.getcwd(), "../box_plotter/"))
-sys.path.append(url1)
-sys.path.append(url2)
-
 import numpy as np
 from numpy.linalg import norm
 from Obstacle import collision_check_path

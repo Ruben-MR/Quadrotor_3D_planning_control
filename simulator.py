@@ -1,13 +1,3 @@
-import os
-import sys
-##################################################################
-# deal with the folders
-
-url1 = os.path.join(os.getcwd(), "model/")
-url2 = os.path.join(os.getcwd(), "no_longer_needed/traj_handles_ro47001/")
-sys.path.append(url1)
-sys.path.append(url2)
-#################################################################
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
@@ -79,7 +69,7 @@ else:
     print("Path found, applying smoothing.")
     path_list = RRT.get_path()
     # pos, vel, acc = cubic_spline(path_list, T)
-    pos, vel, acc, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal = True)
+    pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
     print("Smoothing completed, tracking trajectory")
     ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
     real_trajectory = np.zeros((1, 3))
