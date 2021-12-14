@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Contains the source code for defining the obstacle class and function for collision detection along a path
 """

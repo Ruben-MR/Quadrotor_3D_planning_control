@@ -1,18 +1,5 @@
-# -*- coding: utf-8 -*-
-import os
-import sys
-##################################################################
-# deal with the folders
-url1 = os.path.join(os.getcwd(), "model/")
-url2 = os.path.join(os.getcwd(), "traj_handles_ro47001/")
-url3 = os.path.join(os.getcwd(), "map/")
-sys.path.append(url1)
-sys.path.append(url2)
-sys.path.append(url3)
-#################################################################
 import numpy as np
 from scipy.spatial.transform import Rotation
-from numpy import sin, cos, arcsin, arctan2, pi
 from numpy.linalg import norm
 
 
