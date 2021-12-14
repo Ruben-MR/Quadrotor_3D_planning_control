@@ -70,7 +70,7 @@ else:
     path_list = RRT.get_path()
     # pos, vel, acc = cubic_spline(path_list, T)
     print("Smoothing completed, tracking trajectory")
-    pos, vel, acc, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
+    pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
     # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
     ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
     real_trajectory = np.zeros((1, 3))

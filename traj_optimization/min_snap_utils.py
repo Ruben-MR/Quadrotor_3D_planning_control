@@ -1,6 +1,5 @@
 import numpy as np
-from math import factorial
-
+import math
 ########################################################################################################################
 # FUNCTIONS FOR MINIMUM SNAP DEFINITION (BOTH FOR OPTIMAL TIME ALLOCATION AND NORMAL)
 ########################################################################################################################
@@ -30,7 +29,7 @@ def get_ab(n_seg, n_order, waypoints, ts):
     aeq_end = np.zeros((4, n_all_poly))
     for k in range(4):
         for i in range(k, n_order + 1):
-            aeq_end[k, -(n_order + 1 - i)] = (factorial(i) * pow(ts[-1], (i - k))) / factorial(i - k)
+            aeq_end[k, -(n_order + 1 - i)] = (math.factorial(i) * pow(ts[-1], (i - k))) / math.factorial(i - k)
     beq_start = np.array([waypoints[0], 0, 0, 0])
     beq_end = np.array([waypoints[-1], 0, 0, 0])
 
@@ -64,8 +63,8 @@ def get_aeq_cont(n_seg, n_order, ts, k):
     aeq_cont = np.zeros((n_seg - 1, n_seg * (n_order + 1)))
     for j in range(n_seg - 1):
         for i in range(k, n_order + 1):
-            aeq_cont[j, (n_order + 1) * j + i] = factorial(i) * pow(ts[j], i - k) / factorial(i - k)
-        aeq_cont[j, (n_order + 1) * (j + 1) + k] = -factorial(k)
+            aeq_cont[j, (n_order + 1) * j + i] = math.factorial(i) * pow(ts[j], i - k) / math.factorial(i - k)
+        aeq_cont[j, (n_order + 1) * (j + 1) + k] = -math.factorial(k)
     return aeq_cont
 
 ########################################################################################################################
@@ -119,3 +118,59 @@ def equal_constraint(variables, n_seg, n_order, path_list):
                             aeq_y @ ys - beq_y,
                             aeq_z @ zs - beq_z))
     return constraint
+
+########################################################################################################################
+# FUNCTIONS FOR ACTUATION CONSTRAINT
+########################################################################################################################
+
+
+def get_input_from_ref(acc, jerk, snap):
+    m, g = 0.03, 9.81
+    # Total thrust obtained from accelerations
+    total_thrust = m*np.sqrt(acc[0]**2 + acc[1]**2 + (acc[2] - g)**2)
+
+    # Pitch and roll angles considering zero yaw
+    pitch = math.atan(acc[0]/(acc[2] - g))
+    roll = math.asin(m*acc[1]/total_thrust)
+
+    # Get the body frame axes
+    xc = np.array([1, 0, 0])
+    yc = np.array([0, 1, 0])
+    zc = np.array([0, 0, 1])
+
+    alpha = acc - g*zc
+    xb = np.cross(yc, alpha)/np.linalg.norm(np.cross(yc, alpha))
+    yb = np.cross(alpha, xb)/np.linalg.norm(np.cross(alpha, xb))
+    zb = np.cross(xb, yb)
+
+    # Compute angular velocities
+    c = np.dot(zb, alpha)
+    wb = np.zeros((3,))
+    wb[0] = - np.dot(yb, jerk)/c
+    wb[1] = np.dot(xb, jerk)/c
+    wb[2] = wb[1]*np.dot(yc, zb)/np.linalg.norm(np.cross(yc, zb))
+
+    # Compute angular accelerations
+    c_dot = np.dot(zb, jerk)
+    wb_dot = np.zeros((3,))
+    wb_dot[0] = -(np.dot(yb, snap) - 2*c_dot*wb[0] + c*wb[1]*wb[2])/c
+    wb_dot[1] = (np.dot(xb, snap) - 2*c_dot*wb[1] + c*wb[0]*wb[2])/c
+    wb_dot[2] = (-wb[0]*wb[1]*np.dot(yc, yb) - wb[0]*wb[2]*np.dot(yc, zb) + wb_dot[1]*np.dot(yc, zb)) / \
+                np.linalg.norm(np.cross(yc, zb))
+
+    # Compute the moments
+    inertia_mat = np.diag(np.array([1.43e-5, 1.43e-5, 2.89e-5]))
+    m = np.dot(inertia_mat, wb_dot) + np.cross(wb, np.dot(inertia_mat, wb))
+
+    # Convert to rotor speeds
+    k_drag, k_thrust = 7.8e-11, 2.3e-08
+    k = k_drag/k_thrust
+    to_inputs = np.array([[1, 1, 1, 1],
+                             [0, 0.046, 0, -0.046],
+                             [-0.046, 0, 0.046, 0],
+                             [k, -k, k, -k]])
+    rotor_forces = np.dot(np.linalg.inv(to_inputs), np.array([total_thrust, m[0], m[1], m[2]]))
+    rotor_speeds = np.sqrt(rotor_forces/k_thrust)
+    return rotor_speeds
+
+

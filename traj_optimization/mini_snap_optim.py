@@ -64,7 +64,16 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True):
     acc_coef_y = (vel_coef_y.reshape((-1, n_order))[:, 1:] * np.arange(start=1, stop=n_order).reshape(1, -1)).reshape((-1,))
     acc_coef_z = (vel_coef_z.reshape((-1, n_order))[:, 1:] * np.arange(start=1, stop=n_order).reshape(1, -1)).reshape((-1,))
 
-    pos, vel, acc = [], [], []
+    # The jerk and the snap are required for actuator constraint calculation
+    jerk_coef_x = (acc_coef_x.reshape((-1, n_order-1))[:, 1:] * np.arange(start=1, stop=n_order-1).reshape(1, -1)).reshape((-1,))
+    jerk_coef_y = (acc_coef_y.reshape((-1, n_order-1))[:, 1:] * np.arange(start=1, stop=n_order-1).reshape(1, -1)).reshape((-1,))
+    jerk_coef_z = (acc_coef_z.reshape((-1, n_order-1))[:, 1:] * np.arange(start=1, stop=n_order-1).reshape(1, -1)).reshape((-1,))
+
+    snap_coef_x = (jerk_coef_x.reshape((-1, n_order - 2))[:, 1:] * np.arange(start=1, stop=n_order - 2).reshape(1, -1)).reshape((-1,))
+    snap_coef_y = (jerk_coef_y.reshape((-1, n_order - 2))[:, 1:] * np.arange(start=1, stop=n_order - 2).reshape(1, -1)).reshape((-1,))
+    snap_coef_z = (jerk_coef_z.reshape((-1, n_order - 2))[:, 1:] * np.arange(start=1, stop=n_order - 2).reshape(1, -1)).reshape((-1,))
+
+    pos, vel, acc, jerk, snap = [], [], [], [], []
     tstep = 0.01
 
     for i in range(n_seg):
@@ -80,6 +89,14 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True):
         ayi = acc_coef_y[(6 * i):(6 * (i + 1))].tolist()
         azi = acc_coef_z[(6 * i):(6 * (i + 1))].tolist()
 
+        jxi = jerk_coef_x[(5 * i):(5 * (i + 1))].tolist()
+        jyi = jerk_coef_y[(5 * i):(5 * (i + 1))].tolist()
+        jzi = jerk_coef_z[(5 * i):(5 * (i + 1))].tolist()
+
+        sxi = snap_coef_x[(4 * i):(4 * (i + 1))].tolist()
+        syi = snap_coef_y[(4 * i):(4 * (i + 1))].tolist()
+        szi = snap_coef_z[(4 * i):(4 * (i + 1))].tolist()
+
         for t in np.arange(0, ts[i], tstep):
             pos.append(np.polyval(pxi[::-1], t))
             pos.append(np.polyval(pyi[::-1], t))
@@ -93,10 +110,20 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True):
             acc.append(np.polyval(ayi[::-1], t))
             acc.append(np.polyval(azi[::-1], t))
 
+            jerk.append(np.polyval(jxi[::-1], t))
+            jerk.append(np.polyval(jyi[::-1], t))
+            jerk.append(np.polyval(jzi[::-1], t))
+
+            snap.append(np.polyval(sxi[::-1], t))
+            snap.append(np.polyval(syi[::-1], t))
+            snap.append(np.polyval(szi[::-1], t))
+
     pos = np.array(pos).reshape((-1, 3))
     vel = np.array(vel).reshape((-1, 3))
     acc = np.array(acc).reshape((-1, 3))
-    return pos, vel, acc, ts
+    jerk = np.array(jerk).reshape((-1, 3))
+    snap = np.array(snap).reshape((-1, 3))
+    return pos, vel, acc, jerk, snap, ts
 
 
 if __name__ == "__main__":
@@ -121,9 +148,10 @@ if __name__ == "__main__":
                             [10, 7, 8], [9, 3, 10], [12, 5, 2]])
     """
     # compute the optimal path
-    position, velocity, acceleration, times = min_snap_optimizer_3d(path_points, penalty=5000, time_optimal=True)
+    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=10000, time_optimal=True)
     print('Time distribution:\n', np.round(times, 2))
-
+    print('Commanded rotor speeds at time 1', get_input_from_ref(acceleration[100, :], jerk[100, :], snap[100, :]))
+    print(acceleration[100, :], jerk[100, :], snap[100, :])
     # plot the results
     N = len(velocity[:, 0])
     fig, axs = plt.subplots(3)
@@ -147,6 +175,9 @@ if __name__ == "__main__":
 
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
+    ax.set_xlim(0, 15)
+    ax.set_ylim(-5, 10)
+    ax.set_zlim(0, 15)
     ax.scatter(path_points[:, 0], path_points[:, 1], path_points[:, 2])
     ax.plot(position[:, 0], position[:, 1], position[:, 2])
 
