@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize
 import cvxpy as cp
-from min_snap_utils import *
+from traj_optimization.min_snap_utils import *
 
 
 # Nonlinear programming based (optimal time allocation) minimum snap

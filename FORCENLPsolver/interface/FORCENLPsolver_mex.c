@@ -178,14 +178,14 @@ void mexFunction( solver_int32_default nlhs, mxArray *plhs[], solver_int32_defau
     {
     mexErrMsgTxt("PARAMS.all_parameters must be a double.");
     }
-    if( mxGetM(par) != 300 || mxGetN(par) != 1 ) 
+    if( mxGetM(par) != 450 || mxGetN(par) != 1 ) 
 	{
-    mexErrMsgTxt("PARAMS.all_parameters must be of size [300 x 1]");
+    mexErrMsgTxt("PARAMS.all_parameters must be of size [450 x 1]");
     }
 #endif	 
 	if ( (mxGetN(par) != 0) && (mxGetM(par) != 0) )
 	{
-		copyMArrayToC_double(mxGetPr(par), params.all_parameters,300);
+		copyMArrayToC_double(mxGetPr(par), params.all_parameters,450);
 
 	}
 	par = mxGetField(PARAMS, 0, "reinitialize");
