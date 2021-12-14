@@ -8,7 +8,7 @@ import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
 import forcespro
 import casadi
-from quadrotor import quat_dot, Quadrotor
+from model.quadrotor import quat_dot, Quadrotor
 
 
 class MPC:
