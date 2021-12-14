@@ -31,14 +31,30 @@ def minimum_snap_np(path, n_seg, n_order, penalty):
     return ts, pos_coef_x, pos_coef_y, pos_coef_z
 
 
-# Quadratic programming based minimum snap (given segment times)
+# Quadratic programming based minimum snap (given proportional times)
 def minimum_snap_qp(waypoints, ts, n_seg, n_order):
-    qs = get_q(n_seg, n_order, ts)
-    aeq, beq = get_ab(n_seg, n_order, waypoints, ts)
-    x = cp.Variable(n_seg * (n_order + 1))
-    prob = cp.Problem(cp.Minimize(cp.quad_form(x, qs)), [aeq @ x == beq])
-    prob.solve()
-    return np.array(x.value)
+    # number of variables
+    n_var = n_seg * (n_order + 1)
+    # initial guess
+    x0 = np.zeros(n_var)
+
+    # set the constraints, bounds and additional options for the optimizer
+    con = {'type': 'eq', 'fun': equal_constraint_normal, 'args': [n_seg, n_order, waypoints, ts]}
+    opts = {'maxiter': 150, 'eps': 2e-8}
+
+    # solve the problem
+    solution = minimize(obj_function_normal, x0, args=(n_seg, n_order, ts), method='SLSQP', constraints=con,
+                        options=opts)
+    return np.array(solution.x)
+
+# # Quadratic programming based minimum snap (given segment times)
+# def minimum_snap_qp(waypoints, ts, n_seg, n_order):
+#     qs = get_q(n_seg, n_order, ts)
+#     aeq, beq = get_ab(n_seg, n_order, waypoints, ts)
+#     x = cp.Variable(n_seg * (n_order + 1))
+#     prob = cp.Problem(cp.Minimize(cp.quad_form(x, qs)), [aeq @ x == beq])
+#     prob.solve()
+#     return np.array(x.value)
 
 
 # trajectory optimization
@@ -51,7 +67,9 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True):
     if time_optimal:
         ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty)
     else:
-        ts = np.full((n_seg,), 1)
+        # ts = np.full((n_seg,), 1)
+        T = 10
+        ts = compute_proportional_t(path, T, n_seg)
         pos_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
         pos_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
         pos_coef_z = minimum_snap_qp(path[:, 2], ts, n_seg, n_order)
@@ -148,14 +166,18 @@ if __name__ == "__main__":
                             [10, 7, 8], [9, 3, 10], [12, 5, 2]])
     """
     # compute the optimal path
-    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=10000, time_optimal=True)
+    time_optimal = False
+    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=10000, time_optimal=time_optimal)
     print('Time distribution:\n', np.round(times, 2))
     print('Commanded rotor speeds at time 1', get_input_from_ref(acceleration[100, :], jerk[100, :], snap[100, :]))
     print(acceleration[100, :], jerk[100, :], snap[100, :])
     # plot the results
     N = len(velocity[:, 0])
     fig, axs = plt.subplots(3)
-    fig.suptitle('Time optimal distributed')
+    if time_optimal:
+        fig.suptitle('Optimal Time')
+    else:
+        fig.suptitle('Proportional Time')
 
     axs[0].plot(range(N), position[:, 0])
     axs[0].plot(range(N), position[:, 1])

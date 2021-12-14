@@ -120,6 +120,36 @@ def equal_constraint(variables, n_seg, n_order, path_list):
     return constraint
 
 ########################################################################################################################
+# FUNCTIONS SPECIFIC FOR PROPORTIONAL TIME ALLOCATION
+########################################################################################################################
+
+
+def compute_proportional_t(path, T, n_seg):
+    ts = np.zeros((n_seg,))
+    dist = np.zeros((n_seg,))
+    dist_sum, t_sum = 0, 0
+    for i in range(n_seg):
+        dist[i] = np.linalg.norm(path[i+1, :] - path[i, :])
+        dist_sum += dist[i]
+    for i in range(n_seg-1):
+        ts[i] = T*dist[i]/dist_sum
+        t_sum += ts[i]
+    ts[-1] = T - t_sum
+    return ts
+
+
+def obj_function_normal(variables, n_seg, n_order, ts):
+    qs = get_q(n_seg, n_order, ts)
+    obj = variables @ qs @ variables.reshape(-1, 1)
+    return obj
+
+
+def equal_constraint_normal(variables, n_seg, n_order, waypoints, ts):
+    aeq, beq = get_ab(n_seg, n_order, waypoints, ts)
+    constraint = aeq @ variables - beq
+    return constraint
+
+########################################################################################################################
 # FUNCTIONS FOR ACTUATION CONSTRAINT
 ########################################################################################################################
 
