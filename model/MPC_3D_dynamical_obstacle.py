@@ -8,7 +8,7 @@ import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
 import forcespro
 import casadi
-from quadrotor import quat_dot, Quadrotor
+from model.quadrotor import quat_dot, Quadrotor
 
 
 class MPC:
@@ -271,6 +271,8 @@ if __name__ == '__main__':
     controller = MPC()
     real_trajectory = {'x': [], 'y': [], 'z': []}
     while t < 10:
+        if t >= 6:
+            endpoint = np.array([10, 10, 10, 0, 0, 0, 7, 7, 7])  # last three digits are the position of the obstacle
         print('iteration: ', i)
         action = controller.control(current_state, endpoint)["cmd_rotor_speeds"]
         obs, reward, done, info = env.step(action)
@@ -296,6 +298,7 @@ if __name__ == '__main__':
                       label='Quadrotor')
     line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]],
                      label='Real_Trajectory')
+    ax1.scatter([2, 7], [2, 7], [2, 7], color = 'g', s=500)
 
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
