@@ -9,7 +9,7 @@ def minimum_snap_np(path, n_seg, n_order, penalty):
     n_var = 3 * n_seg * (n_order + 1) + n_seg
 
     # initial guess
-    x0 = np.zeros(n_var)
+    x0 = np.ones(n_var)
     x0[:n_seg] = 1
 
     # set the constraints, bounds and additional options for the optimizer
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     """
     # compute the optimal path
     time_optimal = True
-    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=20000,
+    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=2500,
                                                                                 time_optimal=time_optimal)
     idx, speeds = get_max_actuation(acceleration, jerk, snap)
     print('Time distribution:\n', np.round(times, 2))

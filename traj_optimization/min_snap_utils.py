@@ -103,7 +103,7 @@ def bound(n_seg, n_var):
     bound_tuple = ()
     for i in range(n_var):
         if i < n_seg:
-            bound_tuple += ((0.25, 2),)
+            bound_tuple += ((0.01, 2),)
         else:
             bound_tuple += ((-np.inf, np.inf),)
     return bound_tuple
@@ -121,7 +121,7 @@ def obj_function(variables, n_seg, n_order, penalty):
     qs = get_q(n_seg, n_order, ts)
     obj = xs @ qs @ xs.reshape(-1, 1) + ys @ qs @ ys.reshape(-1, 1) + zs @ qs @ zs.reshape(-1, 1) \
           + penalty * np.sum(ts ** 2)
-
+    print(obj, penalty*np.sum(ts**2))
     return obj
 
 
@@ -180,7 +180,7 @@ def equal_constraint_normal(variables, n_seg, n_order, waypoints, ts):
 
 
 def get_max_actuation(acc, jerk, snap):
-    max_idx, max_val = 1e9, 0
+    max_idx, max_val, max_speed = 1e9, 0, np.zeros((4,))
     for i in range(len(acc)):
         rotor_speeds = get_input_from_ref(acc[i, :], jerk[i, :], snap[i, :])
         if np.max(rotor_speeds) > max_val:
