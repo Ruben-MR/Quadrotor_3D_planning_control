@@ -103,7 +103,7 @@ def bound(n_seg, n_var):
     bound_tuple = ()
     for i in range(n_var):
         if i < n_seg:
-            bound_tuple += ((0.5, 2),)
+            bound_tuple += ((0.25, 2),)
         else:
             bound_tuple += ((-np.inf, np.inf),)
     return bound_tuple
@@ -177,6 +177,17 @@ def equal_constraint_normal(variables, n_seg, n_order, waypoints, ts):
 ########################################################################################################################
 # FUNCTIONS FOR ACTUATION CONSTRAINT
 ########################################################################################################################
+
+
+def get_max_actuation(acc, jerk, snap):
+    max_idx, max_val = 1e9, 0
+    for i in range(len(acc)):
+        rotor_speeds = get_input_from_ref(acc[i, :], jerk[i, :], snap[i, :])
+        if np.max(rotor_speeds) > max_val:
+            max_idx = i
+            max_val = np.max(rotor_speeds)
+            max_speed = rotor_speeds
+    return max_idx, max_speed
 
 
 def get_input_from_ref(acc, jerk, snap):

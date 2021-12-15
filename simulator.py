@@ -20,7 +20,6 @@ t = 0
 time_step = 1e-2
 total_SE = 0
 total_energy = 0
-penalty = 0
 #################################################################
 # Define the obstacles
 
@@ -69,7 +68,7 @@ else:
     print("Path found, applying smoothing.")
     path_list = RRT.get_path()
     # pos, vel, acc = cubic_spline(path_list, T)
-    pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
+    pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=5000, time_optimal=True)
     print("Smoothing completed, tracking trajectory")
     ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
     real_trajectory = np.zeros((1, 3))

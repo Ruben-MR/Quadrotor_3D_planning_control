@@ -1,6 +1,5 @@
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize
-import cvxpy as cp
 from traj_optimization.min_snap_utils import *
 
 
@@ -16,8 +15,7 @@ def minimum_snap_np(path, n_seg, n_order, penalty):
     # set the constraints, bounds and additional options for the optimizer
     con = {'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path]}
     bnds = bound(n_seg, n_var)
-    opts = {'maxiter': 150, 'eps': 2e-8}
-
+    opts = {'maxiter': 150}
     # solve the problem
     solution = minimize(obj_function, x0, args=(n_seg, n_order, penalty), method='SLSQP', bounds=bnds, constraints=con,
                         options=opts)
@@ -101,9 +99,11 @@ if __name__ == "__main__":
     """
     # compute the optimal path
     time_optimal = True
-    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=10000, time_optimal=time_optimal)
+    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=20000,
+                                                                                time_optimal=time_optimal)
+    idx, speeds = get_max_actuation(acceleration, jerk, snap)
     print('Time distribution:\n', np.round(times, 2))
-    print('Commanded rotor speeds at time 1', get_input_from_ref(acceleration[100, :], jerk[100, :], snap[100, :]))
+    print('Maximum commanded rotor speeds: ', speeds, 'at index: ', idx)
     # plot the results
     N = len(velocity[:, 0])
     fig, axs = plt.subplots(3)

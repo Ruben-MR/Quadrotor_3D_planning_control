@@ -37,6 +37,10 @@ class RRT_star:
     def find_path(self, x_goal, map_boundary):
         # Start iteration
         for iteration in range(self.num_iter):
+            # show the progress
+            if (iteration + 1) % 100 == 0:
+                print('Search iterations:', iteration + 1)
+
             # get a new sampled point and the index of the closest node in the list
             x_new, idx = self.new_and_closest(map_boundary)
 
@@ -64,10 +68,6 @@ class RRT_star:
                                            self.node_list[-1].cost+norm(x_goal - x_new),
                                            len(self.node_list) - 1))
                 self.goal_idx = len(self.node_list) - 1
-
-            # show the progress
-            if (iteration + 1) % 100 == 0:
-                print('Search iterations:', iteration+1)
 
         return self.pathFind
 
