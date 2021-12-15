@@ -21,7 +21,9 @@ dt = 0.01
 t = 0
 time_step = 1e-2
 total_SE = 0
+total_SE2 = 0
 total_energy = 0
+total_energy2 = 0
 penalty = 2500
 #################################################################
 # Define the obstacles
@@ -64,26 +66,35 @@ map_boundary = [15, 8, 3]
 
 current_state = env.reset(position=x_start)
 current_state2 = env2.reset(position=x_start2)
-RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
-RRT2 = RRT_star(x_start2, 1500, obstacles, ax1, 1)
-path_exists = RRT.find_path(x_goal, map_boundary)
-path_exists2 = RRT2.find_path(x_goal2, map_boundary)
+# RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
+# RRT2 = RRT_star(x_start2, 1500, obstacles, ax1, 1)
+# path_exists = RRT.find_path(x_goal, map_boundary)
+# path_exists2 = RRT2.find_path(x_goal2, map_boundary)
+path_exists = True
+path_exists2 = True
 #########################################################################
 # If a path has been found proceed to follow it
 if not path_exists or not path_exists2:
     print("No path was found for the given number of iterations for the quadrotors")
 else:
     print("Path found, applying smoothing.")
-    path_list = RRT.get_path()
-    path_list2 = RRT2.get_path()
+    # path_list = RRT.get_path()
+    # path_list2 = RRT2.get_path()
     T = 25
-    pos, vel, acc = cubic_spline(path_list, T)
-    pos2, vel2, acc2 = cubic_spline(path_list2, T)
-    np.savez('traj.npz', pos, vel, pos2, vel2)
+    #pos, vel, acc = cubic_spline(path_list, T)
+    #pos2, vel2, acc2 = cubic_spline(path_list2, T)
     print("Smoothing completed, tracking trajectory")
-    #pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
-    #pos2, vel2, acc2, jerk2, snap2, ts2 = min_snap_optimizer_3d(path_list2, penalty, time_optimal=True)
-    # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
+    # pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
+    # pos2, vel2, acc2, jerk2, snap2, ts2 = min_snap_optimizer_3d(path_list2, penalty, time_optimal=True)
+    # # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
+    # np.savez('traj.npz', pos=pos, vel=vel, pos2=pos2, vel2=vel2, path_list=path_list, path_list2=path_list2)
+    traj = np.load('traj.npz')
+    pos = traj['pos']
+    vel = traj['vel']
+    pos2 = traj['pos2']
+    vel2 = traj['vel2']
+    path_list = traj['path_list']
+    path_list2 = traj['path_list2']
     ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
     ax1.plot(pos2[:, 0], pos2[:, 1], pos2[:, 2], c='g', linewidth=2)
     real_trajectory = np.zeros((1, 3))
@@ -92,8 +103,10 @@ else:
     real_orientation2 = np.zeros((1, 4))
     # follow the path in segments
     for i in range(min(len(pos)-50, len(pos2-50))):
-        state_des = np.hstack((pos[i + 50], vel[i + 50], current_state2['x']))
-        state_des2 = np.hstack((pos2[i + 50], vel2[i + 50], current_state['x']))
+        # state_des = np.hstack((pos[i + 50], vel[i + 50], current_state2['x']))
+        # state_des2 = np.hstack((pos2[i + 50], vel2[i + 50], current_state['x']))
+        state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100])))
+        state_des2 = np.hstack((pos2[i + 50], vel2[i + 50], np.array([100, 100, 100])))
         action = policy.control(current_state, state_des)
         action2 = policy2.control(current_state2, state_des2)
         cmd_rotor_speeds = action['cmd_rotor_speeds']
@@ -144,13 +157,13 @@ else:
     ax1.plot([x_start2[0]], [x_start2[1]], [x_start2[2]], marker='o', c='r', markersize=10)
     ax1.plot([x_goal2[0]], [x_goal2[1]], [x_goal2[2]], marker='o', c='b', markersize=10)
     # Plot the final path
-    path_length = 0
-    for i in range(len(path_list) - 1):
-        ax1.plot([path_list[i][0], path_list[i + 1][0]],
-                [path_list[i][1], path_list[i + 1][1]],
-                [path_list[i][2], path_list[i + 1][2]], c='b', linewidth=2)
-        path_length += np.linalg.norm(path_list[i] - path_list[i + 1])
-    print('Length of path:', round(path_length, 2))
+    # path_length = 0
+    # for i in range(len(path_list) - 1):
+    #     ax1.plot([path_list[i][0], path_list[i + 1][0]],
+    #             [path_list[i][1], path_list[i + 1][1]],
+    #             [path_list[i][2], path_list[i + 1][2]], c='b', linewidth=2)
+    #     path_length += np.linalg.norm(path_list[i] - path_list[i + 1])
+    # print('Length of path:', round(path_length, 2))
 
     # Plot the trajectory of the quadrotor
     rot = Rotation.from_quat(real_orientation[0, :]).as_matrix()
@@ -163,7 +176,7 @@ else:
     rots = rots + real_trajectory[0, :]
     points = np.vstack((real_trajectory[0, :], rots))
     point, = ax1.plot(points[:, 0], points[:, 1], points[:, 2], 'r.', label='Quadrotor')
-    line, = ax1.plot([real_trajectory[0, 0]], [real_trajectory[0, 1]], [real_trajectory[0, 2]], 'g',
+    line, = ax1.plot([real_trajectory[0, 0]], [real_trajectory[0, 1]], [real_trajectory[0, 2]], 'r',
                      label='Real_Trajectory')
 ########################################################################################################
     # Plot the trajectory of the quadrotor2
@@ -178,9 +191,9 @@ else:
 
     # Helper function for the animation
     def animate(i):
-        line.set_xdata(real_trajectory[:i + 1, 0])
-        line.set_ydata(real_trajectory[:i + 1, 1])
-        line.set_3d_properties(real_trajectory[:i + 1, 2])
+        line.set_xdata(real_trajectory[:i + 1, 0], real_trajectory2[:i + 1, 0])
+        line.set_ydata(real_trajectory[:i + 1, 1], real_trajectory2[:i + 1, 1])
+        line.set_3d_properties(real_trajectory[:i + 1, 2], real_trajectory2[:i + 1, 2])
         rot = Rotation.from_quat(real_orientation[i, :]).as_matrix()
         rots = rotor_dists @ rot
         rots = rots + real_trajectory[i, :]
@@ -193,7 +206,7 @@ else:
     ax1.legend(loc='lower right')
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(real_trajectory,0), interval=1, repeat=False,
                                   blit=False)
-    ani2 = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(real_trajectory2, 0), interval=1, repeat=False,
-                                  blit=False)
+    # ani2 = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(real_trajectory2, 0), interval=1, repeat=False,
+    #                               blit=False)
     # RRT.plotTree()
     plt.show()

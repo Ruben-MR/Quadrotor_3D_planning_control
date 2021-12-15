@@ -124,7 +124,7 @@ class MPC:
         self.codeoptions.nlp.bfgs_init = 2.5 * np.identity(8)  # initialization of the hessian approximation
         self.codeoptions.solvemethod = "SQP_NLP"
         self.codeoptions.sqp_nlp.maxqps = 1  # maximum number of quadratic problems to be solved
-        self.codeoptions.sqp_nlp.reg_hessian = 5e-9  # increase this if exitflag=-8
+        self.codeoptions.sqp_nlp.reg_hessian = 5e-8  # increase this if exitflag=-8
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
         self.solver = self.model.generate_solver(self.codeoptions)
         #self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver

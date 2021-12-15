@@ -68,7 +68,7 @@ if not path_exists:
 else:
     print("Path found, applying smoothing.")
     path_list = RRT.get_path()
-    T = 15
+    T = 25
     pos, vel, acc = cubic_spline(path_list, T)
     print("Smoothing completed, tracking trajectory")
     #pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
