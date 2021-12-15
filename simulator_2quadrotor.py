@@ -6,7 +6,7 @@ from model.nonlinear_controller import GeometricController
 from Obstacle import Obstacle, plot_three_dee_box
 from RRT_3D.RRT_star import RRT_star
 from scipy.spatial.transform import Rotation
-# from traj_optimization.cubic_spline import cubic_spline
+from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 from model.MPC_3D_dynamical_obstacle import MPC
 #################################################################
@@ -57,17 +57,17 @@ ax1.view_init(30, 35)
 #########################################################################
 # global path planning using RRT*
 x_start = np.array([5, 7, 3])
-x_start2 = np.array([4, 7, 3])
+x_start2 = np.array([5, 6, 3])
 x_goal = np.array([0.5, 2.5, 1.5])
 x_goal2 = np.array([0.5, 2.5, 1.5])
 map_boundary = [15, 8, 3]
 
 current_state = env.reset(position=x_start)
-current_state2 = env.reset(position=x_start2)
-RRT = RRT_star(x_start, 2000, obstacles, ax1, 1)
-RRT2 = RRT_star(x_start2, 2000, obstacles, ax1, 1)
+current_state2 = env2.reset(position=x_start2)
+RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
+RRT2 = RRT_star(x_start2, 1500, obstacles, ax1, 1)
 path_exists = RRT.find_path(x_goal, map_boundary)
-path_exists2 = RRT.find_path(x_goal, map_boundary)
+path_exists2 = RRT2.find_path(x_goal2, map_boundary)
 #########################################################################
 # If a path has been found proceed to follow it
 if not path_exists or not path_exists2:
@@ -76,10 +76,13 @@ else:
     print("Path found, applying smoothing.")
     path_list = RRT.get_path()
     path_list2 = RRT2.get_path()
-    # pos, vel, acc = cubic_spline(path_list, T)
+    T = 25
+    pos, vel, acc = cubic_spline(path_list, T)
+    pos2, vel2, acc2 = cubic_spline(path_list2, T)
+    np.savez('traj.npz', pos, vel, pos2, vel2)
     print("Smoothing completed, tracking trajectory")
-    pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
-    pos2, vel2, acc2, jerk2, snap2, ts2 = min_snap_optimizer_3d(path_list2, penalty, time_optimal=True)
+    #pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
+    #pos2, vel2, acc2, jerk2, snap2, ts2 = min_snap_optimizer_3d(path_list2, penalty, time_optimal=True)
     # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
     ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
     ax1.plot(pos2[:, 0], pos2[:, 1], pos2[:, 2], c='g', linewidth=2)
@@ -88,7 +91,7 @@ else:
     real_trajectory2 = np.zeros((1, 3))
     real_orientation2 = np.zeros((1, 4))
     # follow the path in segments
-    for i in range(np.min(len(pos)-50, len(pos2-50))):
+    for i in range(min(len(pos)-50, len(pos2-50))):
         state_des = np.hstack((pos[i + 50], vel[i + 50], current_state2['x']))
         state_des2 = np.hstack((pos2[i + 50], vel2[i + 50], current_state['x']))
         action = policy.control(current_state, state_des)
