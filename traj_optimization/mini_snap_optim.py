@@ -9,8 +9,11 @@ def minimum_snap_np(path, n_seg, n_order, penalty):
     n_var = 3 * n_seg * (n_order + 1) + n_seg
 
     # initial guess
-    x0 = np.ones(n_var)
+    x0 = np.full(n_var, 0.1)
     x0[:n_seg] = 1
+    x0[n_seg:n_seg * (n_order + 1) + n_seg:(n_order + 1)] = path[:-1, 0]
+    x0[n_seg * (n_order + 1) + n_seg:2 * n_seg * (n_order + 1) + n_seg:(n_order + 1)] = path[:-1, 1]
+    x0[2 * n_seg * (n_order + 1) + n_seg:3 * n_seg * (n_order + 1) + n_seg:(n_order + 1)] = path[:-1, 2]
 
     # set the constraints, bounds and additional options for the optimizer
     con = {'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path]}
