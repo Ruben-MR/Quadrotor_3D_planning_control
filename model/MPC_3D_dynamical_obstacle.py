@@ -91,7 +91,7 @@ class MPC:
 
         # Upper/lower bounds for inequalities
         self.model.hu = np.array([np.inf])
-        self.model.hl = np.array([0.05])
+        self.model.hl = np.array([0.64])
 
         # # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
         # model.ineq = lambda z, p: np.array([z[2] ** 2 + z[3] ** 2,  # x^2 + y^2
