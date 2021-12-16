@@ -81,13 +81,17 @@ class MPC:
                                   -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
         self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf,
                                   np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
+        # self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, 0, -5, 0, -np.inf, -np.inf, -np.inf,
+        #                           -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
+        # self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, 15, 10, 15, np.inf, np.inf,
+        #                           np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
 
         # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
         self.model.ineq = lambda z, p: (z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2
 
         # Upper/lower bounds for inequalities
         self.model.hu = np.array([np.inf])
-        self.model.hl = np.array([1])
+        self.model.hl = np.array([0.05])
 
         # # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
         # model.ineq = lambda z, p: np.array([z[2] ** 2 + z[3] ** 2,  # x^2 + y^2
@@ -124,7 +128,7 @@ class MPC:
         self.codeoptions.nlp.bfgs_init = 2.5 * np.identity(8)  # initialization of the hessian approximation
         self.codeoptions.solvemethod = "SQP_NLP"
         self.codeoptions.sqp_nlp.maxqps = 1  # maximum number of quadratic problems to be solved
-        self.codeoptions.sqp_nlp.reg_hessian = 5e-8  # increase this if exitflag=-8
+        self.codeoptions.sqp_nlp.reg_hessian = 5e-9  # increase this if exitflag=-8
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
         self.solver = self.model.generate_solver(self.codeoptions)
         #self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
