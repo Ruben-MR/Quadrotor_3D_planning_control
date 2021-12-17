@@ -41,10 +41,14 @@ def generate_env(scenario):
 
     file = open(filename)
     csvreader = csv.reader(file)
+    for i in range(7):
+        next(csvreader)
     rows = []
     for row in csvreader:
         rows.append(row)
     file.close()
+
+    print(rows[0])
 
     # extracting the obstacles
     boxes = list()
@@ -135,3 +139,5 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(trajectory, 0), interval=1, repeat=False,
                                   blit=False)
     plt.show()
+
+generate_env(0)

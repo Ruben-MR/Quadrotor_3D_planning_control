@@ -1,3 +1,10 @@
+Scenario Description:
+
+The original scenario, in which one drone flies from outside the warehouse, and manoeuvres itself inside it.
+
+
+# ALWAYS KEEP FIVE LINES ABOVE THIS ONE ##############################################################################
+
 xlim (min / max), 0, 15
 ylim (min / max), -5, 10
 zlim (min / max), 0, 15
