@@ -48,8 +48,6 @@ def generate_env(scenario):
         rows.append(row)
     file.close()
 
-    print(rows[0])
-
     # extracting the obstacles
     boxes = list()
 
@@ -57,9 +55,6 @@ def generate_env(scenario):
         box = np.array([[float(row[1]), float(row[2]), float(row[3])],
                         [float(row[5]), float(row[6]), float(row[7])]])
         boxes.append(box)
-
-    for box in boxes:
-        print(box)
 
     # Convert the list of points in a list of obstacles
     obstacles = list()
@@ -87,6 +82,8 @@ def generate_env(scenario):
     end_point = np.array([float(rows[13][1]), float(rows[13][2]), float(rows[13][3])])
 
     # TODO: add start_point and end_point to the function returns. In a way that allows multiple quadrotors.
+
+    print("Loaded scenario successfully.")
 
     return obstacles, fig, axis, boundary
 
@@ -139,5 +136,3 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(trajectory, 0), interval=1, repeat=False,
                                   blit=False)
     plt.show()
-
-generate_env(0)
