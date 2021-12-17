@@ -3,7 +3,7 @@ from scipy.optimize import minimize
 from traj_optimization.min_snap_utils import *
 
 
-# Nonlinear programming based (optimal time allocation) minimum snap
+# Minimum snap solver function for time optimization
 def minimum_snap_np(path, n_seg, n_order, penalty, time_optimal):
     # variables for time, x, y, z
     n_var = 3 * n_seg * (n_order + 1) + n_seg
@@ -33,7 +33,7 @@ def minimum_snap_np(path, n_seg, n_order, penalty, time_optimal):
     return ts, pos_coef_x, pos_coef_y, pos_coef_z
 
 
-# Quadratic programming based minimum snap (given proportional times)
+# Solver function for minimum snap, created separately from the previous one to avoid confusion with indexation
 def minimum_snap_qp(path, ts, n_seg, n_order, time_optimal):
     # number of variables
     n_var = 3 * n_seg * (n_order + 1)
@@ -69,12 +69,14 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True, total_time=10):
     else:
         ts = compute_proportional_t(path, total_time, n_seg)
         pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_qp(path, ts, n_seg, n_order, time_optimal)
-        
+
+    # Obtain the coefficients of the higher order polynomial trajectries
     vel_coef_x, vel_coef_y, vel_coef_z = get_derivative_coef(pos_coef_x, pos_coef_y, pos_coef_z, n_order, 1)
     acc_coef_y,  acc_coef_x, acc_coef_z = get_derivative_coef(vel_coef_x, vel_coef_y, vel_coef_z, n_order, 2)
     jerk_coef_y, jerk_coef_x, jerk_coef_z = get_derivative_coef(acc_coef_x, acc_coef_y, acc_coef_z, n_order, 3)
     snap_coef_y, snap_coef_x, snap_coef_z = get_derivative_coef(jerk_coef_x, jerk_coef_y, jerk_coef_z, n_order, 4)
 
+    # For a given timestep, calculate the values of the position and higher derivatives of the trajectory
     tstep = 0.01
     pos = get_point_values(pos_coef_x, pos_coef_y, pos_coef_z, ts, n_seg, n_order, 0, tstep)
     vel = get_point_values(vel_coef_x, vel_coef_y, vel_coef_z, ts, n_seg, n_order, 1, tstep)
@@ -85,6 +87,8 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True, total_time=10):
     return pos, vel, acc, jerk, snap, ts
 
 
+# Auxiliar __main__ function (only executed when running this file alone) for debugging and testing the algorithm,
+# can be used for testing the performance by itself on different paths
 if __name__ == "__main__":
     # global variables
     """
@@ -108,7 +112,7 @@ if __name__ == "__main__":
     path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4]])
 
     # compute the optimal path
-    time_optimal = False
+    time_optimal = True
     position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=2500,
                                                                                 time_optimal=time_optimal)
     idx, speeds = get_max_actuation(acceleration, jerk, snap)
