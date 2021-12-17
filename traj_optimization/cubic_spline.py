@@ -3,31 +3,34 @@ from numpy.linalg import norm
 from scipy.interpolate import CubicSpline
 
 
-# trajectory optimization--cubic splines
+# Cubic spline-based path interpolation given a total time T
 def cubic_spline(path_list, T):
     path_array = np.array(path_list)
     num = path_array.shape[0]
-    # allocate the time interval
+
+    # allocate the time for each segment based on distance with respect total
     dis_list = []
     for i in range(num-1):
-        dis = norm(path_array[num-1-i,:]-path_array[num-i-2,:])
+        dis = norm(path_array[num-1-i, :]-path_array[num-i-2, :])
         dis_list.append(dis)
     t_array = np.zeros(num)
     for i in range(num-1):
         t_array[i] = sum(dis_list[0:i]) / sum(dis_list) * T
     t_array[num-1] = T
-    # get the x, y, z array in reverse order
+
+    # get the x, y, z coordinates
     x = path_array[:, 0]
     y = path_array[:, 1]
     z = path_array[:, 2]
-    
-    # The boundary type is set to be 'clamped', which means 
+
+    # Obtain the splines for each of the coordinates, given the allocated times for
+    # each segment. The boundary type is set to be 'clamped', which means
     # the first derivative at curves ends are zero. 
     fx = CubicSpline(t_array, x, bc_type='clamped')
-    t_new = np.linspace(0, T, int(T/0.01))
-    x_new = fx(t_new)
-    vel_x = fx(t_new, 1)
-    acc_x = fx(t_new, 2)
+    t_new = np.linspace(0, T, int(T/0.01))          # The time is resampled at fixed intervals to get:
+    x_new = fx(t_new)                               # Position
+    vel_x = fx(t_new, 1)                            # Velocity
+    acc_x = fx(t_new, 2)                            # and Acceleration
         
     fy = CubicSpline(t_array, y, bc_type='clamped')
     y_new = fy(t_new)
