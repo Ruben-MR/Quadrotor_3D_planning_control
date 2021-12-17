@@ -81,7 +81,7 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True, total_time=10):
 
 if __name__ == "__main__":
     # global variables
-
+    """
     path_points = np.array([[5., 7., 3.],
                             [10.86112711, 6.12592946, 2.55994633],
                             [13.91474856, 5.87165097, 2.46509981],
@@ -97,9 +97,10 @@ if __name__ == "__main__":
                             [1.64982418, 1.60245634, 2.04395953],
                             [0.5, 2.5, 1.5]])
     """
-    path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4],
-                            [10, 7, 8], [9, 3, 10], [12, 5, 2]])
-    """
+    # path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4],
+    #                        [10, 7, 8], [9, 3, 10], [12, 5, 2]])
+    path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4]])
+
     # compute the optimal path
     time_optimal = True
     position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=2500,
