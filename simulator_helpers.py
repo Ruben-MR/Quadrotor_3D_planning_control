@@ -12,6 +12,8 @@ from model.MPC_3D import MPC
 #from model.MPC_3D_dynamical_obstacle import MPC as MPC_dyn
 from model.MPC_3D_intermediate_set import MPC as MPC_dyn
 from model.nonlinear_controller import GeometricController
+import csv
+import ntpath
 
 
 # Initiate environment variables and create some of the required objects,
@@ -31,7 +33,22 @@ def init_simulation(mpc=True, dynamic=True):
 # Function for generating the obstacles object for different scenarios in which the drone is to be tested
 # and the figures and axes of the plotting
 def generate_env(scenario):
+    # scenario: type int, the selected scenario among those present in the scenario directory.
     # Create the list with the coordinates of the bounding box
+
+    filename = f"scenarios/scenario_{scenario}.csv"
+    print(filename)
+
+    file = open(filename)
+    csvreader = csv.reader(file)
+    rows = []
+    for row in csvreader:
+        rows.append(row)
+    file.close()
+
+    print(f"rows: \n{rows}")
+    print(rows[10])
+
     # TODO: create a separate file and load this data from there
     boxes = list()
     boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
@@ -50,22 +67,24 @@ def generate_env(scenario):
         obstacles.append(Obstacle(box[0, :], box[1, :]))
 
     # Define the figure and axis for plotting depending on the setup
-    # TODO: again, depending on the scenario, additional information for plotting could be loaded
     fig = plt.figure()
     axis = fig.add_subplot(111, projection="3d")
-    axis.set_xlim(0, 15)
-    axis.set_ylim(-5, 10)
-    axis.set_zlim(0, 15)
-    plt.rcParams['figure.figsize'] = 16, 16
-    axis.set_xlabel('x')
-    axis.set_ylabel('y')
-    axis.set_zlabel('z')
-    axis.set_title('3D animate')
-    axis.view_init(30, 35)
+    axis.set_xlim(float(rows[0][1]), float(rows[0][2]))
+    axis.set_ylim(float(rows[1][1]), float(rows[1][2]))
+    axis.set_zlim(float(rows[2][1]), float(rows[2][2]))
+    plt.rcParams['figure.figsize'] = float(rows[3][1]), float(rows[3][2])
+    axis.set_xlabel(rows[4][1].lstrip())
+    axis.set_ylabel(rows[5][1].lstrip())
+    axis.set_zlabel(rows[6][1].lstrip())
+    axis.set_title(rows[7][1].lstrip())
+    axis.view_init(float(rows[8][1]), float(rows[8][2]))
 
     # Set the map boundaries for point search in RRT_star
-    # TODO: this could be done once again by loading from a file
-    boundary = [15, 8, 3]
+    boundary = [float(rows[10][1]), float(rows[10][2]), float(rows[10][3])]
+
+    # Set the initial and terminal positions
+    start_point = [float(rows[12][1]), float(rows[12][2]), float(rows[12][3])]
+    end_point = [float(rows[13][1]), float(rows[13][2]), float(rows[13][3])]
 
     return obstacles, fig, axis, boundary
 
@@ -118,3 +137,6 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(trajectory, 0), interval=1, repeat=False,
                                   blit=False)
     plt.show()
+
+
+generate_env(1)
