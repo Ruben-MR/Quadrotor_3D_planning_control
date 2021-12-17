@@ -1,15 +1,16 @@
 """
-Contains the source code for defining the obstacle class and function for collision detection along a path
+Contains the source code for defining the obstacle class and functions for collision detection and object plotting
 """
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class Obstacle(object):
-    '''
+    """
     Obstacle object using AABB min-max coordinate representation
     In addition to the min-max point coordinates, it also stores such values for the collision object given
     a robot of given redius
-    '''
+    """
     def __init__(self, point_min=[0, 0, 0], point_max=[0, 0, 0], radius=0.05):
         self.point_min_ = point_min
         self.point_max_ = point_max
@@ -39,19 +40,16 @@ class Obstacle(object):
 
 
 # Function for checking collision along the path connecting two points in a straight line
-def collision_check_path(startPose, goalPose, obstacle_array, boundary=None):
-    '''
-    collision check function for a path (discretization)
-    return True if there is collision
-    '''
-    startPose = np.array(startPose)
-    goalPose = np.array(goalPose)
+def collision_check_path(start_pos, goal_pos, obstacle_array):
+    start_pos = np.array(start_pos)
+    goal_pos = np.array(goal_pos)
     n = 100
-    direction = (goalPose-startPose)/n
+    direction = (goal_pos-start_pos)/n
     for i in range(n+1):
-        currentPose = startPose + i*direction
-        for obstacle in obstacle_array: # obstacle_array should be an array containing list of obstacle objects
-            collision_single_obs = obstacle.collision_check(currentPose)
+        current_pos = start_pos + i*direction
+        # Given obstacle_array an array containing list of obstacle objects
+        for obstacle in obstacle_array:
+            collision_single_obs = obstacle.collision_check(current_pos)
             if collision_single_obs:
                 return True
     return False
@@ -59,10 +57,11 @@ def collision_check_path(startPose, goalPose, obstacle_array, boundary=None):
 
 def plot_three_dee_box(points, ax=None, rgb=(1, 0, 0), opacity=0.6, show=False):
     """
-    This function takes 2 3D points, defining a 3D orthogonal box, and plots it.
+    Given a set of 3D points (or obstacle objects), min-max AABB (axis-aligned bounding box) are created for each
+    pair of points (or per obstacle), and plots them.
 
     :param points: the box-defining points, a set of two 3D coordinates,
-    format can be a np.array of shape (2, 3), or an Obstacle object.
+    format can be a np.array of shape (2n, 3), or an Obstacle object.
     :param ax: the parent plotting environment, if none is provided, one will be created automatically
     :param rgb: the color to use, by default red, format is a tuple of RGB values
     :param opacity: determines the opacity og the box, format is a float, must be between 0 and 1
