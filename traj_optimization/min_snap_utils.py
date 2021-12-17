@@ -5,7 +5,7 @@ import math
 ########################################################################################################################
 
 
-# Get the matrix in objective function
+# Get the polynomia matrix cost for the objective function
 def get_q(n_seg, n_order, ts):
     q = np.zeros((n_seg * (n_order + 1), n_seg * (n_order + 1)))
     for k in range(n_seg):
@@ -20,10 +20,11 @@ def get_q(n_seg, n_order, ts):
     return q
 
 
-# Get the constraint matrices
+# Get the constraint matrices A and B for the equality constraints of the optimization
 def get_ab(n_seg, n_order, waypoints, ts):
     n_all_poly = n_seg * (n_order + 1)
-    # set initial and final point constraints
+
+    # set initial and final point constraints (position equal to initial and final points, derivatives equal to zero)
     aeq_start = np.zeros((4, n_all_poly))
     aeq_start[:4, :4] = np.diag([1, 1, 2, 6])
     aeq_end = np.zeros((4, n_all_poly))
@@ -33,7 +34,7 @@ def get_ab(n_seg, n_order, waypoints, ts):
     beq_start = np.array([waypoints[0], 0, 0, 0])
     beq_end = np.array([waypoints[-1], 0, 0, 0])
 
-    # pos constraints for waypoints
+    # position constraints for waypoints
     aeq_wp = np.zeros((n_seg - 1, n_all_poly))
     for j in range(n_seg - 1):
         aeq_wp[j, 8 * (j + 1)] = 1
@@ -51,6 +52,7 @@ def get_ab(n_seg, n_order, waypoints, ts):
     # jerk continuity
     aeq_contj = get_aeq_cont(n_seg, n_order, ts, k=3)
 
+    # Combine the matrices in a single matrix
     aeq_cont = np.vstack((aeq_contp, aeq_contv, aeq_conta, aeq_contj))
     beq_cont = np.zeros(4 * (n_seg - 1), )
     aeq = np.vstack((aeq_start, aeq_end, aeq_wp, aeq_cont))
@@ -58,7 +60,7 @@ def get_ab(n_seg, n_order, waypoints, ts):
     return aeq, beq
 
 
-# Get the continuity constraint matrix
+# Helper function for obtaining the continuity constraint of given order (k)
 def get_aeq_cont(n_seg, n_order, ts, k):
     aeq_cont = np.zeros((n_seg - 1, n_seg * (n_order + 1)))
     for j in range(n_seg - 1):
@@ -68,7 +70,8 @@ def get_aeq_cont(n_seg, n_order, ts, k):
     return aeq_cont
 
 
-# Function for obtaining the values of the different derivatives of the trajectory
+# Function for obtaining the values of the different derivatives of the trajectory, given the coefficients of the
+# polynomia, the time allocated for each segment of the path and a certain time step
 def get_point_values(coef_x, coef_y, coef_z, ts, n_seg, n_order, order_der=0, tstep=0.01):
     values = []
     num_terms = n_order + 1 - order_der
@@ -84,7 +87,8 @@ def get_point_values(coef_x, coef_y, coef_z, ts, n_seg, n_order, order_der=0, ts
     return np.array(values).reshape((-1, 3))
 
 
-# Function for obtaining the coefficients with respect to the previous derivative coefficients
+# Function for obtaining the coefficients of a given order of the trajectory (order_der)
+# with respect to the coefficients of the previous derivative order
 def get_derivative_coef(coef_x, coef_y, coef_z, n_order, order_der):
     num_terms = n_order + 2 - order_der
     der_coef_x = (coef_x.reshape((-1, num_terms))[:, 1:] * np.arange(start=1, stop=num_terms).reshape(1, -1)).reshape((-1,))
@@ -92,24 +96,9 @@ def get_derivative_coef(coef_x, coef_y, coef_z, n_order, order_der):
     der_coef_z = (coef_z.reshape((-1, num_terms))[:, 1:] * np.arange(start=1, stop=num_terms).reshape(1, -1)).reshape((-1,))
     return der_coef_x, der_coef_y, der_coef_z
 
-########################################################################################################################
-# FUNCTIONS SPECIFIC FOR OPTIMAL TIME ALLOCATION
-########################################################################################################################
 
-
-# Variable bounds for time-allocation minimum snap
-def bound(n_seg, n_var):
-    # set the boundary of the time distribution
-    bound_tuple = ()
-    for i in range(n_var):
-        if i < n_seg:
-            bound_tuple += ((0.01, 2),)
-        else:
-            bound_tuple += ((-np.inf, np.inf),)
-    return bound_tuple
-
-
-# Objective function for time-allocation minimum snap
+# Objective function for the solver, depending on the given value of time_optimal,
+# time optimization is carried out or not
 def obj_function(variables, n_seg, n_order, penalty, time_optimal, ts):
     # Un-pack the variables
     if time_optimal:
@@ -124,6 +113,8 @@ def obj_function(variables, n_seg, n_order, penalty, time_optimal, ts):
 
     # Get the cost function matrix for the coefficients
     qs = get_q(n_seg, n_order, ts)
+
+    # Depending on the value of time_optimal, include the penalty on the cost or not
     if time_optimal:
         obj = xs @ qs @ xs.reshape(-1, 1) + ys @ qs @ ys.reshape(-1, 1) + zs @ qs @ zs.reshape(-1, 1) \
             + penalty * np.sum(ts ** 2)
@@ -133,7 +124,7 @@ def obj_function(variables, n_seg, n_order, penalty, time_optimal, ts):
     return obj
 
 
-# Equality constraint function for time-allocation minimum snap
+# Equality constraint function for the solver, following the same principles as obj_function
 def equal_constraint(variables, n_seg, n_order, path, time_optimal, ts):
     # Unpack the different variables
     if time_optimal:
@@ -158,17 +149,39 @@ def equal_constraint(variables, n_seg, n_order, path, time_optimal, ts):
     return constraint
 
 ########################################################################################################################
+# FUNCTIONS SPECIFIC FOR OPTIMAL TIME ALLOCATION
+########################################################################################################################
+
+
+# Variable bounds for time-allocation minimum snap
+def bound(n_seg, n_var):
+    # set the boundary of the time distribution
+    bound_tuple = ()
+    for i in range(n_var):
+        if i < n_seg:
+            bound_tuple += ((0.01, 2),)
+        else:
+            bound_tuple += ((-np.inf, np.inf),)
+    return bound_tuple
+
+########################################################################################################################
 # FUNCTIONS SPECIFIC FOR PROPORTIONAL TIME ALLOCATION
 ########################################################################################################################
 
 
+# When time optimization is not performed, set the segment time proportional to the total length of the path with
+# respect to a given total time
 def compute_proportional_t(path, total_time, n_seg):
     ts = np.zeros((n_seg,))
     dist = np.zeros((n_seg,))
     dist_sum, t_sum = 0, 0
+
+    # Calculate the distance of each segment and the total distance of the path
     for i in range(n_seg):
         dist[i] = np.linalg.norm(path[i+1, :] - path[i, :])
         dist_sum += dist[i]
+
+    # Assign the time for each segment based on its distance
     for i in range(n_seg-1):
         ts[i] = total_time*dist[i]/dist_sum
         t_sum += ts[i]
@@ -180,7 +193,8 @@ def compute_proportional_t(path, total_time, n_seg):
 # FUNCTIONS FOR ACTUATION CONSTRAINT
 ########################################################################################################################
 
-
+# Given the complete set of acceleration, jerks and snaps of the reference trajectory, check what the maximum required
+# motor speeds are. Used for checking that the trajectory stays within the limits of actuation.
 def get_max_actuation(acc, jerk, snap):
     max_idx, max_val, max_speed = 1e9, 0, np.zeros((4,))
     for i in range(len(acc)):
@@ -192,6 +206,7 @@ def get_max_actuation(acc, jerk, snap):
     return max_idx, max_speed
 
 
+# Function for obtaining the required inputs (rotor speeds) of the quadrotor for given reference trajectory points
 def get_input_from_ref(acc, jerk, snap):
     m, g = 0.03, 9.81
     # Total thrust obtained from accelerations

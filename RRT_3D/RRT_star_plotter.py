@@ -15,8 +15,9 @@ class Node:
 class RRT_star:
     """
     Given the start pos, goal pos and map boundary,
-    RRT* method is used to generate a waypoints list,
-    return the path_list.
+    RRT* method is used to generate a waypoints list, 
+    return the path_list. This secondary file also plots
+    the evolution of the tree with the iterations
     """
 
     # Class constructor given an initial pos
