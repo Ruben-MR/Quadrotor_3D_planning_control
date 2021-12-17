@@ -2,10 +2,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
 from model.quadrotor import Quadrotor
-from model.nonlinear_controller import GeometricController
-from Obstacle import Obstacle, plot_three_dee_box
+from Obstacle import plot_three_dee_box
 from RRT_3D.RRT_star import RRT_star
 from scipy.spatial.transform import Rotation
+from simulator_helpers import generate_env, plot_all
 from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 from model.MPC_3D_dynamical_obstacle import MPC
@@ -26,46 +26,16 @@ total_energy = 0
 total_energy2 = 0
 penalty = 2500
 #################################################################
-# Define the obstacles
-
-boxes = list()
-boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
-boxes.append(np.array([[14, 5, 0], [15, 5.3, 2]]))
-boxes.append(np.array([[0, 4, 0], [1, 5, 1]]))
-boxes.append(np.array([[0, 2, 0], [1, 3, 1]]))
-boxes.append(np.array([[1.5, 4, 0], [2.5, 5, 1]]))
-boxes.append(np.array([[5, 0, 2], [5.3, 5, 3]]))
-boxes.append(np.array([[5, 1, 1], [5.3, 4, 2]]))
-boxes.append(np.array([[5, 0, 0], [5.3, 4, 1]]))
-boxes.append(np.array([[2, 2.5, 0], [5, 2.8, 3]]))
-
-obstacles = list()
-for box in boxes:
-    obstacles.append(Obstacle(box[0, :], box[1, :]))
-
-# Set up the plotting tools and elements
-
-fig = plt.figure()
-ax1 = fig.add_subplot(111, projection="3d")
-ax1.set_xlim(0, 15)
-ax1.set_ylim(-5, 10)
-ax1.set_zlim(0, 15)
-plt.rcParams['figure.figsize'] = 16, 16
-ax1.set_xlabel('x')
-ax1.set_ylabel('y')
-ax1.set_zlabel('z')
-ax1.set_title('3D animate')
-ax1.view_init(30, 35)
+# Define the obstacles, plotting figure and axis and other scenario properties
+scenario = 0
+obstacles, fig, ax1, map_boundary = generate_env(scenario)
 #########################################################################
 # global path planning using RRT*
 x_start = np.array([5, 7, 3])
 x_start2 = np.array([5, 6, 3])
 x_goal = np.array([0.5, 2.5, 1.5])
 x_goal2 = np.array([0.5, 2.5, 1.5])
-map_boundary = [15, 8, 3]
 
-current_state = env.reset(position=x_start)
-current_state2 = env2.reset(position=x_start2)
 # RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
 # RRT2 = RRT_star(x_start2, 1500, obstacles, ax1, 1)
 # path_exists = RRT.find_path(x_goal, map_boundary)
@@ -73,6 +43,10 @@ current_state2 = env2.reset(position=x_start2)
 path_exists = True
 path_exists2 = True
 #########################################################################
+# Reset the quadrotor objects to the initial positions
+current_state = env.reset(position=x_start)
+current_state2 = env2.reset(position=x_start2)
+
 # If a path has been found proceed to follow it
 if not path_exists or not path_exists2:
     print("No path was found for the given number of iterations for the quadrotors")
@@ -139,7 +113,6 @@ else:
     print("Sum of tracking error (integration): ", total_SE)
     print("Total time: ", t)
     print("Sum of energy consumption (integration)", total_energy)
-    ############################################################################
     ############################################################################
     print("##########################################################")
     print("Quadrotor2:")
