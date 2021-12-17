@@ -46,20 +46,16 @@ def generate_env(scenario):
         rows.append(row)
     file.close()
 
-    print(f"rows: \n{rows}")
-    print(rows[10])
-
-    # TODO: create a separate file and load this data from there
+    # extracting the obstacles
     boxes = list()
-    boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
-    boxes.append(np.array([[14, 5, 0], [15, 5.3, 2]]))
-    boxes.append(np.array([[0, 4, 0], [1, 5, 1]]))
-    boxes.append(np.array([[0, 2, 0], [1, 3, 1]]))
-    boxes.append(np.array([[1.5, 4, 0], [2.5, 5, 1]]))
-    boxes.append(np.array([[5, 0, 2], [5.3, 5, 3]]))
-    boxes.append(np.array([[5, 1, 1], [5.3, 4, 2]]))
-    boxes.append(np.array([[5, 0, 0], [5.3, 4, 1]]))
-    boxes.append(np.array([[2, 2.5, 0], [5, 2.8, 3]]))
+
+    for row in rows[16:]:
+        box = np.array([[float(row[1]), float(row[2]), float(row[3])],
+                        [float(row[5]), float(row[6]), float(row[7])]])
+        boxes.append(box)
+
+    for box in boxes:
+        print(box)
 
     # Convert the list of points in a list of obstacles
     obstacles = list()
@@ -83,8 +79,10 @@ def generate_env(scenario):
     boundary = [float(rows[10][1]), float(rows[10][2]), float(rows[10][3])]
 
     # Set the initial and terminal positions
-    start_point = [float(rows[12][1]), float(rows[12][2]), float(rows[12][3])]
-    end_point = [float(rows[13][1]), float(rows[13][2]), float(rows[13][3])]
+    start_point = np.array([float(rows[12][1]), float(rows[12][2]), float(rows[12][3])])
+    end_point = np.array([float(rows[13][1]), float(rows[13][2]), float(rows[13][3])])
+
+    # TODO: add start_point and end_point to the function returns. In a way that allows multiple quadrotors.
 
     return obstacles, fig, axis, boundary
 
@@ -137,6 +135,3 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(trajectory, 0), interval=1, repeat=False,
                                   blit=False)
     plt.show()
-
-
-generate_env(1)
