@@ -1,8 +1,8 @@
 Scenario Description:
 
-The original scenario, in which one drone flies from outside the warehouse, and manoeuvres itself inside it.
-
-
+A variation of the original scenario, in which one drone flies from outside the warehouse,
+and manoeuvres itself inside it. In this variation, a second drone is also present. The two drone trajectories conflict
+with each other.
 # ALWAYS KEEP FIVE LINES ABOVE THIS ONE ##############################################################################
 
 xlim (min / max), 0, 15
@@ -12,13 +12,13 @@ figsize (width / height), 16, 16
 xlabel (label string), x
 ylabel (label string), y
 zlabel (label string), z
-title (title string), 3D animation: scenario 0
+title (title string), 3D animation: scenario 2
 view_init (elev / azim), 30, 35
 
 boundary (x / y / z), 15, 8, 3
 
-start_point (x / y / z), 5, 7, 3
-end_point (x / y / z), 0.5, 2.5, 1.5
+start_point (x / y / z), 5, 7, 3, start_point (x / y / z), 5, 6, 3
+end_point (x / y / z), 0.5, 2.5, 1.5, end_point (x / y / z), 0.5, 2.5, 1.5
 
 boxes
 corner_1 (x / y / z), 0, 5, 0, corner_2 (x / y / z), 14, 5.3, 3

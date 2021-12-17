@@ -37,7 +37,7 @@ def generate_env(scenario):
     # Create the list with the coordinates of the bounding box
 
     filename = f"scenarios/scenario_{scenario}.csv"
-    print(filename)
+    print(f"Loading scenario from {filename}")
 
     file = open(filename)
     csvreader = csv.reader(file)
@@ -78,14 +78,21 @@ def generate_env(scenario):
     boundary = [float(rows[10][1]), float(rows[10][2]), float(rows[10][3])]
 
     # Set the initial and terminal positions
-    start_point = np.array([float(rows[12][1]), float(rows[12][2]), float(rows[12][3])])
-    end_point = np.array([float(rows[13][1]), float(rows[13][2]), float(rows[13][3])])
 
-    # TODO: add start_point and end_point to the function returns. In a way that allows multiple quadrotors.
+    start_points = []
+    end_points = []
+
+    for idx in range(len(rows[12])//4):
+        start_point = np.array([float(rows[12][1+4*idx]), float(rows[12][2+4*idx]), float(rows[12][3+4*idx])])
+        end_point = np.array([float(rows[13][1+4*idx]), float(rows[13][2+4*idx]), float(rows[13][3+4*idx])])
+        start_points.append(start_point)
+        end_points.append(end_point)
 
     print("Loaded scenario successfully.")
 
-    return obstacles, fig, axis, boundary
+    # TODO: there might be a better way to implement the scenarios for multiple drones.
+
+    return obstacles, fig, axis, boundary, start_points, end_points
 
 
 # Function for doing the visualization of all the objects and elements in the scenario and simulation
@@ -136,3 +143,5 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(trajectory, 0), interval=1, repeat=False,
                                   blit=False)
     plt.show()
+
+generate_env(2)

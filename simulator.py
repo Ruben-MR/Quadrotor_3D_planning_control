@@ -16,11 +16,11 @@ if __name__ == "__main__":
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario = 0
-    obstacles, fig, ax1, map_boundary = generate_env(scenario)
+    obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
     #########################################################################
     # global path planning using RRT*
-    x_start = np.array([5, 7, 3])
-    x_goal = np.array([0.5, 2.5, 1.5])
+    x_start = starts[0]
+    x_goal = ends[0]
 
     RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
     path_exists = RRT.find_path(x_goal, map_boundary)
