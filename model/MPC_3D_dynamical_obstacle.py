@@ -81,13 +81,17 @@ class MPC:
                                   -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
         self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf,
                                   np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
+        # self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, 0, -5, 0, -np.inf, -np.inf, -np.inf,
+        #                           -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
+        # self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, 15, 10, 15, np.inf, np.inf,
+        #                           np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
 
         # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
         self.model.ineq = lambda z, p: (z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2
 
         # Upper/lower bounds for inequalities
         self.model.hu = np.array([np.inf])
-        self.model.hl = np.array([1])
+        self.model.hl = np.array([0.64])
 
         # # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
         # model.ineq = lambda z, p: np.array([z[2] ** 2 + z[3] ** 2,  # x^2 + y^2

@@ -4,9 +4,10 @@ from traj_optimization.min_snap_utils import *
 
 
 # Nonlinear programming based (optimal time allocation) minimum snap
-def minimum_snap_np(path, n_seg, n_order, penalty):
+def minimum_snap_np(path, n_seg, n_order, penalty, time_optimal):
     # variables for time, x, y, z
     n_var = 3 * n_seg * (n_order + 1) + n_seg
+    ts = None
 
     # initial guess
     x0 = np.full(n_var, 0.1)
@@ -16,12 +17,12 @@ def minimum_snap_np(path, n_seg, n_order, penalty):
     x0[2 * n_seg * (n_order + 1) + n_seg:3 * n_seg * (n_order + 1) + n_seg:(n_order + 1)] = path[:-1, 2]
 
     # set the constraints, bounds and additional options for the optimizer
-    con = {'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path]}
+    con = {'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path, time_optimal, ts]}
     bnds = bound(n_seg, n_var)
     opts = {'maxiter': 150}
     # solve the problem
-    solution = minimize(obj_function, x0, args=(n_seg, n_order, penalty), method='SLSQP', bounds=bnds, constraints=con,
-                        options=opts)
+    solution = minimize(obj_function, x0, args=(n_seg, n_order, penalty, time_optimal, ts),
+                        method='SLSQP', bounds=bnds, constraints=con, options=opts)
 
     # get the solution
     ts = solution.x[:n_seg]
@@ -33,20 +34,27 @@ def minimum_snap_np(path, n_seg, n_order, penalty):
 
 
 # Quadratic programming based minimum snap (given proportional times)
-def minimum_snap_qp(waypoints, ts, n_seg, n_order):
+def minimum_snap_qp(path, ts, n_seg, n_order, time_optimal):
     # number of variables
-    n_var = n_seg * (n_order + 1)
+    n_var = 3 * n_seg * (n_order + 1)
     # initial guess
     x0 = np.zeros(n_var)
 
     # set the constraints, bounds and additional options for the optimizer
-    con = {'type': 'eq', 'fun': equal_constraint_normal, 'args': [n_seg, n_order, waypoints, ts]}
+    con = {'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path, time_optimal, ts]}
     opts = {'maxiter': 150, 'eps': 2e-8}
 
     # solve the problem
-    solution = minimize(obj_function_normal, x0, args=(n_seg, n_order, ts), method='SLSQP', constraints=con,
-                        options=opts)
-    return np.array(solution.x)
+    penalty = 0
+    solution = minimize(obj_function, x0, args=(n_seg, n_order, penalty, time_optimal, ts),
+                        method='SLSQP', constraints=con, options=opts)
+
+    # get the solution
+    pos_coef_x = solution.x[:n_seg * (n_order + 1)]
+    pos_coef_y = solution.x[n_seg * (n_order + 1): 2 * n_seg * (n_order + 1)]
+    pos_coef_z = solution.x[2 * n_seg * (n_order + 1): 3 * n_seg * (n_order + 1)]
+
+    return pos_coef_x, pos_coef_y, pos_coef_z
 
 
 # trajectory optimization
@@ -57,12 +65,10 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True, total_time=10):
 
     # if time is optimal, then ts and solutions of x, y, z are dependent
     if time_optimal:
-        ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty)
+        ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty, time_optimal)
     else:
         ts = compute_proportional_t(path, total_time, n_seg)
-        pos_coef_x = minimum_snap_qp(path[:, 0], ts, n_seg, n_order)
-        pos_coef_y = minimum_snap_qp(path[:, 1], ts, n_seg, n_order)
-        pos_coef_z = minimum_snap_qp(path[:, 2], ts, n_seg, n_order)
+        pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_qp(path, ts, n_seg, n_order, time_optimal)
         
     vel_coef_x, vel_coef_y, vel_coef_z = get_derivative_coef(pos_coef_x, pos_coef_y, pos_coef_z, n_order, 1)
     acc_coef_y,  acc_coef_x, acc_coef_z = get_derivative_coef(vel_coef_x, vel_coef_y, vel_coef_z, n_order, 2)
@@ -102,7 +108,7 @@ if __name__ == "__main__":
     path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4]])
 
     # compute the optimal path
-    time_optimal = True
+    time_optimal = False
     position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=2500,
                                                                                 time_optimal=time_optimal)
     idx, speeds = get_max_actuation(acceleration, jerk, snap)

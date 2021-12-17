@@ -110,33 +110,46 @@ def bound(n_seg, n_var):
 
 
 # Objective function for time-allocation minimum snap
-def obj_function(variables, n_seg, n_order, penalty):
+def obj_function(variables, n_seg, n_order, penalty, time_optimal, ts):
     # Un-pack the variables
-    ts = variables[:n_seg]
-    xs = variables[n_seg: n_seg * (n_order + 1) + n_seg]
-    ys = variables[n_seg * (n_order + 1) + n_seg: 2 * n_seg * (n_order + 1) + n_seg]
-    zs = variables[2 * n_seg * (n_order + 1) + n_seg: 3 * n_seg * (n_order + 1) + n_seg]
+    if time_optimal:
+        ts = variables[:n_seg]
+        xs = variables[n_seg: n_seg * (n_order + 1) + n_seg]
+        ys = variables[n_seg * (n_order + 1) + n_seg: 2 * n_seg * (n_order + 1) + n_seg]
+        zs = variables[2 * n_seg * (n_order + 1) + n_seg: 3 * n_seg * (n_order + 1) + n_seg]
+    else:
+        xs = variables[:n_seg * (n_order + 1)]
+        ys = variables[n_seg * (n_order + 1): 2 * n_seg * (n_order + 1)]
+        zs = variables[2 * n_seg * (n_order + 1): 3 * n_seg * (n_order + 1)]
 
     # Get the cost function matrix for the coefficients
     qs = get_q(n_seg, n_order, ts)
-    obj = xs @ qs @ xs.reshape(-1, 1) + ys @ qs @ ys.reshape(-1, 1) + zs @ qs @ zs.reshape(-1, 1) \
-          + penalty * np.sum(ts ** 2)
-    print(obj, penalty*np.sum(ts**2))
+    if time_optimal:
+        obj = xs @ qs @ xs.reshape(-1, 1) + ys @ qs @ ys.reshape(-1, 1) + zs @ qs @ zs.reshape(-1, 1) \
+            + penalty * np.sum(ts ** 2)
+    else:
+        obj = xs @ qs @ xs.reshape(-1, 1) + ys @ qs @ ys.reshape(-1, 1) + zs @ qs @ zs.reshape(-1, 1)
+    print(obj, penalty * np.sum(ts ** 2))
     return obj
 
 
 # Equality constraint function for time-allocation minimum snap
-def equal_constraint(variables, n_seg, n_order, path_list):
+def equal_constraint(variables, n_seg, n_order, path, time_optimal, ts):
     # Unpack the different variables
-    ts = variables[:n_seg]
-    xs = variables[n_seg:n_seg * (n_order + 1) + n_seg]
-    ys = variables[n_seg * (n_order + 1) + n_seg: 2 * n_seg * (n_order + 1) + n_seg]
-    zs = variables[2 * n_seg * (n_order + 1) + n_seg: 3 * n_seg * (n_order + 1) + n_seg]
+    if time_optimal:
+        ts = variables[:n_seg]
+        xs = variables[n_seg: n_seg * (n_order + 1) + n_seg]
+        ys = variables[n_seg * (n_order + 1) + n_seg: 2 * n_seg * (n_order + 1) + n_seg]
+        zs = variables[2 * n_seg * (n_order + 1) + n_seg: 3 * n_seg * (n_order + 1) + n_seg]
+    else:
+        xs = variables[:n_seg * (n_order + 1)]
+        ys = variables[n_seg * (n_order + 1): 2 * n_seg * (n_order + 1)]
+        zs = variables[2 * n_seg * (n_order + 1): 3 * n_seg * (n_order + 1)]
 
     # Obtain the different constraint matrices
-    aeq_x, beq_x = get_ab(n_seg, n_order, path_list[:, 0], ts)
-    aeq_y, beq_y = get_ab(n_seg, n_order, path_list[:, 1], ts)
-    aeq_z, beq_z = get_ab(n_seg, n_order, path_list[:, 2], ts)
+    aeq_x, beq_x = get_ab(n_seg, n_order, path[:, 0], ts)
+    aeq_y, beq_y = get_ab(n_seg, n_order, path[:, 1], ts)
+    aeq_z, beq_z = get_ab(n_seg, n_order, path[:, 2], ts)
 
     # Compute the equality value
     constraint = np.hstack((aeq_x @ xs - beq_x,
@@ -162,17 +175,6 @@ def compute_proportional_t(path, total_time, n_seg):
     ts[-1] = total_time - t_sum
     return ts
 
-
-def obj_function_normal(variables, n_seg, n_order, ts):
-    qs = get_q(n_seg, n_order, ts)
-    obj = variables @ qs @ variables.reshape(-1, 1)
-    return obj
-
-
-def equal_constraint_normal(variables, n_seg, n_order, waypoints, ts):
-    aeq, beq = get_ab(n_seg, n_order, waypoints, ts)
-    constraint = aeq @ variables - beq
-    return constraint
 
 ########################################################################################################################
 # FUNCTIONS FOR ACTUATION CONSTRAINT
