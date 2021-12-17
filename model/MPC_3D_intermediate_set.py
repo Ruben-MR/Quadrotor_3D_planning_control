@@ -61,6 +61,11 @@ class MPC:
             200, 200, 200,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
+        self._Q_terminate = np.diag([
+            1e5, 1e5, 1e5,      # x, y, z
+            10, 10, 10,         # dx, dy, dz
+            10, 10, 10, 10,     # qx, qy, qz, qw
+            10, 10, 10])        # r, p, q
         # TODO: as TA says, adding terminal cost is a promising way! see: https://forces.embotech.com/Documentation/examples/high_level_basic_example/index.html#sec-high-level-basic-example
         # cost: distance to the goal
         #self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
@@ -106,7 +111,7 @@ class MPC:
         self.model.nvar = 17    # number of variables
         self.model.neq = 13     # number of equality constraints
         self.model.nh = 1      # number of inequality constraints functions
-        self.model.npar = 9  # number of runtime parameters (pos and vel)
+        self.model.npar = 12  # number of runtime parameters (pos and vel)
         self.model.xinitidx = range(4, 17)  # indices of the state variables
 
         # handle the last stage separately
@@ -170,9 +175,12 @@ class MPC:
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
         return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
 
+    # def objectiveN(self, z, goal):
+    #     self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
+    #     return (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:] - self.goal) + 0.2 * z[0] ** 2
     def objectiveN(self, z, goal):
-        self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
-        return (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:] - self.goal) + 0.2 * z[0] ** 2
+        goal_terminate = np.array([goal[9], goal[10], goal[11], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
+        return (z[4:] - goal_terminate).T @ self._Q_terminate @ (z[4:] - goal_terminate) + 0.2 * z[0]**2
 
     def control(self, state, goal):
         """

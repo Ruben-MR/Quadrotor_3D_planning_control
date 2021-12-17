@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.spatial.transform import Rotation
 from model.MPC_3D import MPC
-from model.MPC_3D_dynamical_obstacle import MPC as MPC_dyn
+#from model.MPC_3D_dynamical_obstacle import MPC as MPC_dyn
+from model.MPC_3D_intermediate_set import MPC as MPC_dyn
 from model.nonlinear_controller import GeometricController
 
 

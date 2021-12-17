@@ -44,6 +44,13 @@ if __name__ == "__main__":
         real_orientation = np.zeros((1, 4))
         # follow the path in segments
         for i in range(len(pos)-policy.model.N):
+            # give the intermediate set as terminal set
+            intermediate_segment = i // int(len(pos)*0.2)
+            if intermediate_segment >= 4:
+                intermediate_state = x_goal
+            else:
+                intermediate_state = pos[(intermediate_segment+1) * int(len(pos)*0.2)]
+            # add obstacle on the way
             show_up_time = int(0.5 * len(pos))
             pos_obstacle = pos[show_up_time]
             # # if the agent is close to the obstacle, then do the avoidance
@@ -51,8 +58,8 @@ if __name__ == "__main__":
             #     state_des = np.hstack((pos[i + 50], vel[i + 50], pos_obstacle))
             # else:
             #     state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100])))
-            state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], pos_obstacle))
-            state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100])))
+            state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], pos_obstacle, intermediate_state))
+            #state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100]), intermediate_state))
             action = policy.control(current_state, state_des)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
             obs, reward, done, info = env.step(cmd_rotor_speeds)

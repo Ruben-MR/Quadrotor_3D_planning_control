@@ -16,8 +16,9 @@ if __name__ == "__main__":
     x_start = np.array([5, 7, 3])
     x_goal = np.array([0.5, 2.5, 1.5])
 
-    RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
-    path_exists = RRT.find_path(x_goal, map_boundary)
+    # RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
+    # path_exists = RRT.find_path(x_goal, map_boundary)
+    path_exists = True
     #########################################################################
     # Reset the quadrotor object to the initial position
     current_state = env.reset(position=x_start)
@@ -27,12 +28,17 @@ if __name__ == "__main__":
         print("No path was found for the given number of iterations")
     else:
         print("Path found, applying smoothing.")
-        path_list = RRT.get_path()
-        T = 25
-        pos, vel, acc = cubic_spline(path_list, T)
+        # path_list = RRT.get_path()
+        # T = 25
+        # pos, vel, acc = cubic_spline(path_list, T)
         print("Smoothing completed, tracking trajectory")
         #pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
         # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
+        # use pre-saved trajectory instead (for developing)
+        traj = np.load('traj.npz')
+        path_list = traj['path_list']
+        pos = traj['pos']
+        vel = traj['vel']
         ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
         real_trajectory = np.zeros((1, 3))
         real_orientation = np.zeros((1, 4))
