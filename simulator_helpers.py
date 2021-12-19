@@ -100,16 +100,22 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     # Plot the obstacles
     for box in obstacles:
         plot_three_dee_box(box, ax=axis)
+
     # Plot the start and goal points
-    axis.plot([start[0]], [start[1]], [start[2]], marker='o', c='r', markersize=10)
-    axis.plot([goal[0]], [goal[1]], [goal[2]], marker='o', c='b', markersize=10)
+    axis.plot([start[0]], [start[1]], [start[2]], 'go', markersize=5, label="Start")
+    axis.plot([goal[0]], [goal[1]], [goal[2]], 'bo', markersize=5, label="End")
 
     # Plot the final path
     path_length = 0
     for i in range(len(path) - 1):
-        axis.plot([path[i][0], path[i + 1][0]],
+        if i == 0:
+            axis.plot([path[i][0], path[i + 1][0]],
+                      [path[i][1], path[i + 1][1]],
+                      [path[i][2], path[i + 1][2]], c='b', linewidth=1, label="RRT_path")
+        else:
+            axis.plot([path[i][0], path[i + 1][0]],
                  [path[i][1], path[i + 1][1]],
-                 [path[i][2], path[i + 1][2]], c='b', linewidth=2)
+                 [path[i][2], path[i + 1][2]], c='b', linewidth=1)
         path_length += np.linalg.norm(path[i] - path[i + 1])
     print('Length of path:', round(path_length, 2))
 
@@ -143,5 +149,3 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(trajectory, 0), interval=1, repeat=False,
                                   blit=False)
     plt.show()
-
-generate_env(2)

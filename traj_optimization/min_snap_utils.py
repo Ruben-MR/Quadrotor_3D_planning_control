@@ -120,7 +120,6 @@ def obj_function(variables, n_seg, n_order, penalty, time_optimal, ts):
             + penalty * np.sum(ts ** 2)
     else:
         obj = xs @ qs @ xs.reshape(-1, 1) + ys @ qs @ ys.reshape(-1, 1) + zs @ qs @ zs.reshape(-1, 1)
-    print(obj, penalty * np.sum(ts ** 2))
     return obj
 
 
