@@ -13,7 +13,7 @@ from model.MPC_3D import MPC
 from model.MPC_3D_intermediate_set import MPC as MPC_dyn
 from model.nonlinear_controller import GeometricController
 import csv
-import ntpath
+import os
 
 
 # Initiate environment variables and create some of the required objects,
@@ -36,7 +36,8 @@ def generate_env(scenario):
     # scenario: type int, the selected scenario among those present in the scenario directory.
     # Create the list with the coordinates of the bounding box
 
-    filename = f"scenarios/scenario_{scenario}.csv"
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    filename = f"{this_dir}/scenarios/scenario_{scenario}.csv"
     print(f"Loading scenario from {filename}")
 
     file = open(filename)

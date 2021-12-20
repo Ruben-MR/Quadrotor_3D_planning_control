@@ -1,7 +1,8 @@
 import numpy as np
 from numpy.linalg import norm
-from Obstacle import collision_check_path
-
+from Obstacle import collision_check_path, plot_three_dee_box
+from simulator_helpers import generate_env
+import matplotlib.pyplot as plt
 
 # Definition of Class Node
 class Node:
@@ -21,7 +22,7 @@ class RRT_star:
     """
 
     # Class constructor given an initial pos
-    def __init__(self, x_start, num_iter, obstacles, ax, thr=0.5):
+    def __init__(self, x_start, num_iter, obstacles, thr=0.5):
         # Set parameters
         self.num_dim = 3        # number of dimensions to search for
         self.thr = thr          # threshold for final goal
@@ -30,7 +31,6 @@ class RRT_star:
         self.num_iter = num_iter
         self.goal_idx = 0
         self.obstacle_array = obstacles
-        self.ax = ax
         # Add the first node
         self.node_list = [Node(pos=x_start, cost=0, parent_idx=-1)]
 
@@ -49,7 +49,7 @@ class RRT_star:
             if idx is None:
                 continue
             else:
-                # path collision checking, if there is a collision, skip the rest and go to the next iteraion
+                # path collision checking, if there is a collision, skip the rest and go to the next iteration
                 if collision_check_path(self.node_list[idx].pos, x_new, self.obstacle_array):
                     continue
 
@@ -142,10 +142,39 @@ class RRT_star:
                 self.node_list[node_idx].parent_idx = len(self.node_list) - 1
 
     # Function for plotting the final tree of the algorithm
-    def plotTree(self):
+    def plotTree(self, ax, tree_color=(1, 0, 0), path_color=(0, 0, 1)):
         for node in range(1, len(self.node_list)):
             parent_idx = self.node_list[node].parent_idx
-            self.ax.plot([self.node_list[parent_idx].pos[0], self.node_list[node].pos[0]],
-                         [self.node_list[parent_idx].pos[1], self.node_list[node].pos[1]],
-                         [self.node_list[parent_idx].pos[2], self.node_list[node].pos[2]])
+
+            xs = [self.node_list[parent_idx].pos[0], self.node_list[node].pos[0]]
+            ys = [self.node_list[parent_idx].pos[1], self.node_list[node].pos[1]]
+            zs = [self.node_list[parent_idx].pos[2], self.node_list[node].pos[2]]
+
+            ax.plot(xs, ys, zs, color=tree_color, alpha=0.1)
+
+        if self.pathFind:
+            for node_idx in range(len(self.get_path())-1):
+
+                xs = [self.get_path()[node_idx][0], self.get_path()[node_idx+1][0]]
+                ys = [self.get_path()[node_idx][1], self.get_path()[node_idx+1][1]]
+                zs = [self.get_path()[node_idx][2], self.get_path()[node_idx+1][2]]
+
+                ax.plot(xs, ys, zs, color=path_color)
+
+
+if __name__ == '__main__':
+
+    # Define the obstacles, plotting figure and axis and other scenario properties
+    scenario = 1
+    obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
+
+    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=800, obstacles=obstacles, thr=0.5)
+    path_exists = RRT_star_pathfinder.find_path(x_goal=ends[0], map_boundary=map_boundary)
+
+    for obstacle in obstacles:
+        plot_three_dee_box(points=obstacle, ax=ax1)
+
+    RRT_star_pathfinder.plotTree(ax1)
+
+    plt.show()
 
