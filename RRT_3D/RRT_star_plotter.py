@@ -163,6 +163,22 @@ class RRT_star:
 
 
 if __name__ == '__main__':
+    import time
+
+    plt.ion()
+    fig = plt.figure(3)
+    ax = fig.gca()
+    lines = ax.plot(0, 0, 'ro')
+    for i in range(10):
+        lines.append(ax.plot(1, 1, 'ro'))
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+        time.sleep(0.5)
+        ax.lines.pop(-1)
+        lines.pop(-1)
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+        time.sleep(0.5)
 
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario = 1
