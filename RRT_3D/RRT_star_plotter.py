@@ -22,7 +22,7 @@ class RRT_star:
     """
 
     # Class constructor given an initial pos
-    def __init__(self, x_start, num_iter, obstacles, thr=0.5):
+    def __init__(self, x_start, num_iter, obstacles, thr=0.5, ax_anim=None):
         # Set parameters
         self.num_dim = 3        # number of dimensions to search for
         self.thr = thr          # threshold for final goal
@@ -31,8 +31,14 @@ class RRT_star:
         self.num_iter = num_iter
         self.goal_idx = 0
         self.obstacle_array = obstacles
+        self.tree_color = (1, 0, 0)
+        self.ax = ax_anim
+        self.lines = self.ax.plot(x_start[0], x_start[1], x_start[2], "ro")
         # Add the first node
         self.node_list = [Node(pos=x_start, cost=0, parent_idx=-1)]
+        if self.ax is not None:
+            for obstacle in obstacles:
+                plot_three_dee_box(points=obstacle, ax=self.ax)
 
     # Method for adding new paths
     def find_path(self, x_goal, map_boundary):
@@ -131,6 +137,17 @@ class RRT_star:
 
             # add x_new to the tree, the parent of x_new is at index optimal_node
             self.node_list.append(Node(pos, lowest_cost, optimal_neigh))
+
+            # if we have an animation to plot stuff to
+            if self.ax is not None:
+                newline = np.array([self.node_list[optimal_neigh].pos,
+                                    pos])
+                # print(f"newline is: {newline}")
+                self.lines.append(self.ax.plot(newline[:, 0], newline[:, 1], newline[:, 2],
+                                               color=self.tree_color,
+                                               alpha=0.3))
+                self.ax.figure.canvas.draw()
+                self.ax.figure.canvas.flush_events()
             return neigh_list
 
         # If the node is existent, check whether the connection with the new node [at index -1] minimizes the cost
@@ -141,8 +158,24 @@ class RRT_star:
                 self.node_list[node_idx].cost = rewire_cost
                 self.node_list[node_idx].parent_idx = len(self.node_list) - 1
 
+                # if we have an animation to plot stuff to
+                if self.ax is not None:
+                    newline = np.array([self.node_list[node_idx].pos,
+                                        self.node_list[-1].pos])
+                    # print(f"rewired newline is: {newline}")
+                    self.ax.lines.pop(-1)
+                    self.lines.pop(-1)
+
+                    self.lines.append(self.ax.plot(newline[:, 0], newline[:, 1], newline[:, 2],
+                                                   color=self.tree_color,
+                                                   alpha=0.3))
+                    self.ax.figure.canvas.draw()
+                    self.ax.figure.canvas.flush_events()
+
     # Function for plotting the final tree of the algorithm
     def plotTree(self, ax, tree_color=(1, 0, 0), path_color=(0, 0, 1)):
+        # note that argument "ax" is not self.ax. this argument is specifically for the static plot, and is therefore
+        # not the attribute. the attribute is used to show the dynamic plot.
         for node in range(1, len(self.node_list)):
             parent_idx = self.node_list[node].parent_idx
 
@@ -163,32 +196,34 @@ class RRT_star:
 
 
 if __name__ == '__main__':
-    import time
+    # import time
+    #
+    # plt.ion()
+    # fig = plt.figure(42)
+    # ax = fig.gca()
+    # lines = ax.plot(0, 0, 'ro')
+    # for i in range(10):
+    #     lines.append(ax.plot(1, 1, 'ro'))
+    #     fig.canvas.draw()
+    #     fig.canvas.flush_events()
+    #     time.sleep(0.5)
+    #     ax.lines.pop(-1)
+    #     lines.pop(-1)
+    #     fig.canvas.draw()
+    #     fig.canvas.flush_events()
+    #     time.sleep(0.5)
+    #
+    # plt.close()
+    # plt.ioff()
 
     plt.ion()
-    fig = plt.figure(3)
-    ax = fig.gca()
-    lines = ax.plot(0, 0, 'ro')
-    for i in range(10):
-        lines.append(ax.plot(1, 1, 'ro'))
-        fig.canvas.draw()
-        fig.canvas.flush_events()
-        time.sleep(0.5)
-        ax.lines.pop(-1)
-        lines.pop(-1)
-        fig.canvas.draw()
-        fig.canvas.flush_events()
-        time.sleep(0.5)
 
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario = 1
+    scenario = 0
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
 
-    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=800, obstacles=obstacles, thr=0.5)
+    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=1000, obstacles=obstacles, thr=0.5, ax_anim=ax1)
     path_exists = RRT_star_pathfinder.find_path(x_goal=ends[0], map_boundary=map_boundary)
-
-    for obstacle in obstacles:
-        plot_three_dee_box(points=obstacle, ax=ax1)
 
     RRT_star_pathfinder.plotTree(ax1)
 
