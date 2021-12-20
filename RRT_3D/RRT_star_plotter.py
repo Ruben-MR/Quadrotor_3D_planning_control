@@ -60,12 +60,12 @@ class RRT_star:
                     continue
 
             # Rewire the new node for optimal cost and get the close points
-            neigh_list = self.rewire_node(x_new, idx, True)
+            neigh_list = self.rewire_new_node(x_new, idx)
 
             # Rewire the neighbouring points to the new sample, for existent nodes, pass its pos on the list rather
             # than their pos
             for j in neigh_list:
-                self.rewire_node(j, [], False)
+                self.rewire_node(j)
 
             # check arriving to the goal
             if (not self.pathFind) and norm(x_new - x_goal) < self.thr:
@@ -104,6 +104,7 @@ class RRT_star:
 
         # find the nearest node
         nearest_dis = float('inf')
+        nearest_node = None
         for i in range(len(self.node_list)):
             dis = norm(self.node_list[i].pos - x_rand)
             if dis < nearest_dis:
@@ -113,64 +114,62 @@ class RRT_star:
         return x_rand, nearest_node
 
     # Function for node rewiring, takes a bool to rewire depending on whether a new sample is given or an existing one
-    def rewire_node(self, pos, closest_idx, is_new=True):
-        if is_new:
-            neigh_list = []
-            optimal_neigh = closest_idx
-            lowest_cost = self.node_list[closest_idx].cost + norm(pos - self.node_list[closest_idx].pos)
+    def rewire_new_node(self, pos, closest_idx):
+        neigh_list = []
+        optimal_neigh = closest_idx
+        lowest_cost = self.node_list[closest_idx].cost + norm(pos - self.node_list[closest_idx].pos)
 
-            n = len(self.node_list)
-            self.neigh_dist = 7*((np.log(n)/n)**(1/4))
+        n = len(self.node_list)
+        self.neigh_dist = 9*((np.log(n)/n)**(1/4))
 
-            # Iterate over the list of nodes to find those within distance threshold and in collision-free connection
-            for j in range(len(self.node_list)):
-                if j == closest_idx:
-                    continue
-                dist2xnew = norm(pos - self.node_list[j].pos)
-                neighbor_cost = self.node_list[j].cost + dist2xnew
-                if dist2xnew < self.neigh_dist:
-                    if not collision_check_path(self.node_list[j].pos, pos, self.obstacle_array):
-                        neigh_list.append(j)
-                        if neighbor_cost < lowest_cost:
-                            lowest_cost = neighbor_cost
-                            optimal_neigh = j
+        # Iterate over the list of nodes to find those within distance threshold and in collision-free connection
+        for j in range(len(self.node_list)):
+            if j == closest_idx:
+                continue
+            dist2xnew = norm(pos - self.node_list[j].pos)
+            neighbor_cost = self.node_list[j].cost + dist2xnew
+            if dist2xnew < self.neigh_dist:
+                if not collision_check_path(self.node_list[j].pos, pos, self.obstacle_array):
+                    neigh_list.append(j)
+                    if neighbor_cost < lowest_cost:
+                        lowest_cost = neighbor_cost
+                        optimal_neigh = j
 
-            # add x_new to the tree, the parent of x_new is at index optimal_node
-            self.node_list.append(Node(pos, lowest_cost, optimal_neigh))
+        # add x_new to the tree, the parent of x_new is at index optimal_node
+        self.node_list.append(Node(pos, lowest_cost, optimal_neigh))
+
+        # if we have an animation to plot stuff to
+        if self.ax is not None:
+            newline = np.array([self.node_list[optimal_neigh].pos,
+                                pos])
+            # print(f"newline is: {newline}")
+            self.lines.append(self.ax.plot(newline[:, 0], newline[:, 1], newline[:, 2],
+                                           color=self.tree_color,
+                                           alpha=0.3))
+            self.ax.figure.canvas.draw()
+            self.ax.figure.canvas.flush_events()
+        return neigh_list
+
+    # If the node is existent, check whether the connection with the new node [at index -1] minimizes the cost
+    def rewire_node(self, node_idx):
+        rewire_cost = self.node_list[-1].cost + norm(self.node_list[node_idx].pos - self.node_list[-1].pos)
+        if rewire_cost < self.node_list[node_idx].cost:
+            self.node_list[node_idx].cost = rewire_cost
+            self.node_list[node_idx].parent_idx = len(self.node_list) - 1
 
             # if we have an animation to plot stuff to
             if self.ax is not None:
-                newline = np.array([self.node_list[optimal_neigh].pos,
-                                    pos])
-                # print(f"newline is: {newline}")
+                newline = np.array([self.node_list[node_idx].pos,
+                                    self.node_list[-1].pos])
+                # print(f"rewired newline is: {newline}")
+                self.ax.lines.pop(-1)
+                self.lines.pop(-1)
+
                 self.lines.append(self.ax.plot(newline[:, 0], newline[:, 1], newline[:, 2],
                                                color=self.tree_color,
                                                alpha=0.3))
                 self.ax.figure.canvas.draw()
                 self.ax.figure.canvas.flush_events()
-            return neigh_list
-
-        # If the node is existent, check whether the connection with the new node [at index -1] minimizes the cost
-        else:
-            node_idx = pos
-            rewire_cost = self.node_list[-1].cost + norm(self.node_list[node_idx].pos - self.node_list[-1].pos)
-            if rewire_cost < self.node_list[node_idx].cost:
-                self.node_list[node_idx].cost = rewire_cost
-                self.node_list[node_idx].parent_idx = len(self.node_list) - 1
-
-                # if we have an animation to plot stuff to
-                if self.ax is not None:
-                    newline = np.array([self.node_list[node_idx].pos,
-                                        self.node_list[-1].pos])
-                    # print(f"rewired newline is: {newline}")
-                    self.ax.lines.pop(-1)
-                    self.lines.pop(-1)
-
-                    self.lines.append(self.ax.plot(newline[:, 0], newline[:, 1], newline[:, 2],
-                                                   color=self.tree_color,
-                                                   alpha=0.3))
-                    self.ax.figure.canvas.draw()
-                    self.ax.figure.canvas.flush_events()
 
     # Function for plotting the final tree of the algorithm
     def plotTree(self, ax, tree_color=(1, 0, 0), path_color=(0, 0, 1)):
