@@ -10,7 +10,7 @@ from matplotlib import animation
 from scipy.spatial.transform import Rotation
 from model.MPC_3D import MPC
 #from model.MPC_3D_dynamical_obstacle import MPC as MPC_dyn
-from model.MPC_3D_static_obstacle import MPC as MPC_dyn
+from model.MPC_3D_dynamic_obstacle import MPC as MPC_dyn
 from model.nonlinear_controller import GeometricController
 import csv
 import os
@@ -97,11 +97,12 @@ def generate_env(scenario):
 
 
 # Function for doing the visualization of all the objects and elements in the scenario and simulation
-def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
+def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation, dynamic = False, obstacle_trajectory = None):
+    if dynamic:
+        obstacle_trajectory = obstacle_trajectory[:len(trajectory)]
     # Plot the obstacles
     for box in obstacles:
         plot_three_dee_box(box, ax=axis)
-
     # Plot the start and goal points
     axis.plot([start[0]], [start[1]], [start[2]], 'go', markersize=5, label="Start")
     axis.plot([goal[0]], [goal[1]], [goal[2]], 'bo', markersize=5, label="End")
@@ -131,6 +132,8 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     rots = rots + trajectory[0, :]
     points = np.vstack((trajectory[0, :], rots))
     point, = axis.plot(points[:, 0], points[:, 1], points[:, 2], 'r.', label='Quadrotor')
+    # if dynamic:
+    #     point_obstacle, = axis.plot(obstacle_trajectory[:, 0], obstacle_trajectory[:, 1], obstacle_trajectory[:, 2], 'y.', label='Obstacle')
     line, = axis.plot([trajectory[0, 0]], [trajectory[0, 1]], [trajectory[0, 2]], 'g', label='Real_Trajectory')
     print(points)
     print(point)
@@ -145,10 +148,15 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
         rot = Rotation.from_quat(orientation[i, :]).as_matrix()
         rots = rotor_dists @ rot
         rots = rots + trajectory[i, :]
-        points = np.vstack((trajectory[i, :], rots))
+        if dynamic:
+            points = np.vstack((trajectory[i, :], rots, obstacle_trajectory[i, :]))
+        else:
+            points = np.vstack((trajectory[i, :], rots))
         point.set_xdata(points[:, 0])
         point.set_ydata(points[:, 1])
         point.set_3d_properties(points[:, 2])
+
+
 
     axis.legend(loc='lower right')
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(trajectory, 0), interval=1, repeat=False,

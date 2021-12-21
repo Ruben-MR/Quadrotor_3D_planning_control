@@ -46,15 +46,15 @@ if __name__ == "__main__":
         # follow the path in segments
         for i in range(len(pos)-policy.model.N):
             # static obstacle
-            show_up_time = int(0.5 * len(pos))
-            pos_obstacle = pos[show_up_time]
+            # show_up_time = int(0.5 * len(pos))
+            # pos_obstacle = pos[show_up_time]
 
             # # dynamic obstacle
-            # pos_obstacle = obstacle_traj[i]
+            pos_obstacle = obstacle_traj[i]
 
             print("obstacle position: ", pos_obstacle)
             # if the agent is close to the obstacle, then do the avoidance
-            if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
+            if np.sum((current_state['x'] - pos_obstacle)**2) <= 1.5:
                 state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
                 print("avoiding obstacle......")
             else:
@@ -83,8 +83,6 @@ if __name__ == "__main__":
         print("Sum of energy consumption (integration)", total_energy)
         ############################################################################
 
-        ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='y', markersize=10)
-
-        plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
+        plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation, dynamic=True, obstacle_trajectory = obstacle_traj)
 
 
