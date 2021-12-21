@@ -82,8 +82,7 @@ if __name__ == "__main__":
         print("Sum of energy consumption (integration)", total_energy)
         ############################################################################
 
-        ax1.plot(pos[50][0], pos[50][1], pos[50][2], marker='o', c='r', markersize=10)
-        ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='r', markersize=10)
+        ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='y', markersize=10)
 
         plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
 
