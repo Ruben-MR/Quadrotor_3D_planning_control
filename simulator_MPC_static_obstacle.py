@@ -6,7 +6,7 @@ from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 
 if __name__ == "__main__":
     # Create the quadrotor class, controller and other inital values
-    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, dynamic=True)
+    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, dynamic=True, time_horizon = 50)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario = 0
@@ -37,6 +37,7 @@ if __name__ == "__main__":
         path_list = traj['path_list']
         pos = traj['pos']
         vel = traj['vel']
+        obstacle_traj = np.flipud(pos) # reverse the trajectory as obstacle trajectory
         #pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
         # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
         ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
@@ -44,15 +45,22 @@ if __name__ == "__main__":
         real_orientation = np.zeros((1, 4))
         # follow the path in segments
         for i in range(len(pos)-policy.model.N):
+            # static obstacle
             show_up_time = int(0.5 * len(pos))
             pos_obstacle = pos[show_up_time]
-            # # if the agent is close to the obstacle, then do the avoidance
-            # if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
-            #     state_des = np.hstack((pos[i + 50], vel[i + 50], pos_obstacle))
-            # else:
-            #     state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100])))
-            state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], pos_obstacle))
-            state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100])))
+
+            # # dynamic obstacle
+            # pos_obstacle = obstacle_traj[i]
+
+            print("obstacle position: ", pos_obstacle)
+            # if the agent is close to the obstacle, then do the avoidance
+            if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
+                state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
+                print("avoiding obstacle......")
+            else:
+                state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
+            # state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], pos_obstacle))
+            # state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100])))
             action = policy.control(current_state, state_des)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
             obs, reward, done, info = env.step(cmd_rotor_speeds)
@@ -74,9 +82,6 @@ if __name__ == "__main__":
         print("Total time: ", t)
         print("Sum of energy consumption (integration)", total_energy)
         ############################################################################
-
-        ax1.plot(pos[50][0], pos[50][1], pos[50][2], marker='o', c='r', markersize=10)
-        ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='r', markersize=10)
 
         plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
 

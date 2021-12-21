@@ -8,7 +8,7 @@ from scipy.spatial.transform import Rotation
 from simulator_helpers import generate_env, plot_all
 from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
-from model.MPC_3D_dynamical_obstacle import MPC
+from model.MPC_3D_static_obstacle import MPC
 #################################################################
 # Create the quadrotor class and controller
 env = Quadrotor()

@@ -12,7 +12,7 @@ from model.quadrotor import quat_dot, Quadrotor
 
 
 class MPC:
-    def __init__(self):
+    def __init__(self, N):
         """
         Parameters of the quadrotor
         """
@@ -48,7 +48,7 @@ class MPC:
         """
         Parameters for the MPC controller
         """
-        self.model = forcespro.nlp.SymbolicModel(50) # create a empty model with time horizon of 50 steps
+        self.model = forcespro.nlp.SymbolicModel(N) # create a empty model with time horizon of 50 steps
         # objective (cost function)
         # cost matrix for tracking the goal point
         self._Q_goal = np.diag([
@@ -91,7 +91,7 @@ class MPC:
 
         # Upper/lower bounds for inequalities
         self.model.hu = np.array([np.inf])
-        self.model.hl = np.array([1e-10])
+        self.model.hl = np.array([0.64])
 
         # # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
         # model.ineq = lambda z, p: np.array([z[2] ** 2 + z[3] ** 2,  # x^2 + y^2
@@ -128,7 +128,7 @@ class MPC:
         self.codeoptions.nlp.bfgs_init = 2.5 * np.identity(8)  # initialization of the hessian approximation
         self.codeoptions.solvemethod = "SQP_NLP"
         self.codeoptions.sqp_nlp.maxqps = 1  # maximum number of quadratic problems to be solved
-        self.codeoptions.sqp_nlp.reg_hessian = 5e-9  # increase this if exitflag=-8
+        self.codeoptions.sqp_nlp.reg_hessian = 5e-5  # increase this if exitflag=-8
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
         self.solver = self.model.generate_solver(self.codeoptions)
         #self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
@@ -172,7 +172,7 @@ class MPC:
 
     def objectiveN(self, z, goal):
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
-        return (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:] - self.goal) + 0.2 * z[0] ** 2
+        return (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:] - self.goal) + 0.2 * z[0] ** 2
 
     def control(self, state, goal):
         """
@@ -194,6 +194,7 @@ class MPC:
         # Make sure the solver has exited properly.
         #assert exitflag == 1, "bad exitflag"
         # print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
+        print("exitflag: ", exitflag)
         u = np.zeros(4)
         u[0] = output['x01'][0]
         u[1] = output['x01'][1]

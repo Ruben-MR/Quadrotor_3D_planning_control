@@ -10,7 +10,7 @@ from matplotlib import animation
 from scipy.spatial.transform import Rotation
 from model.MPC_3D import MPC
 #from model.MPC_3D_dynamical_obstacle import MPC as MPC_dyn
-from model.MPC_3D_intermediate_set import MPC as MPC_dyn
+from model.MPC_3D_static_obstacle import MPC as MPC_dyn
 from model.nonlinear_controller import GeometricController
 import csv
 import os
@@ -18,12 +18,12 @@ import os
 
 # Initiate environment variables and create some of the required objects,
 # will generate the required policy depending on whether MPC is wanted or not
-def init_simulation(mpc=True, dynamic=True):
+def init_simulation(mpc=True, dynamic=True, time_horizon = 50):
     env = Quadrotor()
     if mpc and dynamic:
-        policy = MPC_dyn()
+        policy = MPC_dyn(time_horizon)
     elif mpc and not dynamic:
-        policy = MPC()
+        policy = MPC(time_horizon)
     else:
         policy = GeometricController()
     t0, dt, total_se, total_energy, penalty = 0, 1e-2, 0, 0, 2500
@@ -132,6 +132,10 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     points = np.vstack((trajectory[0, :], rots))
     point, = axis.plot(points[:, 0], points[:, 1], points[:, 2], 'r.', label='Quadrotor')
     line, = axis.plot([trajectory[0, 0]], [trajectory[0, 1]], [trajectory[0, 2]], 'g', label='Real_Trajectory')
+    print(points)
+    print(point)
+    print(line)
+
 
     # Helper function for the animation
     def animate(i):

@@ -55,7 +55,7 @@ def collision_check_path(start_pos, goal_pos, obstacle_array):
     return False
 
 
-def plot_three_dee_box(points, ax=None, rgb=(0.75, 0.75, 0.75), opacity=0.95, show=False):
+def plot_three_dee_box(points, ax=None, rgb=(0.75, 0.75, 0.75), opacity=0.75, show=False):
     """
     Given a set of 3D points (or obstacle objects), min-max AABB (axis-aligned bounding box) are created for each
     pair of points (or per obstacle), and plots them.
