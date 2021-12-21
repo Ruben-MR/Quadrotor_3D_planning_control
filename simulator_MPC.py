@@ -5,7 +5,7 @@ from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 
 if __name__ == "__main__":
-    # Create the quadrotor class, controller and other inital values
+    # Create the quadrotor class, controller and other initial values
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, dynamic=False)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
@@ -23,17 +23,15 @@ if __name__ == "__main__":
     # Reset the quadrotor object to the initial position
     current_state = env.reset(position=x_start)
 
-    # If a path has been found proceed to follow it
+    # If a path has been found, proceed to follow it
     if not path_exists:
         print("No path was found for the given number of iterations")
     else:
         print("Path found, applying smoothing.")
         # path_list = RRT.get_path()
-        # T = 25
-        # pos, vel, acc = cubic_spline(path_list, T)
+        # pos, vel, acc = cubic_spline(path_list, T=25)
         print("Smoothing completed, tracking trajectory")
-        #pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
-        # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
+        # pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
         # use pre-saved trajectory instead (for developing)
         traj = np.load('traj.npz')
         path_list = traj['path_list']

@@ -9,14 +9,13 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.spatial.transform import Rotation
 from model.MPC_3D import MPC
-#from model.MPC_3D_dynamical_obstacle import MPC as MPC_dyn
 from model.MPC_3D_dynamic_obstacle import MPC as MPC_dyn
 from model.nonlinear_controller import GeometricController
 import csv
 import os
 
 
-# Initiate environment variables and create some of the required objects,
+# Initiate environment variables and create some required objects,
 # will generate the required policy depending on whether MPC is wanted or not
 def init_simulation(mpc=True, dynamic=True, time_horizon = 50):
     env = Quadrotor()
@@ -33,7 +32,7 @@ def init_simulation(mpc=True, dynamic=True, time_horizon = 50):
 # Function for generating the obstacles object for different scenarios in which the drone is to be tested
 # and the figures and axes of the plotting
 def generate_env(scenario):
-    # scenario: type int, the selected scenario among those present in the scenario directory.
+    # Scenario: type int, the selected scenario among those present in the scenario directory.
     # Create the list with the coordinates of the bounding box
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -49,7 +48,7 @@ def generate_env(scenario):
         rows.append(row)
     file.close()
 
-    # extracting the obstacles
+    # Extract the obstacles
     boxes = list()
 
     for row in rows[16:]:

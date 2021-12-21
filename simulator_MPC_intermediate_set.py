@@ -5,7 +5,7 @@ from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 
 if __name__ == "__main__":
-    # Create the quadrotor class, controller and other inital values
+    # Create the quadrotor class, controller and other initial values
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, dynamic=True)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
@@ -23,22 +23,20 @@ if __name__ == "__main__":
 
     current_state = env.reset(position=x_start)
 
-    # If a path has been found proceed to follow it
+    # If a path has been found, proceed to follow it
     if not path_exists:
         print("No path was found for the given number of iterations")
     else:
         print("Path found, applying smoothing.")
-        #path_list = RRT.get_path()
-        # T = 25
-        # pos, vel, acc = cubic_spline(path_list, T)
+        # path_list = RRT.get_path()
+        # pos, vel, acc = cubic_spline(path_list, T=25)
         print("Smoothing completed, tracking trajectory")
         # load the pre-saved trajectory
         traj = np.load('traj.npz')
         path_list = traj['path_list']
         pos = traj['pos']
         vel = traj['vel']
-        #pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
-        # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
+        # pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
         ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
         real_trajectory = np.zeros((1, 3))
         real_orientation = np.zeros((1, 4))
@@ -53,13 +51,13 @@ if __name__ == "__main__":
             # add obstacle on the way
             show_up_time = int(0.5 * len(pos))
             pos_obstacle = pos[show_up_time]
-            # if the agent is close to the obstacle, then do the avoidance
+            # if the agent is close to the obstacle, then avoid it
             if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
                 state_des = np.hstack((pos[i + 50], vel[i + 50], pos_obstacle, intermediate_state))
             else:
                 state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100]), intermediate_state))
             # state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], pos_obstacle, intermediate_state))
-            #state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100]), intermediate_state))
+            # state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100]), intermediate_state))
             action = policy.control(current_state, state_des)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
             obs, reward, done, info = env.step(cmd_rotor_speeds)

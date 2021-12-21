@@ -47,20 +47,18 @@ path_exists2 = True
 current_state = env.reset(position=x_start)
 current_state2 = env2.reset(position=x_start2)
 
-# If a path has been found proceed to follow it
+# If a path has been found, proceed to follow it
 if not path_exists or not path_exists2:
     print("No path was found for the given number of iterations for the quadrotors")
 else:
     print("Path found, applying smoothing.")
     # path_list = RRT.get_path()
     # path_list2 = RRT2.get_path()
-    T = 25
-    #pos, vel, acc = cubic_spline(path_list, T)
-    #pos2, vel2, acc2 = cubic_spline(path_list2, T)
+    # pos, vel, acc = cubic_spline(path_list, T=25)
+    # pos2, vel2, acc2 = cubic_spline(path_list2, T=25)
     print("Smoothing completed, tracking trajectory")
     # pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
     # pos2, vel2, acc2, jerk2, snap2, ts2 = min_snap_optimizer_3d(path_list2, penalty, time_optimal=True)
-    # # pos, vel, acc, ts = min_snap_optimizer_3d(path_list)
     # np.savez('traj.npz', pos=pos, vel=vel, pos2=pos2, vel2=vel2, path_list=path_list, path_list2=path_list2)
     traj = np.load('traj.npz')
     pos = traj['pos']
