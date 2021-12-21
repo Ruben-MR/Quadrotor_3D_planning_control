@@ -12,6 +12,8 @@ from model.MPC_3D import MPC
 #from model.MPC_3D_dynamical_obstacle import MPC as MPC_dyn
 from model.MPC_3D_intermediate_set import MPC as MPC_dyn
 from model.nonlinear_controller import GeometricController
+import csv
+import os
 
 
 # Initiate environment variables and create some of the required objects,
@@ -31,18 +33,29 @@ def init_simulation(mpc=True, dynamic=True):
 # Function for generating the obstacles object for different scenarios in which the drone is to be tested
 # and the figures and axes of the plotting
 def generate_env(scenario):
+    # scenario: type int, the selected scenario among those present in the scenario directory.
     # Create the list with the coordinates of the bounding box
-    # TODO: create a separate file and load this data from there
+
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    filename = f"{this_dir}/scenarios/scenario_{scenario}.csv"
+    print(f"Loading scenario from {filename}")
+
+    file = open(filename)
+    csvreader = csv.reader(file)
+    for i in range(7):
+        next(csvreader)
+    rows = []
+    for row in csvreader:
+        rows.append(row)
+    file.close()
+
+    # extracting the obstacles
     boxes = list()
-    boxes.append(np.array([[0, 5, 0], [14, 5.3, 3]]))
-    boxes.append(np.array([[14, 5, 0], [15, 5.3, 2]]))
-    boxes.append(np.array([[0, 4, 0], [1, 5, 1]]))
-    boxes.append(np.array([[0, 2, 0], [1, 3, 1]]))
-    boxes.append(np.array([[1.5, 4, 0], [2.5, 5, 1]]))
-    boxes.append(np.array([[5, 0, 2], [5.3, 5, 3]]))
-    boxes.append(np.array([[5, 1, 1], [5.3, 4, 2]]))
-    boxes.append(np.array([[5, 0, 0], [5.3, 4, 1]]))
-    boxes.append(np.array([[2, 2.5, 0], [5, 2.8, 3]]))
+
+    for row in rows[16:]:
+        box = np.array([[float(row[1]), float(row[2]), float(row[3])],
+                        [float(row[5]), float(row[6]), float(row[7])]])
+        boxes.append(box)
 
     # Convert the list of points in a list of obstacles
     obstacles = list()
@@ -50,24 +63,37 @@ def generate_env(scenario):
         obstacles.append(Obstacle(box[0, :], box[1, :]))
 
     # Define the figure and axis for plotting depending on the setup
-    # TODO: again, depending on the scenario, additional information for plotting could be loaded
     fig = plt.figure()
     axis = fig.add_subplot(111, projection="3d")
-    axis.set_xlim(0, 15)
-    axis.set_ylim(-5, 10)
-    axis.set_zlim(0, 15)
-    plt.rcParams['figure.figsize'] = 16, 16
-    axis.set_xlabel('x')
-    axis.set_ylabel('y')
-    axis.set_zlabel('z')
-    axis.set_title('3D animate')
-    axis.view_init(30, 35)
+    axis.set_xlim(float(rows[0][1]), float(rows[0][2]))
+    axis.set_ylim(float(rows[1][1]), float(rows[1][2]))
+    axis.set_zlim(float(rows[2][1]), float(rows[2][2]))
+    plt.rcParams['figure.figsize'] = float(rows[3][1]), float(rows[3][2])
+    axis.set_xlabel(rows[4][1].lstrip())
+    axis.set_ylabel(rows[5][1].lstrip())
+    axis.set_zlabel(rows[6][1].lstrip())
+    axis.set_title(rows[7][1].lstrip())
+    axis.view_init(float(rows[8][1]), float(rows[8][2]))
 
     # Set the map boundaries for point search in RRT_star
-    # TODO: this could be done once again by loading from a file
-    boundary = [15, 8, 3]
+    boundary = [float(rows[10][1]), float(rows[10][2]), float(rows[10][3])]
 
-    return obstacles, fig, axis, boundary
+    # Set the initial and terminal positions
+
+    start_points = []
+    end_points = []
+
+    for idx in range(len(rows[12])//4):
+        start_point = np.array([float(rows[12][1+4*idx]), float(rows[12][2+4*idx]), float(rows[12][3+4*idx])])
+        end_point = np.array([float(rows[13][1+4*idx]), float(rows[13][2+4*idx]), float(rows[13][3+4*idx])])
+        start_points.append(start_point)
+        end_points.append(end_point)
+
+    print("Loaded scenario successfully.")
+
+    # TODO: there might be a better way to implement the scenarios for multiple drones.
+
+    return obstacles, fig, axis, boundary, start_points, end_points
 
 
 # Function for doing the visualization of all the objects and elements in the scenario and simulation
@@ -75,16 +101,22 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation):
     # Plot the obstacles
     for box in obstacles:
         plot_three_dee_box(box, ax=axis)
+
     # Plot the start and goal points
-    axis.plot([start[0]], [start[1]], [start[2]], marker='o', c='r', markersize=10)
-    axis.plot([goal[0]], [goal[1]], [goal[2]], marker='o', c='b', markersize=10)
+    axis.plot([start[0]], [start[1]], [start[2]], 'go', markersize=5, label="Start")
+    axis.plot([goal[0]], [goal[1]], [goal[2]], 'bo', markersize=5, label="End")
 
     # Plot the final path
     path_length = 0
     for i in range(len(path) - 1):
-        axis.plot([path[i][0], path[i + 1][0]],
+        if i == 0:
+            axis.plot([path[i][0], path[i + 1][0]],
+                      [path[i][1], path[i + 1][1]],
+                      [path[i][2], path[i + 1][2]], c='b', linewidth=1, label="RRT_path")
+        else:
+            axis.plot([path[i][0], path[i + 1][0]],
                  [path[i][1], path[i + 1][1]],
-                 [path[i][2], path[i + 1][2]], c='b', linewidth=2)
+                 [path[i][2], path[i + 1][2]], c='b', linewidth=1)
         path_length += np.linalg.norm(path[i] - path[i + 1])
     print('Length of path:', round(path_length, 2))
 

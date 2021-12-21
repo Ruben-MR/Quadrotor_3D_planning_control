@@ -27,14 +27,14 @@ total_energy2 = 0
 penalty = 2500
 #################################################################
 # Define the obstacles, plotting figure and axis and other scenario properties
-scenario = 0
-obstacles, fig, ax1, map_boundary = generate_env(scenario)
+scenario = 2
+obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
 #########################################################################
 # global path planning using RRT*
-x_start = np.array([5, 7, 3])
-x_start2 = np.array([5, 6, 3])
-x_goal = np.array([0.5, 2.5, 1.5])
-x_goal2 = np.array([0.5, 2.5, 1.5])
+x_start = starts[0]
+x_start2 = starts[1]
+x_goal = ends[0]
+x_goal2 = ends[1]
 
 # RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
 # RRT2 = RRT_star(x_start2, 1500, obstacles, ax1, 1)
