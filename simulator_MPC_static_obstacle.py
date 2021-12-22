@@ -6,7 +6,7 @@ from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 
 if __name__ == "__main__":
     # Create the quadrotor class, controller and other initial values
-    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, dynamic=True, time_horizon = 50)
+    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, dynamic=False, time_horizon = 50)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario = 0
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     x_goal = ends[0]
 
     # RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
-    # path_exists = RRT.find_path(x_goal, map_boundary)
+    # path_exists = RRT.find_path(x_goal, map_boundary)y
     path_exists = True
     #########################################################################
 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         real_trajectory = np.zeros((1, 3))
         real_orientation = np.zeros((1, 4))
         # follow the path in segments
-        for i in range(len(pos)-policy.model.N):
+        for i in range(len(pos)- policy.model.N):
             # static obstacle
             show_up_time = int(0.5 * len(pos))
             pos_obstacle = pos[show_up_time]
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         print("Sum of energy consumption (integration)", total_energy)
         ############################################################################
 
-        ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='y', markersize=10)
+        ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='y', markersize=16)
 
         plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
 

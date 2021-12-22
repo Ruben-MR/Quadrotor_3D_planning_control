@@ -8,7 +8,7 @@ from Obstacle import Obstacle, plot_three_dee_box
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.spatial.transform import Rotation
-from model.MPC_3D import MPC
+from model.MPC_3D_static_obstacle import MPC
 from model.MPC_3D_dynamic_obstacle import MPC as MPC_dyn
 from model.nonlinear_controller import GeometricController
 import csv
