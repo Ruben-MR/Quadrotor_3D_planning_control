@@ -92,6 +92,17 @@ class RRT_star:
             print('No path found')
         return np.flip(np.array(path_list), axis=0)
 
+    def get_straight_path(self):
+        path = self.get_path()
+        i = 0
+        while i < (np.size(path, axis=0)-2):
+            for j in range(i+2, np.size(path, axis=0)):
+                if not collision_check_path(path[i, :], path[j, :], self.obstacle_array):
+                    np.delete(path, (j-1), axis=1)
+                else:
+                    break
+        return path
+
     # Function for generating a new sample and the index of the closest neighbor
     def new_and_closest(self, map_boundary):
         # random sampling
