@@ -1,7 +1,7 @@
 Scenario Description:
 
 The original scenario, in which one drone flies from outside the warehouse, and manoeuvres itself inside it.
-
+In this variation, the floor is modelled as an obstacle, mainly for visualisation purposes.
 
 # ALWAYS KEEP FIVE LINES ABOVE THIS ONE ##############################################################################
 
@@ -12,7 +12,7 @@ figsize (width / height), 16, 16
 xlabel (label string), x
 ylabel (label string), y
 zlabel (label string), z
-title (title string), 3D animation: scenario 0
+title (title string), 3D animation: scenario 3 (floor as obstacle)
 view_init (elev / azim), 30, 35
 
 boundary (x / y / z), 15, 8, 3
@@ -32,3 +32,4 @@ corner_1 (x / y / z), 5, 0, 0, corner_2 (x / y / z), 5.3, 4, 1
 corner_1 (x / y / z), 2, 2.5, 0, corner_2 (x / y / z), 5, 2.8, 3
 corner_1 (x / y / z), -0.050, 0, 0, corner_2 (x / y / z), 0, 5.3, 3
 corner_1 (x / y / z), 15, 0, 0, corner_2 (x / y / z), 15.050, 5.3, 3
+corner_1 (x / y / z), 0, 0, -0.010, corner_2 (x / y / z), 15, 8, 0
