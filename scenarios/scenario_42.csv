@@ -1,0 +1,24 @@
+Scenario Description:
+
+This scenario is intended for fast testing. it consists of a simple setup, with only one obstacle.
+
+
+# ALWAYS KEEP FIVE LINES ABOVE THIS ONE ##############################################################################
+
+xlim (min / max), 0, 5
+ylim (min / max), 0, 5
+zlim (min / max), 0, 5
+figsize (width / height), 16, 16
+xlabel (label string), x
+ylabel (label string), y
+zlabel (label string), z
+title (title string), 3D animation: scenario 42 (simple test)
+view_init (elev / azim), 30, 35
+
+boundary (x / y / z), 5, 5, 5
+
+start_point (x / y / z), 1, 1, 1
+end_point (x / y / z), 4, 4, 4
+
+boxes
+corner_1 (x / y / z), 2, 2, 2, corner_2 (x / y / z), 3, 3, 3

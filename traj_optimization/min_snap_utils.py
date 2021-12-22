@@ -158,7 +158,7 @@ def bound(n_seg, n_var):
     bound_tuple = ()
     for i in range(n_var):
         if i < n_seg:
-            bound_tuple += ((0.01, 2),)
+            bound_tuple += ((0.01, 5),)
         else:
             bound_tuple += ((-np.inf, np.inf),)
     return bound_tuple
@@ -191,6 +191,27 @@ def compute_proportional_t(path, total_time, n_seg):
 ########################################################################################################################
 # FUNCTIONS FOR ACTUATION CONSTRAINT
 ########################################################################################################################
+
+def inequal_constraint(variables, n_seg, n_order):
+    ts = variables[:n_seg]
+    pos_coef_x = variables[n_seg:n_seg * (n_order + 1) + n_seg]
+    pos_coef_y = variables[n_seg * (n_order + 1) + n_seg: 2 * n_seg * (n_order + 1) + n_seg]
+    pos_coef_z = variables[2 * n_seg * (n_order + 1) + n_seg: 3 * n_seg * (n_order + 1) + n_seg]
+
+    vel_coef_x, vel_coef_y, vel_coef_z = get_derivative_coef(pos_coef_x, pos_coef_y, pos_coef_z, n_order, 1)
+    acc_coef_y, acc_coef_x, acc_coef_z = get_derivative_coef(vel_coef_x, vel_coef_y, vel_coef_z, n_order, 2)
+    jerk_coef_y, jerk_coef_x, jerk_coef_z = get_derivative_coef(acc_coef_x, acc_coef_y, acc_coef_z, n_order, 3)
+    snap_coef_y, snap_coef_x, snap_coef_z = get_derivative_coef(jerk_coef_x, jerk_coef_y, jerk_coef_z, n_order, 4)
+
+    tstep = 0.1
+    acc = get_point_values(acc_coef_x, acc_coef_y, acc_coef_z, ts, n_seg, n_order, 2, tstep)
+    jerk = get_point_values(jerk_coef_x, jerk_coef_y, jerk_coef_z, ts, n_seg, n_order, 3, tstep)
+    snap = get_point_values(snap_coef_x, snap_coef_y, snap_coef_z, ts, n_seg, n_order, 4, tstep)
+
+    _, max_speed = get_max_actuation(acc, jerk, snap)
+    diff = np.full((4,), 2500) - max_speed
+    return diff
+
 
 # Given the complete set of acceleration, jerks and snaps of the reference trajectory, check what the maximum required
 # motor speeds are. Used for checking that the trajectory stays within the limits of actuation.
