@@ -33,7 +33,7 @@ if __name__ == "__main__":
         print("No path was found for the given number of iterations")
     else:
         print("Path found, applying smoothing.")
-        path_list = RRT.get_path()
+        path_list = RRT.get_straight_path()
         # pos, vel, acc = cubic_spline(path_list, T=25)
         pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=True)
         print("Smoothing completed, tracking trajectory")

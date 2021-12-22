@@ -94,13 +94,15 @@ class RRT_star:
 
     def get_straight_path(self):
         path = self.get_path()
-        i = 0
-        while i < (np.size(path, axis=0)-2):
-            for j in range(i+2, np.size(path, axis=0)):
-                if not collision_check_path(path[i, :], path[j, :], self.obstacle_array):
-                    np.delete(path, (j-1), axis=1)
-                else:
-                    break
+        idx = []
+        for i in range(np.size(path, axis=0)-2):
+            if i not in idx:
+                for j in range(i+2, np.size(path, axis=0)):
+                    if not collision_check_path(path[i, :], path[j, :], self.obstacle_array):
+                        idx.append(j-1)
+                    else:
+                        break
+        path = np.delete(path, idx, axis=0)
         return path
 
     # Function for generating a new sample and the index of the closest neighbor
