@@ -133,9 +133,9 @@ class MPC:
         self.solver = self.model.generate_solver(self.codeoptions)
         #self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
 
-        # Set initial guess to start solver from (here, middle of upper and lower bound)
-        x0i = np.zeros([self.model.nvar, 1])    # TODO: change the initial guess?
-        x0 = np.transpose(np.tile(x0i, (1, self.model.N)))
+        # Set initial guess to start solver
+        self.inital_guess = np.zeros([self.model.nvar, 1])
+        x0 = np.transpose(np.tile(self.inital_guess, (1, self.model.N)))
         self.problem = {"x0": x0}
 
     def continuous_dynamics(self, s, u):
@@ -178,16 +178,15 @@ class MPC:
         """
         Sovling NLP prolem in N-step-horizon for optimal control, take the first control input
         """
+        # Set initial guess
+        x0 = np.transpose(np.tile(self.inital_guess, (1, self.model.N)))
+        self.problem = {"x0": x0}
+        # Set initial condition
         state = Quadrotor._pack_state(state)
         x_current = np.transpose(state)
         self.problem["xinit"] = x_current
         # Set runtime parameters
         self.problem["all_parameters"] = np.transpose(np.tile(goal, (1, self.model.N)))
-
-        # # Set runtime parameters
-        # params = np.array(
-        #     [-1.5, 1.])  # In this example, the user can change these parameters by clicking into an interactive window
-        # problem["all_parameters"] = np.transpose(np.tile(params, (1, model.N)))
 
         # Time to solve the NLP!
         output, exitflag, info = self.solver.solve(self.problem)
@@ -195,6 +194,7 @@ class MPC:
         #assert exitflag == 1, "bad exitflag"
         # print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
         print("exitflag: ", exitflag)
+        self.inital_guess = output['x01'][:, np.newaxis]
         u = np.zeros(4)
         u[0] = output['x01'][0]
         u[1] = output['x01'][1]
