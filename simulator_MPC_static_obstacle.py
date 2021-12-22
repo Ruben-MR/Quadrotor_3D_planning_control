@@ -57,7 +57,7 @@ if __name__ == "__main__":
                 print("avoiding obstacle......")
             else:
                 state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
-            # state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], pos_obstacle))
+            # state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
             # state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100])))
             action = policy.control(current_state, state_des)
             cmd_rotor_speeds = action['cmd_rotor_speeds']

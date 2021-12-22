@@ -168,11 +168,11 @@ class MPC:
 
     def objective(self, z, goal):
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
-        return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
+        return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * (z[0]**2 + z[1]**2 + z[2]**2 + z[3]**2)
 
     def objectiveN(self, z, goal):
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
-        return (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:] - self.goal) + 0.2 * z[0] ** 2
+        return (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:] - self.goal) + 0.2 * (z[0]**2 + z[1]**2 + z[2]**2 + z[3]**2)
 
     def control(self, state, goal):
         """

@@ -51,6 +51,16 @@ class MPC:
         self.model = forcespro.nlp.SymbolicModel(N) # create a empty model with time horizon of 50 steps
         # objective (cost function)
         # cost matrix for tracking the goal point
+        # self._Q_goal = np.diag([
+        #     100, 100, 100,      # x, y, z
+        #     100, 100, 100,         # dx, dy, dz
+        #     10, 10, 10, 10,     # qx, qy, qz, qw
+        #     10, 10, 10])        # r, p, q
+        # self._Q_goal_N = np.diag([
+        #     200, 200, 200,      # x, y, z
+        #     200, 200, 200,         # dx, dy, dz
+        #     10, 10, 10, 10,     # qx, qy, qz, qw
+        #     10, 10, 10])        # r, p, q
         self._Q_goal = np.diag([
             100, 100, 100,      # x, y, z
             100, 100, 100,         # dx, dy, dz
@@ -58,17 +68,15 @@ class MPC:
             10, 10, 10])        # r, p, q
         self._Q_goal_N = np.diag([
             200, 200, 200,      # x, y, z
-            200, 200, 200,         # dx, dy, dz
+            100, 100, 100,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
-        # TODO: as TA says, adding terminal cost is a promising way! see: https://forces.embotech.com/Documentation/examples/high_level_basic_example/index.html#sec-high-level-basic-example
+
         # cost: distance to the goal
-        #self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
         self.model.objective = self.objective
         # specially deal with the cost for the last stage (terminal cost)
-        #self.model.objectiveN = lambda z: (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:]-self.goal) + 0.2 * z[0]**2
         self.model.objectiveN = self.objectiveN
-        # self.model.objective = lambda z: 100 * (z[4]**2 + z[5]**2 + z[6]**2) # cost: hovering
+
         # equality constraints (quadrotor model)
         # z[0:4] action z[4:14] state
         self.model.eq = lambda z: forcespro.nlp.integrate(self.continuous_dynamics, z[4:], z[0:4],
@@ -93,29 +101,12 @@ class MPC:
         self.model.hu = np.array([np.inf])
         self.model.hl = np.array([0.64])
 
-        # # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
-        # model.ineq = lambda z, p: np.array([z[2] ** 2 + z[3] ** 2,  # x^2 + y^2
-        #                                     (z[2] - p[0]) ** 2 + (z[3] - p[1]) ** 2])  # (x-p_x)^2 + (y-p_y)^2
-        #
-        # # Upper/lower bounds for inequalities
-        # model.hu = np.array([9, +np.inf])
-        # model.hl = np.array([1, 0.7 ** 2])
-
         # set dimensions of the problem
-        # self.model.N = 50 # horizon length
         self.model.nvar = 17    # number of variables
         self.model.neq = 13     # number of equality constraints
         self.model.nh = 1      # number of inequality constraints functions
-        self.model.npar = 9  # number of runtime parameters (pos and vel)
+        self.model.npar = 9  # number of runtime parameters (pos and vel and pos_obstacle)
         self.model.xinitidx = range(4, 17)  # indices of the state variables
-
-        # handle the last stage separately
-        # self.model.objectiveN = lambda z: casadi.sumsqr(z[0:2]-np.array([0, 0.5])) # cost: distance to the goal
-        # self.model.nvarN = 8 - 2
-        # self.model.EN = np.eye(6)
-        # self.model.ineqN = lambda z: z[2:]
-        # self.model.lbN = self.model.lb[2:]
-        # self.model.ubN = self.model.ub[2:]
 
         # Set solver options
         self.codeoptions = forcespro.CodeOptions('FORCENLPsolver')
@@ -168,11 +159,11 @@ class MPC:
 
     def objective(self, z, goal):
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
-        return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
+        return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * (z[0]**2 + z[1]**2 + z[2]**2 + z[3]**2)
 
     def objectiveN(self, z, goal):
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
-        return (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:] - self.goal) + 0.2 * z[0] ** 2
+        return (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:] - self.goal) + 0.2 * (z[0]**2 + z[1]**2 + z[2]**2 + z[3]**2)
 
     def control(self, state, goal):
         """
@@ -191,8 +182,6 @@ class MPC:
         # Time to solve the NLP!
         output, exitflag, info = self.solver.solve(self.problem)
         # Make sure the solver has exited properly.
-        #assert exitflag == 1, "bad exitflag"
-        # print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
         print("exitflag: ", exitflag)
         self.inital_guess = output['x01'][:, np.newaxis]
         u = np.zeros(4)
