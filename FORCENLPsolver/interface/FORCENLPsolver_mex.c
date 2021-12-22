@@ -128,6 +128,46 @@ void mexFunction( solver_int32_default nlhs, mxArray *plhs[], solver_int32_defau
 	 
 
 	/* copy parameters into the right location */
+	par = mxGetField(PARAMS, 0, "lb");
+#ifdef MEXARGMUENTCHECKS
+    if( par == NULL )	
+	{
+        mexErrMsgTxt("PARAMS.lb not found");
+    }
+    if( !mxIsDouble(par) )
+    {
+    mexErrMsgTxt("PARAMS.lb must be a double.");
+    }
+    if( mxGetM(par) != 200 || mxGetN(par) != 1 ) 
+	{
+    mexErrMsgTxt("PARAMS.lb must be of size [200 x 1]");
+    }
+#endif	 
+	if ( (mxGetN(par) != 0) && (mxGetM(par) != 0) )
+	{
+		copyMArrayToC_double(mxGetPr(par), params.lb,200);
+
+	}
+	par = mxGetField(PARAMS, 0, "ub");
+#ifdef MEXARGMUENTCHECKS
+    if( par == NULL )	
+	{
+        mexErrMsgTxt("PARAMS.ub not found");
+    }
+    if( !mxIsDouble(par) )
+    {
+    mexErrMsgTxt("PARAMS.ub must be a double.");
+    }
+    if( mxGetM(par) != 200 || mxGetN(par) != 1 ) 
+	{
+    mexErrMsgTxt("PARAMS.ub must be of size [200 x 1]");
+    }
+#endif	 
+	if ( (mxGetN(par) != 0) && (mxGetM(par) != 0) )
+	{
+		copyMArrayToC_double(mxGetPr(par), params.ub,200);
+
+	}
 	par = mxGetField(PARAMS, 0, "xinit");
 #ifdef MEXARGMUENTCHECKS
     if( par == NULL )	

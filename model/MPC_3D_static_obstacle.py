@@ -85,17 +85,18 @@ class MPC:
         #  upper/lower variable bounds lb <= z <= ub
         #  inputs | states
         # thrust moment_x moment_y moment_z x y z dx dy dz qx qy qz qw r p q
-        self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf,
-                                  -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
-        self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf,
-                                  np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
-        # self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, 0, -5, 0, -np.inf, -np.inf, -np.inf,
+        # self.model.lb = np.array([0, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf,
         #                           -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
-        # self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, 15, 10, 15, np.inf, np.inf,
+        # self.model.ub = np.array([2.5*self.mass*self.g, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf,
         #                           np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
+        # Lower bounds are parametric (indices not mentioned here are -inf)
+        self.model.lbidx = [0, 4, 5, 6]
+
+        # Upper bounds are parametric (indices not mentioned here are +inf)
+        self.model.ubidx = [0, 4, 5, 6]
 
         # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
-        self.model.ineq = lambda z, p: (z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2
+        self.model.ineq = lambda z, p: np.array([(z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2])
 
         # Upper/lower bounds for inequalities
         self.model.hu = np.array([np.inf])
@@ -120,6 +121,7 @@ class MPC:
         self.codeoptions.solvemethod = "SQP_NLP"
         self.codeoptions.sqp_nlp.maxqps = 1  # maximum number of quadratic problems to be solved
         self.codeoptions.sqp_nlp.reg_hessian = 5e-5  # increase this if exitflag=-8
+        self.codeoptions.nlp.stack_parambounds = True
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
         self.solver = self.model.generate_solver(self.codeoptions)
         #self.solver = forcespro.nlp.Solver.from_directory('FORCESNLPsolver/') # use pre-generated solver
@@ -178,6 +180,9 @@ class MPC:
         self.problem["xinit"] = x_current
         # Set runtime parameters
         self.problem["all_parameters"] = np.transpose(np.tile(goal, (1, self.model.N)))
+        # Set runtime constraints
+        self.problem["lb"] = np.tile([0, 0, -5, 0], (self.model.N,))
+        self.problem["ub"] = np.tile([2.5*self.mass*self.g, 15, 10, 15], (self.model.N,))
 
         # Time to solve the NLP!
         output, exitflag, info = self.solver.solve(self.problem)
