@@ -1,10 +1,11 @@
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize
 from traj_optimization.min_snap_utils import *
+import time
 
 
 # Minimum snap solver function for time optimization
-def minimum_snap_np(path, n_seg, n_order, penalty, time_optimal):
+def minimum_snap_np(path, n_seg, n_order, penalty, time_optimal, act_const):
     # variables for time, x, y, z
     n_var = 3 * n_seg * (n_order + 1) + n_seg
     ts = None
@@ -17,9 +18,15 @@ def minimum_snap_np(path, n_seg, n_order, penalty, time_optimal):
     x0[2 * n_seg * (n_order + 1) + n_seg:3 * n_seg * (n_order + 1) + n_seg:(n_order + 1)] = path[:-1, 2]
 
     # set the constraints, bounds and additional options for the optimizer
-    con = {'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path, time_optimal, ts]}
+    if act_const:
+        con = [{'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path, time_optimal, ts]},
+               {'type': 'ineq', 'fun': inequal_constraint, 'args': [n_seg, n_order]}]
+        opts = {'maxiter': 300,  'eps': 2e-8, 'disp': True}
+    else:
+        penalty = 3000
+        con = [{'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path, time_optimal, ts]}]
+        opts = {'maxiter': 500,  'eps': 2e-8, 'disp': True}
     bnds = bound(n_seg, n_var)
-    opts = {'maxiter': 150}
     # solve the problem
     solution = minimize(obj_function, x0, args=(n_seg, n_order, penalty, time_optimal, ts),
                         method='SLSQP', bounds=bnds, constraints=con, options=opts)
@@ -41,8 +48,8 @@ def minimum_snap_qp(path, ts, n_seg, n_order, time_optimal):
     x0 = np.zeros(n_var)
 
     # set the constraints, bounds and additional options for the optimizer
-    con = {'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path, time_optimal, ts]}
-    opts = {'maxiter': 150, 'eps': 2e-8}
+    con = [{'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path, time_optimal, ts]}]
+    opts = {'maxiter': 300, 'eps': 2e-8, 'disp': True}
 
     # solve the problem
     penalty = 0
@@ -58,14 +65,14 @@ def minimum_snap_qp(path, ts, n_seg, n_order, time_optimal):
 
 
 # trajectory optimization
-def min_snap_optimizer_3d(path, penalty, time_optimal=True, total_time=10):
+def min_snap_optimizer_3d(path, penalty, time_optimal=True, act_const=False, total_time=10):
     # general parameters of the minimum snap algorithm
     n_order = 7
     n_seg = np.size(path, axis=0) - 1
 
     # if time is optimal, then ts and solutions of x, y, z are dependent
     if time_optimal:
-        ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty, time_optimal)
+        ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty, time_optimal, act_const)
     else:
         ts = compute_proportional_t(path, total_time, n_seg)
         pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_qp(path, ts, n_seg, n_order, time_optimal)
@@ -91,31 +98,18 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True, total_time=10):
 # can be used for testing the performance by itself on different paths
 if __name__ == "__main__":
     # global variables
-    """
-    path_points = np.array([[5., 7., 3.],
-                            [10.86112711, 6.12592946, 2.55994633],
-                            [13.91474856, 5.87165097, 2.46509981],
-                            [14.26590969, 4.75821649, 2.06223386],
-                            [12.38218297, 3.92085155, 2.11475727],
-                            [10.97662532, 3.23206355, 1.86315257],
-                            [9.50077495, 1.94620373, 1.79910651],
-                            [7.62894844, 1.24818373, 1.74496482],
-                            [7.18167236, 1.23754264, 1.59337815],
-                            [5.49010816, 0.97186878, 1.41324015],
-                            [4.66375168, 0.55217968, 1.62723241],
-                            [3.35235155, 0.62747605, 1.70443546],
-                            [1.64982418, 1.60245634, 2.04395953],
-                            [0.5, 2.5, 1.5]])
-    """
-    # path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4],
-    #                        [10, 7, 8], [9, 3, 10], [12, 5, 2]])
-    path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4]])
+    path_points = np.array([[0, 0, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4], [10, 7, 8],
+                            [8, 6, 5], [11, 9, 7]])
+    # path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 4]])
 
     # compute the optimal path
     time_optimal = True
-    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=2500,
-                                                                                time_optimal=time_optimal)
+    start = time.time()
+    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=10000,
+                                                                                time_optimal=time_optimal, act_const=False)
     idx, speeds = get_max_actuation(acceleration, jerk, snap)
+    end = time.time()
+    print("Execution took: ", end-start)
     print('Time distribution:\n', np.round(times, 2))
     print('Maximum commanded rotor speeds: ', speeds, 'at index: ', idx)
     # plot the results
