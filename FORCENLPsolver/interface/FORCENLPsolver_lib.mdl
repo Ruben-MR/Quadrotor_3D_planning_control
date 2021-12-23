@@ -60,13 +60,13 @@ Model {
       }
     }
   }
-  Created		  "12/22/2021 11:02:57 PM"
+  Created		  "12/23/2021 3:33:36 PM"
   Creator		  "embotech AG"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "embotech AG"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "12/22/2021 11:02:57 PM"
+  LastModifiedDate	  "12/23/2021 3:33:36 PM"
   RTWModifiedTimeStamp	  315310195
   ModelVersionFormat	  "1.%<AutoIncrement:2>"
   ConfigurationManager	  "None"
@@ -767,7 +767,7 @@ Model {
       BlockType		      S-Function
       Name		      "FORCENLPsolver"
       SID		      "1"
-      Ports		      [6, 50]
+      Ports		      [4, 50]
       Position		      [170, 99, 650, 850]
       ZOrder		      1
       FunctionName	      "FORCENLPsolver_simulinkBlock"
@@ -804,9 +804,7 @@ Model {
 	Help			"FORCENLPsolver_simulinkBlock provides an easy Simulink interface for simulating your customized solver.  \n"
 	"\nOUTPUTS = FORCENLPsolver(INPUTS) solves an optimization problem where:\n\n"
 	"INPUTS:\n"
-	" - lb - column vector of length 200\n "
-" - ub - column vector of length 200\n "
-" - xinit - column vector of length 13\n "
+	" - xinit - column vector of length 13\n "
 " - x0 - column vector of length 850\n "
 " - all_parameters - column vector of length 450\n "
 " - reinitialize - column vector of length 0\n "
@@ -865,12 +863,10 @@ Model {
 
 	"\n For more information, see https://forces.embotech.com/Documentation/graphical_interface/index.html \n "
 
-	Display			"port_label('input', 1, 'lb') \n  "
-"port_label('input', 2, 'ub') \n  "
-"port_label('input', 3, 'xinit') \n  "
-"port_label('input', 4, 'x0') \n  "
-"port_label('input', 5, 'all_parameters') \n  "
-"port_label('input', 6, 'reinitialize') \n  "
+	Display			"port_label('input', 1, 'xinit') \n  "
+"port_label('input', 2, 'x0') \n  "
+"port_label('input', 3, 'all_parameters') \n  "
+"port_label('input', 4, 'reinitialize') \n  "
 "port_label('output', 1, 'x01') \n "
 "port_label('output', 2, 'x02') \n "
 "port_label('output', 3, 'x03') \n "

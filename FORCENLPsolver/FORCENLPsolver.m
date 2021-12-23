@@ -2,8 +2,6 @@
 %
 %   OUTPUT = FORCENLPsolver(PARAMS) solves a multistage problem
 %   subject to the parameters supplied in the following struct:
-%       PARAMS.lb - column vector of length 200
-%       PARAMS.ub - column vector of length 200
 %       PARAMS.xinit - column vector of length 13
 %       PARAMS.x0 - column vector of length 850
 %       PARAMS.all_parameters - column vector of length 450

@@ -8,8 +8,8 @@ from Obstacle import Obstacle, plot_three_dee_box
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.spatial.transform import Rotation
-from model.MPC_3D_static_obstacle import MPC
-from model.MPC_3D_dynamic_obstacle import MPC as MPC_dyn
+from model.MPC_3D_static_obstacle import MPC_sta
+from model.MPC_3D_dynamic_obstacle import MPC_dyn
 from model.nonlinear_controller import GeometricController
 import csv
 import os
@@ -22,7 +22,7 @@ def init_simulation(mpc=True, dynamic=True, time_horizon = 50):
     if mpc and dynamic:
         policy = MPC_dyn(time_horizon)
     elif mpc and not dynamic:
-        policy = MPC(time_horizon)
+        policy = MPC_sta(time_horizon)
     else:
         policy = GeometricController()
     t0, dt, total_se, total_energy, penalty = 0, 1e-2, 0, 0, 2500
