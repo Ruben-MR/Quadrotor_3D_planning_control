@@ -6,7 +6,7 @@
 %       PARAMS.ub - column vector of length 160
 %       PARAMS.xinit - column vector of length 13
 %       PARAMS.x0 - column vector of length 680
-%       PARAMS.all_parameters - column vector of length 240
+%       PARAMS.all_parameters - column vector of length 360
 %       PARAMS.reinitialize - scalar
 %
 %   OUTPUT returns the values of the last iteration of the solver where
