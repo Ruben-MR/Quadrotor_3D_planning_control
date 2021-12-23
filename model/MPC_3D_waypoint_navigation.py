@@ -12,7 +12,7 @@ from model.quadrotor import quat_dot, Quadrotor
 
 
 class MPC:
-    def __init__(self, N):
+    def __init__(self, N, obstacle = False):
         """
         Parameters of the quadrotor
         """
@@ -53,7 +53,7 @@ class MPC:
         # cost matrix for tracking the goal point
         self._Q_goal = np.diag([
             100, 100, 100,      # x, y, z
-            20, 20, 20,         # dx, dy, dz
+            30, 30, 30,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
         self._Q_goal_N = np.diag([
@@ -85,19 +85,20 @@ class MPC:
         self.model.ubidx = [0, 4, 5, 6]
 
         # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
-        #self.model.ineq = lambda z, p: np.array([(z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2])
-
-        # Upper/lower bounds for inequalities
-        #self.model.hu = np.array([np.inf])
-        #self.model.hl = np.array([0.64])
+        if obstacle:
+            self.model.ineq = lambda z, p: np.array([(z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2])
+            self.model.hu = np.array([2500])
+            self.model.hl = np.array([0.49])
 
         # set dimensions of the problem
         self.model.nvar = 17    # number of variables
         self.model.neq = 13     # number of equality constraints
-        #self.model.nh = 1      # number of inequality constraints functions
-        self.model.npar = 6  # number of runtime parameters (pos and vel and pos_obstacle)
+        if obstacle:
+            self.model.nh = 1      # number of inequality constraints functions
+            self.model.npar = 9  # number of runtime parameters (pos and vel and pos_obstacle)
+        else:
+            self.model.npar = 6  # number of runtime parameters (pos and vel and pos_obstacle)
         self.model.xinitidx = range(4, 17)  # indices of the state variables
-
         # Set solver options
         self.codeoptions = forcespro.CodeOptions('FORCENLPsolver')
         self.codeoptions.maxit = 200  # Maximum number of iterations
@@ -109,7 +110,7 @@ class MPC:
         self.codeoptions.nlp.bfgs_init = 2.5 * np.identity(8)  # initialization of the hessian approximation
         self.codeoptions.solvemethod = "SQP_NLP"
         self.codeoptions.sqp_nlp.maxqps = 1  # maximum number of quadratic problems to be solved
-        self.codeoptions.sqp_nlp.reg_hessian = 5e-8  # increase this if exitflag=-8
+        self.codeoptions.sqp_nlp.reg_hessian = 5e-7  # increase this if exitflag=-8
         self.codeoptions.nlp.stack_parambounds = True
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
         self.solver = self.model.generate_solver(self.codeoptions)
@@ -119,6 +120,7 @@ class MPC:
         self.inital_guess = np.zeros([self.model.nvar, 1])
         x0 = np.transpose(np.tile(self.inital_guess, (1, self.model.N)))
         self.problem = {"x0": x0}
+        print(self.model)
 
     def continuous_dynamics(self, s, u):
         # rotate_k function (third column of the rotation matrix configured by q)
@@ -156,7 +158,7 @@ class MPC:
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
         return (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:] - self.goal) + 0.1 * z[0]**2
 
-    def control(self, state, goal):
+    def control(self, state, goal, bounding_box_size = 2):
         """
         Sovling NLP prolem in N-step-horizon for optimal control, take the first control input
         """
@@ -170,9 +172,14 @@ class MPC:
         # Set runtime parameters
         self.problem["all_parameters"] = np.transpose(np.tile(goal, (1, self.model.N)))
         # Set runtime constraints
-        self.bounding_box_size = 2.5
-        self.problem["lb"] = np.tile([0, state[0]-self.bounding_box_size, state[1]-self.bounding_box_size, state[2]-self.bounding_box_size], (self.model.N,))
-        self.problem["ub"] = np.tile([2.5*self.mass*self.g, state[0]+self.bounding_box_size, state[1]+self.bounding_box_size, state[2]+self.bounding_box_size], (self.model.N,))
+        self.bounding_box_size = bounding_box_size
+        # only bound first 5 steps (since MPC only executes the first control command)
+        lb_first = np.tile([0, state[0]-self.bounding_box_size, state[1]-self.bounding_box_size, state[2]-self.bounding_box_size], (15,))
+        lb_second = np.tile([0, state[0]-100, state[1]-100, state[2]-100], (self.model.N - 15, ))
+        self.problem["lb"] = np.hstack((lb_first, lb_second))
+        ub_first = np.tile([2.5*self.mass*self.g, state[0]+self.bounding_box_size, state[1]+self.bounding_box_size, state[2]+self.bounding_box_size], (15, ))
+        ub_second = np.tile([2.5*self.mass*self.g, state[0]+100, state[1]+100, state[2]+100], (self.model.N - 15, ))
+        self.problem["ub"] = np.hstack((ub_first, ub_second))
 
         # Time to solve the NLP!
         output, exitflag, info = self.solver.solve(self.problem)
@@ -256,12 +263,12 @@ if __name__ == '__main__':
     dt = 0.01
     t = 0
     i = 0
-    endpoint = np.array([10, 10, 10, 0, 0, 0])
-    controller = MPC(40)
+    endpoint = np.array([15, 15, 15, 0, 0, 0, 4, 4, 4])
+    controller = MPC(40, obstacle=True)
     real_trajectory = {'x': [], 'y': [], 'z': []}
     while t < 10:
         print('iteration: ', i)
-        action = controller.control(current_state, endpoint)["cmd_rotor_speeds"]
+        action = controller.control(current_state, endpoint, bounding_box_size=1.5)["cmd_rotor_speeds"]
         obs, reward, done, info = env.step(action)
         real_trajectory['x'].append(obs['x'][0])
         real_trajectory['y'].append(obs['x'][1])
@@ -285,7 +292,7 @@ if __name__ == '__main__':
                       label='Quadrotor')
     line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]],
                      label='Real_Trajectory')
-    #ax1.scatter([2, 7], [2, 7], [2, 7], color = 'g', s=500)
+    ax1.scatter([2, 7], [2, 7], [2, 7], color = 'g', s=500)
 
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')

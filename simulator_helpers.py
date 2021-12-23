@@ -17,12 +17,12 @@ import os
 
 # Initiate environment variables and create some required objects,
 # will generate the required policy depending on whether MPC is wanted or not
-def init_simulation(mpc=True, traj_tracking=True, time_horizon = 50):
+def init_simulation(mpc=True, traj_tracking=True, time_horizon = 50, obstacle = False):
     env = Quadrotor()
     if mpc and traj_tracking:
-        policy = MPC_traj(time_horizon)
+        policy = MPC_traj(time_horizon, obstacle)
     elif mpc and not traj_tracking:
-        policy = MPC_waypoint(time_horizon)
+        policy = MPC_waypoint(time_horizon, obstacle)
     else:
         policy = GeometricController()
     t0, dt, total_se, total_energy, penalty = 0, 1e-2, 0, 0, 2500

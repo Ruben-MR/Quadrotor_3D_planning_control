@@ -63,7 +63,7 @@ extern void FORCENLPsolver_casadi2forces(FORCENLPsolver_float *x,        /* prim
 	
     /* temporary storage for CasADi sparse output */
     FORCENLPsolver_callback_float this_f;
-    FORCENLPsolver_float nabla_f_sparse[14];
+    FORCENLPsolver_float nabla_f_sparse[17];
     
     
     FORCENLPsolver_float c_sparse[13];

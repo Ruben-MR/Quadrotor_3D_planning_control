@@ -6,7 +6,7 @@ from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 
 if __name__ == "__main__":
     # Create the quadrotor class, controller and other initial values
-    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, traj_tracking=False, time_horizon = 40)
+    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, traj_tracking=False, time_horizon = 40, obstacle = False)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario = 0
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     x_goal = ends[0]
 
     # RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
-    # path_exists = RRT.find_path(x_goal, map_boundary)y
+    # path_exists = RRT.find_path(x_goal, map_boundary)
     path_exists = True
     #########################################################################
 
@@ -51,17 +51,17 @@ if __name__ == "__main__":
 
         while(True):
             # static obstacle
-            # show_up_time = int(0.5 * len(pos))
-            # pos_obstacle = pos[show_up_time]
+            show_up_time = int(0.5 * len(pos))
+            pos_obstacle = pos[show_up_time]
 
             # dynamic obstacle
             # pos_obstacle = obstacle_traj[i]
 
-            # print("obstacle position: ", pos_obstacle)
+            print("obstacle position: ", pos_obstacle)
             # if the agent is close to the obstacle, then avoid it
-            # if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
+            if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
             #     state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
-            #     print("avoiding obstacle......")
+                print("avoiding obstacle......")
             # else:
             #     state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
             # state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
@@ -70,8 +70,7 @@ if __name__ == "__main__":
             # print(vel)
             # print(vel[np.round(pos, 3) == np.round(waypoints[i], 3)])
             state_des = np.hstack((waypoints[i], np.zeros(3)))
-            print("state_des: ", state_des)
-            action = policy.control(current_state, state_des)
+            action = policy.control(current_state, state_des, bounding_box_size=2)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
             obs, reward, done, info = env.step(cmd_rotor_speeds)
             print("current:", obs['x'])
@@ -87,12 +86,12 @@ if __name__ == "__main__":
             total_SE += (np.sum((obs['x'] - state_des[:3]) ** 2) * time_step)
             total_energy += (np.sum(cmd_rotor_speeds ** 2) * time_step)
             # if current position is close to the current waypoint, give it the next one
-            if np.sqrt(np.sum((obs['x'] - waypoints[i]) ** 2)) <= 0.1 and i < len(waypoints)-1:
+            if np.sqrt(np.sum((obs['x'] - waypoints[i]) ** 2)) <= 0.3 and i < len(waypoints)-1:
                 i += 1
             # if current position is very close to the goal point, terminate the loop
             if np.sqrt(np.sum((obs['x'] - waypoints[-1]) ** 2)) <= 0.05 and i == len(waypoints)-1:
                 break
-            elif t >= 200:
+            elif t >= 70:
                 break
 
         ############################################################################

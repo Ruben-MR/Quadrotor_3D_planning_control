@@ -12,7 +12,7 @@ from model.quadrotor import quat_dot, Quadrotor
 
 
 class MPC:
-    def __init__(self, N):
+    def __init__(self, N, obstacle = False):
         """
         Parameters of the quadrotor
         """
@@ -86,17 +86,19 @@ class MPC:
         self.model.ubidx = [0, 4, 5, 6]
 
         # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
-        self.model.ineq = lambda z, p: np.array([(z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2])
-
-        # Upper/lower bounds for inequalities
-        self.model.hu = np.array([np.inf])
-        self.model.hl = np.array([1])
+        if obstacle:
+            self.model.ineq = lambda z, p: np.array([(z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2])
+            self.model.hu = np.array([np.inf])
+            self.model.hl = np.array([0.64])
 
         # set dimensions of the problem
         self.model.nvar = 17    # number of variables
         self.model.neq = 13     # number of equality constraints
-        self.model.nh = 1      # number of inequality constraints functions
-        self.model.npar = 9  # number of runtime parameters (pos and vel and pos_obstacle)
+        if obstacle:
+            self.model.nh = 1      # number of inequality constraints functions
+            self.model.npar = 9  # number of runtime parameters (pos and vel and pos_obstacle)
+        else:
+            self.model.npar = 6  # number of runtime parameters (pos and vel and pos_obstacle)
         self.model.xinitidx = range(4, 17)  # indices of the state variables
 
         # Set solver options
@@ -157,7 +159,7 @@ class MPC:
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
         return (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:] - self.goal) + 0.2 * (z[0]**2 + z[1]**2 + z[2]**2 + z[3]**2)
 
-    def control(self, state, goal):
+    def control(self, state, goal, bounding_box_size = 2):
         """
         Sovling NLP prolem in N-step-horizon for optimal control, take the first control input
         """
@@ -171,9 +173,14 @@ class MPC:
         # Set runtime parameters
         self.problem["all_parameters"] = np.transpose(np.tile(goal, (1, self.model.N)))
         # Set runtime constraints
-        self.bounding_box_size = 1.2
-        self.problem["lb"] = np.tile([0, state[0]-self.bounding_box_size, state[1]-self.bounding_box_size, state[2]-self.bounding_box_size], (self.model.N,))
-        self.problem["ub"] = np.tile([2.5*self.mass*self.g, state[0]+self.bounding_box_size, state[1]+self.bounding_box_size, state[2]+self.bounding_box_size], (self.model.N,))
+        self.bounding_box_size = bounding_box_size
+        # only bound first 5 steps (since MPC only executes the first control command)
+        lb_first = np.tile([0, state[0]-self.bounding_box_size, state[1]-self.bounding_box_size, state[2]-self.bounding_box_size], (5,))
+        lb_second = np.tile([0, state[0]-100, state[1]-100, state[2]-100], (self.model.N - 5, ))
+        self.problem["lb"] = np.hstack((lb_first, lb_second))
+        ub_first = np.tile([2.5*self.mass*self.g, state[0]+self.bounding_box_size, state[1]+self.bounding_box_size, state[2]+self.bounding_box_size], (5, ))
+        ub_second = np.tile([2.5*self.mass*self.g, state[0]+100, state[1]+100, state[2]+100], (self.model.N - 5, ))
+        self.problem["ub"] = np.hstack((ub_first, ub_second))
 
         # Time to solve the NLP!
         output, exitflag, info = self.solver.solve(self.problem)
@@ -257,12 +264,10 @@ if __name__ == '__main__':
     dt = 0.01
     t = 0
     i = 0
-    endpoint = np.array([10, 10, 10, 0, 0, 0, 2, 2, 2]) # last three digits are the position of the obstacle
-    controller = MPC(20)
+    endpoint = np.array([10, 10, 10, 0, 0, 0, 7, 7, 7]) # last three digits are the position of the obstacle
+    controller = MPC(40, obstacle=True)
     real_trajectory = {'x': [], 'y': [], 'z': []}
     while t < 10:
-        if t >= 6:
-            endpoint = np.array([10, 10, 10, 0, 0, 0, 7, 7, 7])  # last three digits are the position of the obstacle
         print('iteration: ', i)
         action = controller.control(current_state, endpoint)["cmd_rotor_speeds"]
         obs, reward, done, info = env.step(action)
