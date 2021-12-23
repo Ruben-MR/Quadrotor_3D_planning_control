@@ -6,7 +6,7 @@ from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 
 if __name__ == "__main__":
     # Create the quadrotor class, controller and other initial values
-    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, dynamic=False, time_horizon = 50)
+    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, traj_tracking=True, time_horizon = 20)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario = 0
@@ -52,13 +52,13 @@ if __name__ == "__main__":
 
             print("obstacle position: ", pos_obstacle)
             # if the agent is close to the obstacle, then avoid it
-            if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
-                state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
-                print("avoiding obstacle......")
-            else:
-                state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
+            # if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
+            #     state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
+            #     print("avoiding obstacle......")
+            # else:
+            #     state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
             # state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
-            # state_des = np.hstack((pos[i + 50], vel[i + 50], np.array([100, 100, 100])))
+            state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
             action = policy.control(current_state, state_des)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
             obs, reward, done, info = env.step(cmd_rotor_speeds)

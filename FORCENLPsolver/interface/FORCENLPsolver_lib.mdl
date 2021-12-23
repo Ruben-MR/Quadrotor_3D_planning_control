@@ -60,13 +60,13 @@ Model {
       }
     }
   }
-  Created		  "12/22/2021 11:02:57 PM"
+  Created		  "12/23/2021 4:44:39 PM"
   Creator		  "embotech AG"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "embotech AG"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "12/22/2021 11:02:57 PM"
+  LastModifiedDate	  "12/23/2021 4:44:39 PM"
   RTWModifiedTimeStamp	  315310195
   ModelVersionFormat	  "1.%<AutoIncrement:2>"
   ConfigurationManager	  "None"
@@ -767,8 +767,8 @@ Model {
       BlockType		      S-Function
       Name		      "FORCENLPsolver"
       SID		      "1"
-      Ports		      [6, 50]
-      Position		      [170, 99, 650, 850]
+      Ports		      [6, 40]
+      Position		      [170, 99, 650, 680]
       ZOrder		      1
       FunctionName	      "FORCENLPsolver_simulinkBlock"
 	  SFunctionModules	      "FORCENLPsolver FORCENLPsolver_simulinkBlock"
@@ -804,11 +804,11 @@ Model {
 	Help			"FORCENLPsolver_simulinkBlock provides an easy Simulink interface for simulating your customized solver.  \n"
 	"\nOUTPUTS = FORCENLPsolver(INPUTS) solves an optimization problem where:\n\n"
 	"INPUTS:\n"
-	" - lb - column vector of length 200\n "
-" - ub - column vector of length 200\n "
+	" - lb - column vector of length 160\n "
+" - ub - column vector of length 160\n "
 " - xinit - column vector of length 13\n "
-" - x0 - column vector of length 850\n "
-" - all_parameters - column vector of length 450\n "
+" - x0 - column vector of length 680\n "
+" - all_parameters - column vector of length 240\n "
 " - reinitialize - column vector of length 0\n "
 
 	"\nOUTPUTS:\n"
@@ -852,16 +852,6 @@ Model {
 " - x38 - column vector of length 17\n "
 " - x39 - column vector of length 17\n "
 " - x40 - column vector of length 17\n "
-" - x41 - column vector of length 17\n "
-" - x42 - column vector of length 17\n "
-" - x43 - column vector of length 17\n "
-" - x44 - column vector of length 17\n "
-" - x45 - column vector of length 17\n "
-" - x46 - column vector of length 17\n "
-" - x47 - column vector of length 17\n "
-" - x48 - column vector of length 17\n "
-" - x49 - column vector of length 17\n "
-" - x50 - column vector of length 17\n "
 
 	"\n For more information, see https://forces.embotech.com/Documentation/graphical_interface/index.html \n "
 
@@ -911,16 +901,6 @@ Model {
 "port_label('output', 38, 'x38') \n "
 "port_label('output', 39, 'x39') \n "
 "port_label('output', 40, 'x40') \n "
-"port_label('output', 41, 'x41') \n "
-"port_label('output', 42, 'x42') \n "
-"port_label('output', 43, 'x43') \n "
-"port_label('output', 44, 'x44') \n "
-"port_label('output', 45, 'x45') \n "
-"port_label('output', 46, 'x46') \n "
-"port_label('output', 47, 'x47') \n "
-"port_label('output', 48, 'x48') \n "
-"port_label('output', 49, 'x49') \n "
-"port_label('output', 50, 'x50') \n "
 "if( exist('FORCES_PRO_Logo.jpg','file') ), image(imread('FORCES_PRO_Logo.jpg'),'center','on'); elseif( exist(['interface',filesep,'FORCES_PRO_Logo.jpg'],'file') ), image(imread(['interface',filesep,'FORCES_PRO_Logo.jpg']),'center','on'); elseif( exist(['FORCENLPsolver',filesep,'interface',filesep,'FORCES_PRO_Logo.jpg'],'file') ), image(imread(['FORCENLPsolver',filesep,'interface',filesep,'FORCES_PRO_Logo.jpg']),'center','on'); end \n "
 
       }

@@ -8,8 +8,8 @@ from Obstacle import Obstacle, plot_three_dee_box
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.spatial.transform import Rotation
-from model.MPC_3D_static_obstacle import MPC
-from model.MPC_3D_dynamic_obstacle import MPC as MPC_dyn
+from model.MPC_3D_trajectory_tracking import MPC as MPC_traj
+from model.MPC_3D_waypoint_navigation import MPC as MPC_waypoint
 from model.nonlinear_controller import GeometricController
 import csv
 import os
@@ -17,12 +17,12 @@ import os
 
 # Initiate environment variables and create some required objects,
 # will generate the required policy depending on whether MPC is wanted or not
-def init_simulation(mpc=True, dynamic=True, time_horizon = 50):
+def init_simulation(mpc=True, traj_tracking=True, time_horizon = 50):
     env = Quadrotor()
-    if mpc and dynamic:
-        policy = MPC_dyn(time_horizon)
-    elif mpc and not dynamic:
-        policy = MPC(time_horizon)
+    if mpc and traj_tracking:
+        policy = MPC_traj(time_horizon)
+    elif mpc and not traj_tracking:
+        policy = MPC_waypoint(time_horizon)
     else:
         policy = GeometricController()
     t0, dt, total_se, total_energy, penalty = 0, 1e-2, 0, 0, 2500

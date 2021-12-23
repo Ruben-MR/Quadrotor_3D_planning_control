@@ -2,11 +2,11 @@
 %
 %   OUTPUT = FORCENLPsolver(PARAMS) solves a multistage problem
 %   subject to the parameters supplied in the following struct:
-%       PARAMS.lb - column vector of length 200
-%       PARAMS.ub - column vector of length 200
+%       PARAMS.lb - column vector of length 160
+%       PARAMS.ub - column vector of length 160
 %       PARAMS.xinit - column vector of length 13
-%       PARAMS.x0 - column vector of length 850
-%       PARAMS.all_parameters - column vector of length 450
+%       PARAMS.x0 - column vector of length 680
+%       PARAMS.all_parameters - column vector of length 240
 %       PARAMS.reinitialize - scalar
 %
 %   OUTPUT returns the values of the last iteration of the solver where
@@ -50,16 +50,6 @@
 %       OUTPUT.x38 - column vector of size 17
 %       OUTPUT.x39 - column vector of size 17
 %       OUTPUT.x40 - column vector of size 17
-%       OUTPUT.x41 - column vector of size 17
-%       OUTPUT.x42 - column vector of size 17
-%       OUTPUT.x43 - column vector of size 17
-%       OUTPUT.x44 - column vector of size 17
-%       OUTPUT.x45 - column vector of size 17
-%       OUTPUT.x46 - column vector of size 17
-%       OUTPUT.x47 - column vector of size 17
-%       OUTPUT.x48 - column vector of size 17
-%       OUTPUT.x49 - column vector of size 17
-%       OUTPUT.x50 - column vector of size 17
 %
 %   [OUTPUT, EXITFLAG] = FORCENLPsolver(PARAMS) returns additionally
 %   the integer EXITFLAG indicating the state of the solution with 

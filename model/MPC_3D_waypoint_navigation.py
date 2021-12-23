@@ -51,31 +51,21 @@ class MPC:
         self.model = forcespro.nlp.SymbolicModel(N) # create a empty model with time horizon of 50 steps
         # objective (cost function)
         # cost matrix for tracking the goal point
-        # self._Q_goal = np.diag([
-        #     100, 100, 100,      # x, y, z
-        #     100, 100, 100,         # dx, dy, dz
-        #     10, 10, 10, 10,     # qx, qy, qz, qw
-        #     10, 10, 10])        # r, p, q
-        # self._Q_goal_N = np.diag([
-        #     200, 200, 200,      # x, y, z
-        #     200, 200, 200,         # dx, dy, dz
-        #     10, 10, 10, 10,     # qx, qy, qz, qw
-        #     10, 10, 10])        # r, p, q
         self._Q_goal = np.diag([
             100, 100, 100,      # x, y, z
-            100, 100, 100,         # dx, dy, dz
+            20, 20, 20,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
         self._Q_goal_N = np.diag([
             200, 200, 200,      # x, y, z
-            100, 100, 100,         # dx, dy, dz
+            10, 10, 10,         # dx, dy, dz
             10, 10, 10, 10,     # qx, qy, qz, qw
             10, 10, 10])        # r, p, q
 
         # cost: distance to the goal
         self.model.objective = self.objective
         # specially deal with the cost for the last stage (terminal cost)
-        self.model.objectiveN = self.objectiveN
+        #self.model.objectiveN = self.objectiveN
 
         # equality constraints (quadrotor model)
         # z[0:4] action z[4:14] state
@@ -91,22 +81,21 @@ class MPC:
         #                           np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
         # Lower bounds are parametric (indices not mentioned here are -inf)
         self.model.lbidx = [0, 4, 5, 6]
-
         # Upper bounds are parametric (indices not mentioned here are +inf)
         self.model.ubidx = [0, 4, 5, 6]
 
         # General (differentiable) nonlinear inequalities hl <= h(x,p) <= hu
-        self.model.ineq = lambda z, p: np.array([(z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2])
+        #self.model.ineq = lambda z, p: np.array([(z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2])
 
         # Upper/lower bounds for inequalities
-        self.model.hu = np.array([np.inf])
-        self.model.hl = np.array([0.64])
+        #self.model.hu = np.array([np.inf])
+        #self.model.hl = np.array([0.64])
 
         # set dimensions of the problem
         self.model.nvar = 17    # number of variables
         self.model.neq = 13     # number of equality constraints
-        self.model.nh = 1      # number of inequality constraints functions
-        self.model.npar = 9  # number of runtime parameters (pos and vel and pos_obstacle)
+        #self.model.nh = 1      # number of inequality constraints functions
+        self.model.npar = 6  # number of runtime parameters (pos and vel and pos_obstacle)
         self.model.xinitidx = range(4, 17)  # indices of the state variables
 
         # Set solver options
@@ -120,7 +109,7 @@ class MPC:
         self.codeoptions.nlp.bfgs_init = 2.5 * np.identity(8)  # initialization of the hessian approximation
         self.codeoptions.solvemethod = "SQP_NLP"
         self.codeoptions.sqp_nlp.maxqps = 1  # maximum number of quadratic problems to be solved
-        self.codeoptions.sqp_nlp.reg_hessian = 5e-5  # increase this if exitflag=-8
+        self.codeoptions.sqp_nlp.reg_hessian = 5e-8  # increase this if exitflag=-8
         self.codeoptions.nlp.stack_parambounds = True
         # Creates code for symbolic model formulation given above, then contacts server to generate new solver
         self.solver = self.model.generate_solver(self.codeoptions)
@@ -161,11 +150,11 @@ class MPC:
 
     def objective(self, z, goal):
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
-        return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * (z[0]**2 + z[1]**2 + z[2]**2 + z[3]**2)
+        return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
 
     def objectiveN(self, z, goal):
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
-        return (z[4:] - self.goal).T @ self._Q_goal_N @ (z[4:] - self.goal) + 0.2 * (z[0]**2 + z[1]**2 + z[2]**2 + z[3]**2)
+        return (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:] - self.goal) + 0.1 * z[0]**2
 
     def control(self, state, goal):
         """
@@ -181,8 +170,9 @@ class MPC:
         # Set runtime parameters
         self.problem["all_parameters"] = np.transpose(np.tile(goal, (1, self.model.N)))
         # Set runtime constraints
-        self.problem["lb"] = np.tile([0, 0, -5, 0], (self.model.N,))
-        self.problem["ub"] = np.tile([2.5*self.mass*self.g, 15, 10, 15], (self.model.N,))
+        self.bounding_box_size = 2.5
+        self.problem["lb"] = np.tile([0, state[0]-self.bounding_box_size, state[1]-self.bounding_box_size, state[2]-self.bounding_box_size], (self.model.N,))
+        self.problem["ub"] = np.tile([2.5*self.mass*self.g, state[0]+self.bounding_box_size, state[1]+self.bounding_box_size, state[2]+self.bounding_box_size], (self.model.N,))
 
         # Time to solve the NLP!
         output, exitflag, info = self.solver.solve(self.problem)
@@ -266,12 +256,10 @@ if __name__ == '__main__':
     dt = 0.01
     t = 0
     i = 0
-    endpoint = np.array([10, 10, 10, 0, 0, 0, 2, 2, 2]) # last three digits are the position of the obstacle
-    controller = MPC()
+    endpoint = np.array([10, 10, 10, 0, 0, 0])
+    controller = MPC(40)
     real_trajectory = {'x': [], 'y': [], 'z': []}
     while t < 10:
-        if t >= 6:
-            endpoint = np.array([10, 10, 10, 0, 0, 0, 7, 7, 7])  # last three digits are the position of the obstacle
         print('iteration: ', i)
         action = controller.control(current_state, endpoint)["cmd_rotor_speeds"]
         obs, reward, done, info = env.step(action)
@@ -297,7 +285,7 @@ if __name__ == '__main__':
                       label='Quadrotor')
     line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]],
                      label='Real_Trajectory')
-    ax1.scatter([2, 7], [2, 7], [2, 7], color = 'g', s=500)
+    #ax1.scatter([2, 7], [2, 7], [2, 7], color = 'g', s=500)
 
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
