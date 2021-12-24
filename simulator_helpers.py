@@ -8,8 +8,8 @@ from Obstacle import Obstacle, plot_three_dee_box
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.spatial.transform import Rotation
-from model.MPC_3D_trajectory_tracking import MPC as MPC_traj
-from model.MPC_3D_waypoint_navigation import MPC as MPC_waypoint
+from model.MPC_3D_trajectory_tracking import MPC_traj
+from model.MPC_3D_waypoint_navigation import MPC_waypoint
 from model.nonlinear_controller import GeometricController
 import csv
 import os
