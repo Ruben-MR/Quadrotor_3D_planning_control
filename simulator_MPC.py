@@ -1,5 +1,5 @@
 import numpy as np
-from RRT_3D.RRT_star import RRT_star
+from RRT_3D.RRT_star_plotter import RRT_star
 from simulator_helpers import generate_env, plot_all, init_simulation
 from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     x_start = starts[0]
     x_goal = ends[0]
 
-    # RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
+    # RRT = RRT_star(x_start, 1500, obstacles, 1)
     # path_exists = RRT.find_path(x_goal, map_boundary)
     path_exists = True
     #########################################################################

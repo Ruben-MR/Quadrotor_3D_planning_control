@@ -14,26 +14,16 @@ class Obstacle(object):
     def __init__(self, point_min=[0, 0, 0], point_max=[0, 0, 0], radius=0.05):
         self.point_min_ = point_min
         self.point_max_ = point_max
+        self.collision_min_ = point_min - radius
+        self.collision_max_ = point_max + radius
         self.r_ = radius
-        self.x_min_ = self.point_min_[0]
-        self.y_min_ = self.point_min_[1]
-        self.z_min_ = self.point_min_[2]
-        self.x_max_ = self.point_max_[0]
-        self.y_max_ = self.point_max_[1]
-        self.z_max_ = self.point_max_[2]
-        self.collision_x_min_ = self.x_min_-self.r_
-        self.collision_y_min_ = self.y_min_-self.r_
-        self.collision_z_min_ = self.z_min_-self.r_
-        self.collision_x_max_ = self.x_max_+self.r_
-        self.collision_y_max_ = self.y_max_+self.r_
-        self.collision_z_max_ = self.z_max_+self.r_
 
     # Function for checking collision with a given point
     # return True if there is collision
     def collision_check(self, point):
-        if self.collision_x_min_ <= point[0] <= self.collision_x_max_ and \
-            self.collision_y_min_ <= point[1] <= self.collision_y_max_ and \
-                self.collision_z_min_ <= point[2] <= self.collision_z_max_:
+        if self.collision_min_[0] <= point[0] <= self.collision_max_[0] and \
+            self.collision_min_[1] <= point[1] <= self.collision_max_[1] and \
+                self.collision_min_[2] <= point[2] <= self.collision_max_[2]:
             return True
         else:
             return False

@@ -1,14 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.linalg import inv, norm
-import scipy.integrate
-from scipy.spatial.transform import Rotation
-import mpl_toolkits.mplot3d.axes3d as p3
+from numpy.linalg import inv
 from matplotlib import animation
 import forcespro
 import casadi
-from model.quadrotor import quat_dot, Quadrotor
+from model.quadrotor import Quadrotor
 
 
 class MPC:
@@ -63,10 +60,8 @@ class MPC:
             10, 10, 10])        # r, p, q
         # TODO: as TA says, adding terminal cost is a promising way! see: https://forces.embotech.com/Documentation/examples/high_level_basic_example/index.html#sec-high-level-basic-example
         # cost: distance to the goal
-        #self.model.objective = lambda z: (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * z[0]**2
         self.model.objective = self.objective
         # specially deal with the cost for the last stage (terminal cost)
-        #self.model.objectiveN = lambda z: (z[4:] - self.goal).T @ (10 * self._Q_goal_N) @ (z[4:]-self.goal) + 0.2 * z[0]**2
         self.model.objectiveN = self.objectiveN
         # self.model.objective = lambda z: 100 * (z[4]**2 + z[5]**2 + z[6]**2) # cost: hovering
         # equality constraints (quadrotor model)

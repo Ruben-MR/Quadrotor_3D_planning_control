@@ -1,13 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy.linalg import inv, norm
-import scipy.integrate
-from scipy.spatial.transform import Rotation
-import mpl_toolkits.mplot3d.axes3d as p3
+from numpy.linalg import inv
 from matplotlib import animation
 import forcespro
-import casadi
-from model.quadrotor import quat_dot, Quadrotor
+from model.quadrotor import Quadrotor
 from model.MPC_basic import MPC_basic
 
 class MPC_traj(MPC_basic):

@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.linalg import inv, norm
+from numpy.linalg import inv
 import casadi
 
 

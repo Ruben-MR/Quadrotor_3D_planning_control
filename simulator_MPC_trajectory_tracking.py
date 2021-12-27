@@ -1,5 +1,5 @@
 import numpy as np
-from RRT_3D.RRT_star import RRT_star
+from RRT_3D.RRT_star_plotter import RRT_star
 from simulator_helpers import generate_env, plot_all, init_simulation
 from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
