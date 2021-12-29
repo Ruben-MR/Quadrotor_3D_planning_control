@@ -5,10 +5,11 @@ File for simulation of the quadrotor in a given environment. This file is used f
     - Tracked by means of a geometric non-linear controller
 """
 import numpy as np
-from simulator_helpers import generate_env, plot_all, init_simulation
+from simulator_helpers import generate_env, plot_all, init_simulation, find_closest
 from RRT_3D.RRT_star_plotter import RRT_star
 from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
+
 
 if __name__ == "__main__":
     # Create the quadrotor class, controller and other initial values
@@ -42,6 +43,7 @@ if __name__ == "__main__":
         real_orientation = np.zeros((1, 4))
         # follow the path in segments
         for i in range(len(pos)):
+            dist_to_closest = find_closest(current_state, obstacles)
             state_des = {'pos': pos[i], 'vel': vel[i], 'acc': acc[i], 'yaw': 0, 'yaw_dot': 0}
             action = policy.control(state_des, current_state)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
@@ -66,3 +68,5 @@ if __name__ == "__main__":
         ###########################################################################
 
         plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
+
+

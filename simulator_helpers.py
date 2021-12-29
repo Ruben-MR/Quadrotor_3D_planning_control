@@ -29,6 +29,20 @@ def init_simulation(mpc=True, traj_tracking=True, time_horizon = 50, obstacle = 
     return env, policy, t0, dt, total_se, total_energy, penalty
 
 
+def find_closest(state, obstacles):
+    min_dist = 3
+    is_free = False
+    while is_free is False:
+        is_free = True
+        for obstacle in obstacles:
+            check = obstacle.collision_check(state['x'], min_dist)
+            if check:
+                is_free = False
+                min_dist -= 0.1
+                break
+    return min_dist
+
+
 # Function for generating the obstacles object for different scenarios in which the drone is to be tested
 # and the figures and axes of the plotting
 def generate_env(scenario):
@@ -161,3 +175,14 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation, d
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(trajectory, 0), interval=1, repeat=False,
                                   blit=False)
     plt.show()
+
+
+if __name__ == "__main__":
+    point = {'x': np.array([7, 8, 3])}
+    obstacles, fig, axis, boundary, start_points, end_points = generate_env(0)
+    print(find_closest(point, obstacles))
+    for box in obstacles:
+        plot_three_dee_box(box, ax=axis)
+    axis.plot(point['x'][0], point['x'][1], point['x'][2], 'r.')
+    plt.show()
+

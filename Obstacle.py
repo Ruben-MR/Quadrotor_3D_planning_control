@@ -20,13 +20,27 @@ class Obstacle(object):
 
     # Function for checking collision with a given point
     # return True if there is collision
-    def collision_check(self, point):
-        if self.collision_min_[0] <= point[0] <= self.collision_max_[0] and \
-            self.collision_min_[1] <= point[1] <= self.collision_max_[1] and \
-                self.collision_min_[2] <= point[2] <= self.collision_max_[2]:
-            return True
+    def collision_check(self, point, r=None):
+        if r is None:
+            if self.collision_min_[0] <= point[0] <= self.collision_max_[0] and \
+                self.collision_min_[1] <= point[1] <= self.collision_max_[1] and \
+                    self.collision_min_[2] <= point[2] <= self.collision_max_[2]:
+                return True
+            else:
+                return False
         else:
-            return False
+            if self.point_min_[0] - r <= point[0] <= self.point_max_[0] + r and \
+                self.point_min_[1] - r <= point[1] <= self.point_max_[1] + r and \
+                    self.point_min_[2] - r <= point[2] <= self.point_max_[2] + r:
+                return True
+            else:
+                return False
+
+    def get_min(self):
+        return self.collision_min_
+
+    def get_max(self):
+        return self.collision_max_
 
 
 # Function for checking collision along the path connecting two points in a straight line
