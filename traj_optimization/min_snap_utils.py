@@ -289,3 +289,19 @@ def find_collisions(obstacles, pos):
                 idx.append(i)
                 break
     return idx
+
+
+def extend_path(path, idx, ts, tstep):
+    positions = []
+    for i in idx:
+        idx_t = i*tstep
+        for position, time in enumerate(ts):
+            if idx_t > time:
+                idx_t -= time
+            else:
+                positions.append(position + 1)
+
+    for i, position in enumerate(positions):
+        value = (path[position + i - 1, :] + path[position + i, :])/2
+        path = np.insert(path, position+i, value, axis=0)
+    return path

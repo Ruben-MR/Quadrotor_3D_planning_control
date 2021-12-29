@@ -37,10 +37,10 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True, act_const=False, che
 
         if check_collision:
             idx = find_collisions(obstacles, pos)
-            if idx is None:
+            if len(idx) == 0:
                 collision_free = True
             else:
-                i = 1  # Add point
+                path = extend_path(path, idx, ts, tstep)
         else:
             collision_free = True
 
