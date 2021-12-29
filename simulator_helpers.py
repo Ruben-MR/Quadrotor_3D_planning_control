@@ -178,7 +178,7 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation, d
 
 
 if __name__ == "__main__":
-    point = {'x': np.array([7, 8, 3])}
+    point = {'x': np.array([14.5, 4.5, 2.75])}
     obstacles, fig, axis, boundary, start_points, end_points = generate_env(0)
     print(find_closest(point, obstacles))
     for box in obstacles:
