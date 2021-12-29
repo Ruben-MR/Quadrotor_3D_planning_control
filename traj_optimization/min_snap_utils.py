@@ -277,3 +277,15 @@ def get_input_from_ref(acc, jerk, snap):
     return rotor_speeds
 
 
+########################################################################################################################
+# FUNCTIONS FOR ACTUATION CONSTRAINT
+########################################################################################################################
+
+def find_collisions(obstacles, pos):
+    idx = []
+    for i in range(np.size(pos, axis=0)):
+        for obstacle in obstacles:
+            if obstacle.collision_check(pos[i, :]):
+                idx.append(i)
+                break
+    return idx

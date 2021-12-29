@@ -29,9 +29,9 @@ class Obstacle(object):
             else:
                 return False
         else:
-            if self.point_min_[0] - r <= point[0] <= self.point_max_[0] + r and \
-                self.point_min_[1] - r <= point[1] <= self.point_max_[1] + r and \
-                    self.point_min_[2] - r <= point[2] <= self.point_max_[2] + r:
+            if self.collision_min_[0] - r <= point[0] <= self.collision_max_[0] + r and \
+                self.collision_min_[1] - r <= point[1] <= self.collision_max_[1] + r and \
+                    self.collision_min_[2] - r <= point[2] <= self.collision_max_[2] + r:
                 return True
             else:
                 return False

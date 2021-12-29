@@ -7,31 +7,42 @@ import time
 # minimum snap optimization function, time_optimal will perform time optimization rather than distance-based allocation
 # act_const will enable actator constraints for time optimization for more aggressive penalty on time. Disclaimer, it
 # can really become time consuming.
-def min_snap_optimizer_3d(path, penalty, time_optimal=True, act_const=False, total_time=10):
+def min_snap_optimizer_3d(path, penalty, time_optimal=True, act_const=False, check_collision=False, obstacles=None, total_time=10):
     # general parameters of the minimum snap algorithm
     n_order = 7
-    n_seg = np.size(path, axis=0) - 1
+    collision_free = False
 
-    # if time is optimal, then ts and solutions of x, y, z are dependent
-    if time_optimal:
-        ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty, time_optimal, act_const)
-    else:
-        ts = compute_proportional_t(path, total_time, n_seg)
-        pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_qp(path, ts, n_seg, n_order, time_optimal)
+    while collision_free is False:
+        n_seg = np.size(path, axis=0) - 1
+        # if time is optimal, then ts and solutions of x, y, z are dependent
+        if time_optimal:
+            ts, pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_np(path, n_seg, n_order, penalty, time_optimal, act_const)
+        else:
+            ts = compute_proportional_t(path, total_time, n_seg)
+            pos_coef_x, pos_coef_y, pos_coef_z = minimum_snap_qp(path, ts, n_seg, n_order, time_optimal)
 
-    # Obtain the coefficients of the higher order polynomial trajectries
-    vel_coef_x, vel_coef_y, vel_coef_z = get_derivative_coef(pos_coef_x, pos_coef_y, pos_coef_z, n_order, 1)
-    acc_coef_y,  acc_coef_x, acc_coef_z = get_derivative_coef(vel_coef_x, vel_coef_y, vel_coef_z, n_order, 2)
-    jerk_coef_y, jerk_coef_x, jerk_coef_z = get_derivative_coef(acc_coef_x, acc_coef_y, acc_coef_z, n_order, 3)
-    snap_coef_y, snap_coef_x, snap_coef_z = get_derivative_coef(jerk_coef_x, jerk_coef_y, jerk_coef_z, n_order, 4)
+        # Obtain the coefficients of the higher order polynomial trajectries
+        vel_coef_x, vel_coef_y, vel_coef_z = get_derivative_coef(pos_coef_x, pos_coef_y, pos_coef_z, n_order, 1)
+        acc_coef_y,  acc_coef_x, acc_coef_z = get_derivative_coef(vel_coef_x, vel_coef_y, vel_coef_z, n_order, 2)
+        jerk_coef_y, jerk_coef_x, jerk_coef_z = get_derivative_coef(acc_coef_x, acc_coef_y, acc_coef_z, n_order, 3)
+        snap_coef_y, snap_coef_x, snap_coef_z = get_derivative_coef(jerk_coef_x, jerk_coef_y, jerk_coef_z, n_order, 4)
 
-    # For a given timestep, calculate the values of the position and higher derivatives of the trajectory
-    tstep = 0.01
-    pos = get_point_values(pos_coef_x, pos_coef_y, pos_coef_z, ts, n_seg, n_order, 0, tstep)
-    vel = get_point_values(vel_coef_x, vel_coef_y, vel_coef_z, ts, n_seg, n_order, 1, tstep)
-    acc = get_point_values(acc_coef_x, acc_coef_y, acc_coef_z, ts, n_seg, n_order, 2, tstep)
-    jerk = get_point_values(jerk_coef_x, jerk_coef_y, jerk_coef_z, ts, n_seg, n_order, 3, tstep)
-    snap = get_point_values(snap_coef_x, snap_coef_y, snap_coef_z, ts, n_seg, n_order, 4, tstep)
+        # For a given timestep, calculate the values of the position and higher derivatives of the trajectory
+        tstep = 0.01
+        pos = get_point_values(pos_coef_x, pos_coef_y, pos_coef_z, ts, n_seg, n_order, 0, tstep)
+        vel = get_point_values(vel_coef_x, vel_coef_y, vel_coef_z, ts, n_seg, n_order, 1, tstep)
+        acc = get_point_values(acc_coef_x, acc_coef_y, acc_coef_z, ts, n_seg, n_order, 2, tstep)
+        jerk = get_point_values(jerk_coef_x, jerk_coef_y, jerk_coef_z, ts, n_seg, n_order, 3, tstep)
+        snap = get_point_values(snap_coef_x, snap_coef_y, snap_coef_z, ts, n_seg, n_order, 4, tstep)
+
+        if check_collision:
+            idx = find_collisions(obstacles, pos)
+            if idx is None:
+                collision_free = True
+            else:
+                i = 1  # Add point
+        else:
+            collision_free = True
 
     return pos, vel, acc, jerk, snap, ts
 
