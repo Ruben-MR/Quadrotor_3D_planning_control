@@ -1,5 +1,6 @@
 import numpy as np
 import math
+
 ########################################################################################################################
 # FUNCTIONS FOR MINIMUM SNAP DEFINITION (BOTH FOR OPTIMAL TIME ALLOCATION AND NORMAL)
 ########################################################################################################################
@@ -299,7 +300,9 @@ def extend_path(path, idx, ts, tstep):
             if idx_t > time:
                 idx_t -= time
             else:
-                positions.append(position + 1)
+                if position+1 not in positions:
+                    positions.append(position + 1)
+                break
 
     for i, position in enumerate(positions):
         value = (path[position + i - 1, :] + path[position + i, :])/2

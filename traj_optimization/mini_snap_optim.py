@@ -2,7 +2,8 @@ from matplotlib import pyplot as plt
 from scipy.optimize import minimize
 from traj_optimization.min_snap_utils import *
 import time
-
+from simulator_helpers import generate_env, plot_all, init_simulation, find_closest
+from Obstacle import plot_three_dee_box
 
 # minimum snap optimization function, time_optimal will perform time optimization rather than distance-based allocation
 # act_const will enable actator constraints for time optimization for more aggressive penalty on time. Disclaimer, it
@@ -40,7 +41,9 @@ def min_snap_optimizer_3d(path, penalty, time_optimal=True, act_const=False, che
             if len(idx) == 0:
                 collision_free = True
             else:
+                print("Collision found, modifying path and recomputing")
                 path = extend_path(path, idx, ts, tstep)
+                print(path)
         else:
             collision_free = True
 
@@ -110,6 +113,39 @@ def minimum_snap_qp(path, ts, n_seg, n_order, time_optimal):
 # Auxiliar __main__ function (only executed when running this file alone) for debugging and testing the algorithm,
 # can be used for testing the performance by itself on different paths
 if __name__ == "__main__":
+
+    # Create the quadrotor class, controller and other initial values
+    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
+    #################################################################
+    # Define the obstacles, plotting figure and axis and other scenario properties
+    scenario = 0
+    obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
+    #########################################################################
+    # global path planning using RRT*
+    x_start = starts[0]
+    x_goal = ends[0]
+    path_points = np.array([[5., 7., 3.],
+                            [10.86112711, 6.12592946, 2.55994633],
+                            [13.51474856, 5.87165097, 2.46509981],
+                            [13.26590969, 4.55821649, 2.06223386],
+                            [12.38218297, 3.92085155, 2.11475727],
+                            [10.97662532, 3.23206355, 1.86315257],
+                            [9.50077495, 1.94620373, 1.79910651],
+                            [7.62894844, 1.24818373, 1.74496482],
+                            [7.18167236, 1.23754264, 1.59337815],
+                            [5.49010816, 0.97186878, 1.41324015],
+                            [4.66375168, 0.55217968, 1.62723241],
+                            [3.35235155, 0.62747605, 1.70443546],
+                            [1.64982418, 1.60245634, 2.04395953],
+                            [0.5, 2.5, 1.5]])
+
+    pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_points, penalty=penalty, time_optimal=False, total_time=5,
+                                                          check_collision=True, obstacles=obstacles)
+    for box in obstacles:
+        plot_three_dee_box(box, ax=ax1)
+    ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2])
+    plt.show()
+    """
     # global variables
     path_points = np.array([[0, 0, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4], [10, 7, 8],
                             [8, 6, 5], [11, 9, 7]])
@@ -158,3 +194,5 @@ if __name__ == "__main__":
     ax.plot(position[:, 0], position[:, 1], position[:, 2])
 
     plt.show()
+    """
+
