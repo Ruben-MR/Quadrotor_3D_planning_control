@@ -5,7 +5,7 @@ from scipy.interpolate import CubicSpline
 
 def cubic_spline(path_list, T):
     """
-    Function for computing cubic spline interpolation
+    Function for computing cubic spline interpolation using the function CubicSpline from scipy.interpolate
     :param path_list: list of 3D coordinates to be linked by the splines
     :param T: Total time required to complete the path
     :return: numpy arrays containing the position, velocity and acceleration along the given path in time steps of 0.01s
