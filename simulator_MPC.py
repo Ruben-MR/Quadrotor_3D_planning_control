@@ -59,11 +59,10 @@ if __name__ == "__main__":
             total_SE += (np.sum((obs['x'] - state_des[:3]) ** 2) * time_step)
             total_energy += (np.sum(cmd_rotor_speeds ** 2) * time_step)
 
-        ############################################################################
+        # Print the final metrics of the simulation
         print("Sum of tracking error (integration): ", total_SE)
         print("Total time: ", t)
         print("Sum of energy consumption (integration)", total_energy)
-        ############################################################################
 
         plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
 
