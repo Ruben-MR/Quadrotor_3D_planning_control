@@ -3,8 +3,13 @@ from numpy.linalg import norm
 from scipy.interpolate import CubicSpline
 
 
-# Cubic spline-based path interpolation given a total time T
 def cubic_spline(path_list, T):
+    """
+    Function for computing cubic spline interpolation
+    :param path_list: list of 3D coordinates to be linked by the splines
+    :param T: Total time required to complete the path
+    :return: numpy arrays containing the position, velocity and acceleration along the given path in time steps of 0.01s
+    """
     path_array = np.array(path_list)
     num = path_array.shape[0]
 
