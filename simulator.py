@@ -5,26 +5,26 @@ File for simulation of the quadrotor in a given environment. This file is used f
     - Tracked by means of a geometric non-linear controller
 """
 import numpy as np
-from simulator_helpers import generate_env, plot_all, init_simulation
-from RRT_3D.RRT_star import RRT_star
+from simulator_helpers import generate_env, plot_all, init_simulation, find_closest
+from RRT_3D.RRT_star_plotter import RRT_star
 from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
+
 
 if __name__ == "__main__":
     # Create the quadrotor class, controller and other initial values
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
-    #################################################################
+
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario = 0
+    scenario, min_snap = 0, True
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
-    #########################################################################
+
     # global path planning using RRT*
     x_start = starts[0]
     x_goal = ends[0]
-
-    RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
+    RRT = RRT_star(x_start, 1500, obstacles, 1)
     path_exists = RRT.find_path(x_goal, map_boundary)
-    #########################################################################
+
     # Reset the quadrotor object to the initial position
     current_state = env.reset(position=x_start)
 
@@ -33,15 +33,24 @@ if __name__ == "__main__":
         print("No path was found for the given number of iterations")
     else:
         print("Path found, applying smoothing.")
+
+        # Apply the path interpolation algorithm selected, the path is simplified to make if time-feasible
         path_list = RRT.get_straight_path()
-        # pos, vel, acc = cubic_spline(path_list, T=25)
-        pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=True)
+        if min_snap:
+            # Parameters can be adjusted as necessary
+            pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=True,
+                                                act_const=False, check_collision=False, obstacles=None, total_time=10)
+        else:
+            pos, vel, acc = cubic_spline(path_list, T=25)
         print("Smoothing completed, tracking trajectory")
+
+        # Plot the initial point (may don't need it)
         ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
         real_trajectory = np.zeros((1, 3))
         real_orientation = np.zeros((1, 4))
-        # follow the path in segments
+
         for i in range(len(pos)):
+            dist_to_closest = find_closest(current_state, obstacles)
             state_des = {'pos': pos[i], 'vel': vel[i], 'acc': acc[i], 'yaw': 0, 'yaw_dot': 0}
             action = policy.control(state_des, current_state)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
@@ -59,10 +68,10 @@ if __name__ == "__main__":
             total_SE += (np.sum((obs['x'] - state_des['pos']) ** 2) * time_step)
             total_energy += (np.sum(cmd_rotor_speeds ** 2) * time_step)
 
-        ###########################################################################
+        # Print the final metrics of the simulation
         print("Sum of tracking error (integration): ", total_SE)
         print("Total time: ", t)
         print("Sum of energy consumption (integration)", total_energy)
-        ###########################################################################
 
+        # Plot everything
         plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)

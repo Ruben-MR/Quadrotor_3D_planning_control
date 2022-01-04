@@ -8,16 +8,24 @@ from Obstacle import Obstacle, plot_three_dee_box
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.spatial.transform import Rotation
-from model.MPC_3D_trajectory_tracking import MPC as MPC_traj
-from model.MPC_3D_waypoint_navigation import MPC as MPC_waypoint
+from model.MPC_3D_trajectory_tracking import MPC_traj
+from model.MPC_3D_waypoint_navigation import MPC_waypoint
 from model.nonlinear_controller import GeometricController
 import csv
 import os
 
 
-# Initiate environment variables and create some required objects,
-# will generate the required policy depending on whether MPC is wanted or not
-def init_simulation(mpc=True, traj_tracking=True, time_horizon = 50, obstacle = False):
+def init_simulation(mpc=True, traj_tracking=True, time_horizon=50, obstacle=False):
+    """
+    Function for initializing multiple elements of the simulation which are generally common. Depending on the
+    values of the parameters the policy will be adjusted
+    :param mpc: boolean for determining whether a geometric controller or a model predictive controller is to be tested
+    :param traj_tracking: boolean for specifying the type of MPC controller that will be used. Depending on whether
+    path interpolation will be carried out or not
+    :param time_horizon: time horizon for the minimum snap, determined in time steps
+    :param obstacle:
+    :return:
+    """
     env = Quadrotor()
     if mpc and traj_tracking:
         policy = MPC_traj(time_horizon, obstacle)
@@ -29,18 +37,46 @@ def init_simulation(mpc=True, traj_tracking=True, time_horizon = 50, obstacle = 
     return env, policy, t0, dt, total_se, total_energy, penalty
 
 
-# Function for generating the obstacles object for different scenarios in which the drone is to be tested
-# and the figures and axes of the plotting
-def generate_env(scenario):
-    # Scenario: type int, the selected scenario among those present in the scenario directory.
-    # Create the list with the coordinates of the bounding box
+def find_closest(state, obstacles):
+    """
+    Function for computing the largest radius of the sphere in which the drone can move without colliding
+    with any obstacle
+    :param state: current state of the quadrotor
+    :param obstacles: set of obstacles in the environment
+    :return: radius of the aforementioned sphere
+    """
+    min_dist = 3            # Initial guess of the sphere radius
+    is_free = False
+    # Iterate by progressively reducing the sphere radius until no collision is found
+    while is_free is False:
+        is_free = True
+        for obstacle in obstacles:
+            check = obstacle.collision_check(state['x'], min_dist)
+            if check:
+                is_free = False
+                min_dist -= 0.1
+                break
+    return min_dist
 
+
+def generate_env(scenario):
+    """
+    Function for generating the obstacles object for different scenarios in which the drone is to be tested
+    and the figures and axes of the plotting. That is, more common elements for the simulations, but in this case will
+    depend on the scenario selected.
+
+    :param scenario: integer specifying the file from which the scenario parameters will be read
+    :return: list of obstacles in the environment, figure and axis for plotting, the boundaries of the environment and
+    numpy arrays with the initial and final position of the quadrotor in the workspace
+    """
+
+    # Open the file corresponding to the chosen scenario and read the data
     this_dir = os.path.dirname(os.path.abspath(__file__))
     filename = f"{this_dir}/scenarios/scenario_{scenario}.csv"
     print(f"Loading scenario from {filename}")
-
     file = open(filename)
     csvreader = csv.reader(file)
+
     for i in range(7):
         next(csvreader)
     rows = []
@@ -50,7 +86,6 @@ def generate_env(scenario):
 
     # Extract the obstacles
     boxes = list()
-
     for row in rows[16:]:
         box = np.array([[float(row[1]), float(row[2]), float(row[3])],
                         [float(row[5]), float(row[6]), float(row[7])]])
@@ -77,8 +112,7 @@ def generate_env(scenario):
     # Set the map boundaries for point search in RRT_star
     boundary = [float(rows[10][1]), float(rows[10][2]), float(rows[10][3])]
 
-    # Set the initial and terminal positions
-
+    # Set the initial and terminal positions, which may vary depending on the number of drones to simulate
     start_points = []
     end_points = []
 
@@ -95,8 +129,23 @@ def generate_env(scenario):
     return obstacles, fig, axis, boundary, start_points, end_points
 
 
-# Function for doing the visualization of all the objects and elements in the scenario and simulation
-def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation, dynamic = False, obstacle_trajectory = None):
+def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation, dynamic=False, obstacle_trajectory=None):
+    """
+    Function for plotting all the elements of the simulation
+
+    :param fig: figure in which the plotting will be done
+    :param axis: axes of the figure in which the plotting will be done
+    :param obstacles: list of obstacles in the environment
+    :param start: list of numpy arrays with the starting position of the drone of the simulation
+    :param goal: list of numpy arrays with the goal position of the drone of the simulation
+    :param path: numpy array with the points generated by the RRT_star algorithm
+    :param trajectory: set of points followed in the simulation by the quadrotor
+    :param orientation: set of orientations taken by the quadrotor during the simulation
+    :param dynamic: boolean stating whether dynamic obstacles need to be plotted or not
+    :param obstacle_trajectory: set of locations in the 3D space followed by the dynamic obstacle, if so
+    :return: nothing
+    """
+
     if dynamic:
         obstacle_trajectory = obstacle_trajectory[:len(trajectory)]
     # Plot the obstacles
@@ -138,7 +187,6 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation, d
     print(point)
     print(line)
 
-
     # Helper function for the animation
     def animate(i):
         line.set_xdata(trajectory[:i + 1, 0])
@@ -155,9 +203,22 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation, d
         point.set_ydata(points[:, 1])
         point.set_3d_properties(points[:, 2])
 
-
-
+    # Plot the legend and start the animation
     axis.legend(loc='lower right')
     ani = animation.FuncAnimation(fig=fig, func=animate, frames=np.size(trajectory, 0), interval=1, repeat=False,
                                   blit=False)
     plt.show()
+
+
+if __name__ == "__main__":
+    """
+    Small auxiliary main function for testing the different functions. Only called if the file is run alone.
+    """
+    point = {'x': np.array([14.5, 4.5, 2.75])}
+    obstacles, fig, axis, boundary, start_points, end_points = generate_env(0)
+    print(find_closest(point, obstacles))
+    for box in obstacles:
+        plot_three_dee_box(box, ax=axis)
+    axis.plot(point['x'][0], point['x'][1], point['x'][2], 'r.')
+    plt.show()
+

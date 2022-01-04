@@ -14,33 +14,48 @@ class Obstacle(object):
     def __init__(self, point_min=[0, 0, 0], point_max=[0, 0, 0], radius=0.05):
         self.point_min_ = point_min
         self.point_max_ = point_max
+        self.collision_min_ = point_min - radius
+        self.collision_max_ = point_max + radius
         self.r_ = radius
-        self.x_min_ = self.point_min_[0]
-        self.y_min_ = self.point_min_[1]
-        self.z_min_ = self.point_min_[2]
-        self.x_max_ = self.point_max_[0]
-        self.y_max_ = self.point_max_[1]
-        self.z_max_ = self.point_max_[2]
-        self.collision_x_min_ = self.x_min_-self.r_
-        self.collision_y_min_ = self.y_min_-self.r_
-        self.collision_z_min_ = self.z_min_-self.r_
-        self.collision_x_max_ = self.x_max_+self.r_
-        self.collision_y_max_ = self.y_max_+self.r_
-        self.collision_z_max_ = self.z_max_+self.r_
 
-    # Function for checking collision with a given point
-    # return True if there is collision
-    def collision_check(self, point):
-        if self.collision_x_min_ <= point[0] <= self.collision_x_max_ and \
-            self.collision_y_min_ <= point[1] <= self.collision_y_max_ and \
-                self.collision_z_min_ <= point[2] <= self.collision_z_max_:
-            return True
+    def collision_check(self, point, r=None):
+        """
+        Function for checking collision with a given point
+        :param point: location of the drone in space
+        :param r: if given, collision with the obstacles given the new radius of the robot is calculated instead
+        :return: True is collision is detected, False otherwise
+        """
+        if r is None:
+            if self.collision_min_[0] <= point[0] <= self.collision_max_[0] and \
+                self.collision_min_[1] <= point[1] <= self.collision_max_[1] and \
+                    self.collision_min_[2] <= point[2] <= self.collision_max_[2]:
+                return True
+            else:
+                return False
         else:
-            return False
+            if self.collision_min_[0] - r <= point[0] <= self.collision_max_[0] + r and \
+                self.collision_min_[1] - r <= point[1] <= self.collision_max_[1] + r and \
+                    self.collision_min_[2] - r <= point[2] <= self.collision_max_[2] + r:
+                return True
+            else:
+                return False
+
+    # Some getters which may come in handy
+    def get_min(self):
+        return self.collision_min_
+
+    def get_max(self):
+        return self.collision_max_
 
 
-# Function for checking collision along the path connecting two points in a straight line
 def collision_check_path(start_pos, goal_pos, obstacle_array):
+    """
+    Function for checking collision along the path connecting two points in a straight line
+    :param start_pos: Initial point to start checking from
+    :param goal_pos: final point to which finish the checking
+    :param obstacle_array: set of obstacles in the environment, both in workspace and configuration space
+    :return: True if collision is detected, False otherwise
+    """
     start_pos = np.array(start_pos)
     goal_pos = np.array(goal_pos)
     n = 100
@@ -59,9 +74,7 @@ def plot_three_dee_box(points, ax=None, rgb=(0.75, 0.75, 0.75), opacity=0.75, sh
     """
     Given a set of 3D points (or obstacle objects), min-max AABB (axis-aligned bounding box) are created for each
     pair of points (or per obstacle), and plots them.
-
-    :param points: the box-defining points, a set of two 3D coordinates,
-    format can be a np.array of shape (2n, 3), or an Obstacle object.
+    :param points: the min-max box-defining points, format can be a np.array of shape (2n, 3), or an Obstacle object.
     :param ax: the parent plotting environment, if none is provided, one will be created automatically
     :param rgb: the color to use, by default red, format is a tuple of RGB values
     :param opacity: determines the opacity og the box, format is a float, must be between 0 and 1

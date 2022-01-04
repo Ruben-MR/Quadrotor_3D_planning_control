@@ -4,6 +4,7 @@ from Obstacle import collision_check_path, plot_three_dee_box
 from simulator_helpers import generate_env
 import matplotlib.pyplot as plt
 
+
 # Definition of Class Node
 class Node:
     def __init__(self, pos, cost, parent_idx):
@@ -33,10 +34,10 @@ class RRT_star:
         self.obstacle_array = obstacles
         self.tree_color = (1, 0, 0)
         self.ax = ax_anim
-        self.lines = self.ax.plot(x_start[0], x_start[1], x_start[2], "ro")
         # Add the first node
         self.node_list = [Node(pos=x_start, cost=0, parent_idx=-1)]
         if self.ax is not None:
+            self.lines = self.ax.plot(x_start[0], x_start[1], x_start[2], "ro")
             for obstacle in obstacles:
                 plot_three_dee_box(points=obstacle, ax=self.ax)
 
@@ -92,6 +93,7 @@ class RRT_star:
             print('No path found')
         return np.flip(np.array(path_list), axis=0)
 
+    # Function for obtaining a simplified path which avoid too many waypoints and zig-zags
     def get_straight_path(self):
         path = self.get_path()
         idx = []
@@ -133,7 +135,7 @@ class RRT_star:
         lowest_cost = self.node_list[closest_idx].cost + norm(pos - self.node_list[closest_idx].pos)
 
         n = len(self.node_list)
-        self.neigh_dist = 9*((np.log(n)/n)**(1/4))
+        self.neigh_dist = 7*((np.log(n)/n)**(1/4))
 
         # Iterate over the list of nodes to find those within distance threshold and in collision-free connection
         for j in range(len(self.node_list)):
