@@ -59,7 +59,7 @@ if __name__ == "__main__":
                 state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
             # state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
             # state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N]))
-            action = policy.control(current_state, state_des, bounding_box_size=0.3)
+            action = policy.control(current_state, state_des, bounding_box_size=0.5)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
             obs, reward, done, info = env.step(cmd_rotor_speeds)
             print("current:", obs['x'])
