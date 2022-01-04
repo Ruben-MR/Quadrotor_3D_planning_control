@@ -12,9 +12,9 @@ from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 
 if __name__ == "__main__":
-'''
-Some parameters for different performance/scenario settings
-'''
+    '''
+    Some parameters for different performance/scenario settings
+    '''
     ################################################################
     # some parameters
     obstacle = False # whether to have an local obstacle
