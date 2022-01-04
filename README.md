@@ -26,7 +26,16 @@ This README file will contain the links to the resources used in the project, re
 
 ### Minimum snap
 
-- After lunch :)
+- The function to call the minimum snap optimization is **min_snap_optimizer_3d**.
+- The only two parameters necessarily required are the path from the RRT* algorithm and the penalty (integer) that will be imposed to time in the cost function.
+- The remaining parameters are optional and determine the capabilities and guarantees of the algorithm
+  - **time_optimal**: when set to **True**, the time allocated for each segment of the path will be optimized. In such case, any of the other options can be used. When set to False, the time allocated for each segment will be calculated proportionally to the total length of the path and a given total time for completing the path, given as an additional argument.
+  - **total_time**: total time required to complete the path, can only be used when **time_optimal** is set to **False**.
+  - **act_const**: can only be set to **True** when **time_optimal** so is, since otherwise it could lead to conflicts with the total time requirement. It performs the optimization ensuring that the trajectory will not require the drone to exceed the limits of actuation. Please, note that this will slow down the optimization. When set to **False** a value of 2700 for the penalty is selected, which allows for a safe profile of the cost function and convergence of the solution without excessive penalty on time.
+  - **check_collision**: can be used regardless of the value of **time_optimal**. It will check for collisions with the provided list of obstacles and modify the path to avoid collisions, if detected. Note that a single collision will twofold or more the computation time.
+  - **obstacles**: only required if **check_collision** is set to **True**, must be a list of Obstacle objects to check collision with.
+
+Therefore, the more constraints and complex the optimization, increased computation time, but better guarantees. If the completion time of the path is desired to be changed, this can be achieved by setting **time_optimal** to **False** and providing the required completion time. An alternative option is to reduce the **penalty** value, indistinctly of whether actuation constraints are used or not. However, for values of the penalty larger than 2700 no change will be done if **act_const** is set to **False** as the value will be capped.
 
 ## Reference articles
 
