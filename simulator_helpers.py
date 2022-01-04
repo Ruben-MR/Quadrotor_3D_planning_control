@@ -54,7 +54,10 @@ def find_closest(state, obstacles):
             check = obstacle.collision_check(state['x'], min_dist)
             if check:
                 is_free = False
-                min_dist -= 0.1
+                if min_dist > 0.1:
+                    min_dist -= 0.1
+                else:
+                    min_dist -= 0.01
                 break
     return min_dist
 

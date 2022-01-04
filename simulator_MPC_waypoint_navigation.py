@@ -15,8 +15,8 @@ if __name__ == "__main__":
     x_start = starts[0]
     x_goal = ends[0]
 
-    # RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
-    # path_exists = RRT.find_path(x_goal, map_boundary)
+    RRT = RRT_star(x_start, 1500, obstacles, 1)
+    path_exists = RRT.find_path(x_goal, map_boundary)
     path_exists = True
     #########################################################################
 
