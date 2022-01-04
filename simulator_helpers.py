@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.spatial.transform import Rotation
 from model.MPC_3D_trajectory_tracking import MPC_traj
-from model.MPC_3D_waypoint_navigation import MPC_waypoint
+from old_files.MPC_3D_waypoint_navigation import MPC_waypoint
 from model.nonlinear_controller import GeometricController
 import csv
 import os
@@ -27,10 +27,8 @@ def init_simulation(mpc=True, traj_tracking=True, time_horizon=50, obstacle=Fals
     :return:
     """
     env = Quadrotor()
-    if mpc and traj_tracking:
+    if mpc:
         policy = MPC_traj(time_horizon, obstacle)
-    elif mpc and not traj_tracking:
-        policy = MPC_waypoint(time_horizon, obstacle)
     else:
         policy = GeometricController()
     t0, dt, total_se, total_energy, penalty = 0, 1e-2, 0, 0, 2500
