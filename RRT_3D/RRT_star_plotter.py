@@ -233,7 +233,7 @@ if __name__ == '__main__':
     plt.ion()
 
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario = 0
+    scenario = 4
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
 
     RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=1000, obstacles=obstacles, thr=0.5, ax_anim=ax1)
