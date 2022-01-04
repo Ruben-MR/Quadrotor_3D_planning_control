@@ -106,9 +106,10 @@ def minimum_snap_np(path, n_seg, n_order, penalty, time_optimal, act_const):
                {'type': 'ineq', 'fun': inequal_constraint, 'args': [n_seg, n_order]}]
         opts = {'maxiter': 300,  'eps': 2e-8, 'disp': True}
     else:
-        penalty = 3000
+        if penalty > 2700:
+            penalty = 2700
         con = [{'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path, time_optimal, ts]}]
-        opts = {'maxiter': 500,  'eps': 2e-8, 'disp': True}
+        opts = {'maxiter': 300,  'eps': 2e-8, 'disp': True}
     bnds = bound(n_seg, n_var)
 
     # solve the problem
