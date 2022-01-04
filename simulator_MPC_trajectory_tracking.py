@@ -1,6 +1,6 @@
 import numpy as np
 from RRT_3D.RRT_star_plotter import RRT_star
-from simulator_helpers import generate_env, plot_all, init_simulation
+from simulator_helpers import generate_env, plot_all, init_simulation, find_closest
 from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 
@@ -9,16 +9,16 @@ if __name__ == "__main__":
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, traj_tracking=True, time_horizon = 40, obstacle=True)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario = 0
+    scenario, min_snap = 0, True
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
     #########################################################################
     # global path planning using RRT*
     x_start = starts[0]
     x_goal = ends[0]
 
-    # RRT = RRT_star(x_start, 1500, obstacles, ax1, 1)
-    # path_exists = RRT.find_path(x_goal, map_boundary)y
-    path_exists = True
+    RRT = RRT_star(x_start, 1500, obstacles, 1)
+    path_exists = RRT.find_path(x_goal, map_boundary)
+    # path_exists = True
     #########################################################################
 
     current_state = env.reset(position=x_start)
@@ -28,19 +28,28 @@ if __name__ == "__main__":
         print("No path was found for the given number of iterations")
     else:
         print("Path found, applying smoothing.")
-        # path_list = RRT.get_straight_path()
-        # pos, vel, acc = cubic_spline(path_list, T=25)
+
+        # Apply the path interpolation algorithm selected, the path is simplified to make if time-feasible
+        path_list = RRT.get_straight_path()
+        if min_snap:
+            # Parameters can be adjusted as necessary
+            pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=True,
+                                                act_const=False, check_collision=False, obstacles=None, total_time=10)
+        else:
+            pos, vel, acc = cubic_spline(path_list, T=25)
         print("Smoothing completed, tracking trajectory")
         # load the pre-saved trajectory
-        traj = np.load('traj.npz')
-        path_list = traj['path_list']
-        pos = traj['pos']
-        vel = traj['vel']
+        # traj = np.load('traj.npz')
+        # path_list = traj['path_list']
+        # pos = traj['pos']
+        # vel = traj['vel']
         obstacle_traj = np.flipud(pos)  # reverse the trajectory as obstacle trajectory
-        # pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty, time_optimal=True)
+
+        # Plot the initial point (may don't need it)
         ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
         real_trajectory = np.zeros((1, 3))
         real_orientation = np.zeros((1, 4))
+
         # follow the path in segments
         for i in range(len(pos) - policy.model.N):
             # static obstacle
@@ -59,7 +68,10 @@ if __name__ == "__main__":
                 state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
             # state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
             # state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N]))
-            action = policy.control(current_state, state_des, bounding_box_size=0.5)
+            closest_obstacle = find_closest(current_state, obstacles)
+            bbox_size = closest_obstacle / np.sqrt(3)
+            print("closest obstacle: ", bbox_size)
+            action = policy.control(current_state, state_des, bounding_box_size=bbox_size)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
             obs, reward, done, info = env.step(cmd_rotor_speeds)
             print("current:", obs['x'])
