@@ -6,7 +6,8 @@ from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 
 if __name__ == "__main__":
     # Create the quadrotor class, controller and other initial values
-    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, traj_tracking=True, time_horizon = 40, obstacle=True)
+    obstacle = False
+    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, traj_tracking=True, time_horizon = 40, obstacle=obstacle)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario, min_snap = 0, True
@@ -58,20 +59,21 @@ if __name__ == "__main__":
 
             # dynamic obstacle
             # pos_obstacle = obstacle_traj[i]
-
             # print("obstacle position: ", pos_obstacle)
-            # # if the agent is close to the obstacle, then avoid it
-            if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
-                state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
-                print("avoiding obstacle......")
+            if obstacle:
+                # if the agent is close to the obstacle, then avoid it
+                if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
+                    state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
+                    print("avoiding obstacle......")
+                else:
+                    state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
             else:
-                state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
-            # state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
-            # state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N]))
+                state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N]))
+
             closest_obstacle = find_closest(current_state, obstacles)
             bbox_size = closest_obstacle / np.sqrt(3)
             print("closest obstacle: ", bbox_size)
-            action = policy.control(current_state, state_des, bounding_box_size=bbox_size)
+            action = policy.control(current_state, state_des, bounding_box_size=3)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
             obs, reward, done, info = env.step(cmd_rotor_speeds)
             print("current:", obs['x'])
@@ -92,7 +94,9 @@ if __name__ == "__main__":
         print("Total time: ", t)
         print("Sum of energy consumption (integration)", total_energy)
 
-        ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='y', markersize=16)
+        if obstacle:
+            ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='y', markersize=16)
+
         plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
 
 
