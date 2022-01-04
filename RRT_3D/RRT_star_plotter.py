@@ -1,3 +1,7 @@
+# import sys
+#
+# sys.path.insert(0, "C:\\Users\\paulf\\Desktop\\MSc_ROB\\RO47005_Planning_&_Decision_Making\\ForcesPro")
+
 import numpy as np
 from numpy.linalg import norm
 from Obstacle import collision_check_path, plot_three_dee_box
@@ -41,6 +45,23 @@ class RRT_star:
             for obstacle in obstacles:
                 plot_three_dee_box(points=obstacle, ax=self.ax)
 
+    def draw_growing_tree(self):
+        self.lines.clear()
+        self.ax.lines.clear()
+
+        self.lines = self.ax.plot(self.node_list[0].pos[0],
+                                  self.node_list[0].pos[1],
+                                  self.node_list[0].pos[2], "ro")
+
+        for node in self.node_list[1:]:
+            nodeline = np.array([node.pos,
+                                 self.node_list[node.parent_idx].pos])
+            self.lines.append(self.ax.plot(nodeline[:, 0], nodeline[:, 1], nodeline[:, 2],
+                                           color=self.tree_color,
+                                           alpha=0.3, zorder=1500))
+        self.ax.figure.canvas.draw()
+        self.ax.figure.canvas.flush_events()
+
     # Method for adding new paths
     def find_path(self, x_goal, map_boundary):
         # Start iteration
@@ -75,6 +96,9 @@ class RRT_star:
                 self.node_list.append(Node(x_goal, self.node_list[-1].cost+norm(x_goal - x_new),
                                            len(self.node_list) - 1))
                 self.goal_idx = len(self.node_list) - 1
+
+            if self.ax is not None:
+                self.draw_growing_tree()
 
         return self.pathFind
 
@@ -153,16 +177,6 @@ class RRT_star:
         # add x_new to the tree, the parent of x_new is at index optimal_node
         self.node_list.append(Node(pos, lowest_cost, optimal_neigh))
 
-        # if we have an animation to plot stuff to
-        if self.ax is not None:
-            newline = np.array([self.node_list[optimal_neigh].pos,
-                                pos])
-            # print(f"newline is: {newline}")
-            self.lines.append(self.ax.plot(newline[:, 0], newline[:, 1], newline[:, 2],
-                                           color=self.tree_color,
-                                           alpha=0.3))
-            self.ax.figure.canvas.draw()
-            self.ax.figure.canvas.flush_events()
         return neigh_list
 
     # If the node is existent, check whether the connection with the new node [at index -1] minimizes the cost
@@ -171,20 +185,6 @@ class RRT_star:
         if rewire_cost < self.node_list[node_idx].cost:
             self.node_list[node_idx].cost = rewire_cost
             self.node_list[node_idx].parent_idx = len(self.node_list) - 1
-
-            # if we have an animation to plot stuff to
-            if self.ax is not None:
-                newline = np.array([self.node_list[node_idx].pos,
-                                    self.node_list[-1].pos])
-                # print(f"rewired newline is: {newline}")
-                self.ax.lines.pop(-1)
-                self.lines.pop(-1)
-
-                self.lines.append(self.ax.plot(newline[:, 0], newline[:, 1], newline[:, 2],
-                                               color=self.tree_color,
-                                               alpha=0.3))
-                self.ax.figure.canvas.draw()
-                self.ax.figure.canvas.flush_events()
 
     # Function for plotting the final tree of the algorithm
     def plotTree(self, ax, tree_color=(1, 0, 0), path_color=(0, 0, 1)):
