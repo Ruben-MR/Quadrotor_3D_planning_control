@@ -11,6 +11,23 @@ This README file will contain the links to the resources used in the project, re
 
 - [Matplotlib library for 3D representation](https://matplotlib.org/stable/api/_as_gen/mpl_toolkits.mplot3d.axes3d.Axes3D.html)
 
+## How to
+
+### RRT*
+
+- The RRT_star class can be instantiated using as compulsory arguments the initial position, introduced as a numpy array,the number of iterations of the algorithm, the list of obstacle objects in the environment.
+- The optional arguments are:
+  - The threshold for self-connection with the goal, which is defined with a default value of 0.5
+  - The axis for animation, if none are provided, no animation of the RRT will be carried out and only the final path will be represented at the end of the simulation by "plot_all"
+- In order to execute the algorithm, use the **find_path** function, which takes as arguments the goal point in the same format as the start point and the map_boundaries to which the samples will be constrained.
+- Once the algorithm has run, the path can be obtained in two different ways:
+  - **get_path**: will return the complete path found by the RRT* algorithm
+  - **get_straight_path**: modification of the complete path found by the algorithm in which, starting from the goal, the points are consecutively connected with the furthest point in the path without colliding with obstacles. ***It is highly recommendable to use it with advanced versions of the minimum snap (actuator constraints) to reduce the computation time***.
+
+### Minimum snap
+
+- After lunch :)
+
 ## Reference articles
 
 ### Algorithm definition articles
