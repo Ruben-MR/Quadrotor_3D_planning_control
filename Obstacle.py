@@ -48,7 +48,7 @@ class Obstacle(object):
         return self.collision_max_
 
 
-def collision_check_path(start_pos, goal_pos, obstacle_array):
+def collision_check_path(start_pos, goal_pos, obstacle_array, r = None):
     """
     Function for checking collision along the path connecting two points in a straight line
     :param start_pos: Initial point to start checking from
@@ -64,7 +64,7 @@ def collision_check_path(start_pos, goal_pos, obstacle_array):
         current_pos = start_pos + i*direction
         # Given obstacle_array an array containing list of obstacle objects
         for obstacle in obstacle_array:
-            collision_single_obs = obstacle.collision_check(current_pos)
+            collision_single_obs = obstacle.collision_check(current_pos, r)
             if collision_single_obs:
                 return True
     return False

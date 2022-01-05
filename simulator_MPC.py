@@ -18,11 +18,12 @@ if __name__ == "__main__":
     ################################################################
     # some parameters
     obstacle = False # whether to have an local obstacle
-    use_pre_saved_traj = True # whether to generate new trajectory using RRT* + trajectory smoothing
+    use_pre_saved_traj = False # whether to generate new trajectory using RRT* + trajectory smoothing
     dynamic_obstacle = False # whether to use dynamic obstacle
     traj_total_time = 25 # total time for the whole trajectory
-    collision_avoidance_guarantee = False # whether to provide collision avoidance guarantee
+    collision_avoidance_guarantee = True # whether to provide collision avoidance guarantee
     waypoint_navigation = False # whether to use waypoints navigation given by RRT* instead of trajectory given by min_snap
+    min_snap = False
 
     if dynamic_obstacle:
         obstacle = True
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, traj_tracking=True, time_horizon = 40, obstacle=obstacle)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario, min_snap = 0, True
+    scenario = 4
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
     #########################################################################
     # global path planning using RRT*
@@ -59,12 +60,12 @@ if __name__ == "__main__":
             path_list = RRT.get_straight_path()
             if min_snap:
                 # Parameters can be adjusted as necessary
-                pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=True,
+                pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=False,
                                                     act_const=False, check_collision=False, obstacles=None, total_time=traj_total_time)
             else:
                 pos, vel, acc = cubic_spline(path_list, T=traj_total_time)
             # save the trajectory
-            np.savez('traj.npz', pos=pos, vel=vel, path_list=path_list)
+            # np.savez('traj.npz', pos=pos, vel=vel, path_list=path_list)
 
         else:
             # load the pre-saved trajectory
@@ -129,6 +130,9 @@ if __name__ == "__main__":
                 t += time_step
                 total_SE += (np.sum((obs['x'] - state_des[:3]) ** 2) * time_step)
                 total_energy += (np.sum(cmd_rotor_speeds ** 2) * time_step)
+                # if current position is very close to the goal point, terminate the loop
+                if np.sqrt(np.sum((obs['x'] - pos[-1]) ** 2)) <= 0.5:
+                    break
 
         else: # use waypoint navigation, no velocity information, only waypoints given by RRT*
 

@@ -40,6 +40,7 @@ class RRT_star:
         self.ax = ax_anim
         # Add the first node
         self.node_list = [Node(pos=x_start, cost=0, parent_idx=-1)]
+        self.safety_margin = 0.5
         if self.ax is not None:
             self.lines = self.ax.plot(x_start[0], x_start[1], x_start[2], "ro")
             for obstacle in obstacles:
@@ -78,7 +79,7 @@ class RRT_star:
                 continue
             else:
                 # path collision checking, if there is a collision, skip the rest and go to the next iteration
-                if collision_check_path(self.node_list[idx].pos, x_new, self.obstacle_array):
+                if collision_check_path(self.node_list[idx].pos, x_new, self.obstacle_array, self.safety_margin):
                     continue
 
             # Rewire the new node for optimal cost and get the close points
@@ -124,7 +125,7 @@ class RRT_star:
         for i in range(np.size(path, axis=0)-2):
             if i not in idx:
                 for j in range(i+2, np.size(path, axis=0)):
-                    if not collision_check_path(path[i, :], path[j, :], self.obstacle_array):
+                    if not collision_check_path(path[i, :], path[j, :], self.obstacle_array, self.safety_margin):
                         idx.append(j-1)
                     else:
                         break
@@ -138,7 +139,7 @@ class RRT_star:
 
         # check for collision of the sample with an obstacle
         for obstacle in self.obstacle_array:
-            if obstacle.collision_check(x_rand):
+            if obstacle.collision_check(x_rand, self.safety_margin):
                 return x_rand, None
 
         # find the nearest node
@@ -168,7 +169,7 @@ class RRT_star:
             dist2xnew = norm(pos - self.node_list[j].pos)
             neighbor_cost = self.node_list[j].cost + dist2xnew
             if dist2xnew < self.neigh_dist:
-                if not collision_check_path(self.node_list[j].pos, pos, self.obstacle_array):
+                if not collision_check_path(self.node_list[j].pos, pos, self.obstacle_array, self.safety_margin):
                     neigh_list.append(j)
                     if neighbor_cost < lowest_cost:
                         lowest_cost = neighbor_cost
