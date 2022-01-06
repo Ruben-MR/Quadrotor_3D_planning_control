@@ -10,6 +10,7 @@ from RRT_3D.RRT_star_plotter import RRT_star
 from simulator_helpers import generate_env, plot_all, init_simulation, find_closest
 from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
+from scipy import interpolate
 
 if __name__ == "__main__":
     '''
@@ -18,12 +19,13 @@ if __name__ == "__main__":
     ################################################################
     # some parameters
     obstacle = False # whether to have an local obstacle
-    use_pre_saved_traj = False # whether to generate new trajectory using RRT* + trajectory smoothing
+    use_pre_saved_traj = True # whether to generate new trajectory using RRT* + trajectory smoothing
     dynamic_obstacle = False # whether to use dynamic obstacle
     traj_total_time = 25 # total time for the whole trajectory
-    collision_avoidance_guarantee = True # whether to provide collision avoidance guarantee
+    collision_avoidance_guarantee = False # whether to provide collision avoidance guarantee
     waypoint_navigation = False # whether to use waypoints navigation given by RRT* instead of trajectory given by min_snap
-    min_snap = False
+    min_snap = True
+    time_optimal = True
 
     if dynamic_obstacle:
         obstacle = True
@@ -60,12 +62,12 @@ if __name__ == "__main__":
             path_list = RRT.get_straight_path()
             if min_snap:
                 # Parameters can be adjusted as necessary
-                pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=False,
+                pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=time_optimal,
                                                     act_const=False, check_collision=False, obstacles=None, total_time=traj_total_time)
             else:
                 pos, vel, acc = cubic_spline(path_list, T=traj_total_time)
             # save the trajectory
-            # np.savez('traj.npz', pos=pos, vel=vel, path_list=path_list)
+            np.savez('traj.npz', pos=pos, vel=vel, path_list=path_list)
 
         else:
             # load the pre-saved trajectory
@@ -85,6 +87,15 @@ if __name__ == "__main__":
         real_orientation = np.zeros((1, 4))
 
         if not waypoint_navigation:
+            # interpolation of time-optimal trajectory
+            slow_factor = 4
+            x = np.linspace(0, len(pos)-1, len(pos))
+            f_pos = interpolate.interp1d(x, pos, axis=0)
+            f_vel = interpolate.interp1d(x, vel, axis=0)
+            x_interp = np.linspace(0, len(pos)-1, slow_factor * len(pos))
+            pos = f_pos(x_interp)
+            vel = f_vel(x_interp) / slow_factor
+
             # follow the path in segments
             for i in range(len(pos) - policy.model.N):
 
@@ -94,7 +105,7 @@ if __name__ == "__main__":
                     print("obstacle position: ", pos_obstacle)
                 elif obstacle and not dynamic_obstacle:
                     # static obstacle
-                    show_up_time = int(0.5 * len(pos))
+                    show_up_time = int(0.7 * len(pos))
                     pos_obstacle = pos[show_up_time]
                 else:
                     pass
@@ -136,7 +147,11 @@ if __name__ == "__main__":
 
         else: # use waypoint navigation, no velocity information, only waypoints given by RRT*
 
-            waypoints = path_list
+            down_sampling_points = 80
+            waypoints_idx = np.linspace(0, len(pos)-1, down_sampling_points).astype(np.int)
+            waypoints = pos[waypoints_idx]
+            waypoints_vel = vel[waypoints_idx]/5
+            # waypoints = path_list
             i = 0
 
             while(True):
@@ -158,9 +173,9 @@ if __name__ == "__main__":
                         state_des = np.hstack((waypoints[i], np.zeros(3), pos_obstacle))
                         print("avoiding obstacle......")
                     else:
-                        state_des = np.hstack((waypoints[i], np.zeros(3), np.array([100, 100, 100])))
+                        state_des = np.hstack((waypoints[i], waypoints_vel[i], np.array([100, 100, 100])))
                 else:
-                    state_des = np.hstack((waypoints[i], np.zeros(3)))
+                    state_des = np.hstack((waypoints[i], waypoints_vel[i]))
 
                 closest_obstacle = find_closest(current_state, obstacles)
                 bbox_size = closest_obstacle / np.sqrt(3)
@@ -189,9 +204,9 @@ if __name__ == "__main__":
                 if np.sqrt(np.sum((obs['x'] - waypoints[i]) ** 2)) <= 0.3 and i < len(waypoints)-1:
                     i += 1
                 # if current position is very close to the goal point, terminate the loop
-                if np.sqrt(np.sum((obs['x'] - waypoints[-1]) ** 2)) <= 0.05 and i == len(waypoints)-1:
+                if np.sqrt(np.sum((obs['x'] - waypoints[-1]) ** 2)) <= 0.5 and i == len(waypoints)-1:
                     break
-                elif t >= 120:
+                elif t >= 80:
                     break
 
         # Print the final metrics of the simulation
@@ -206,3 +221,4 @@ if __name__ == "__main__":
         else:
             plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
 
+        print(len(pos))

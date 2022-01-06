@@ -16,7 +16,7 @@ if __name__ == "__main__":
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
 
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario, min_snap = 0, True
+    scenario, min_snap = 4, True
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
 
     # global path planning using RRT*
@@ -38,10 +38,10 @@ if __name__ == "__main__":
         path_list = RRT.get_straight_path()
         if min_snap:
             # Parameters can be adjusted as necessary
-            pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=True,
-                                                act_const=False, check_collision=False, obstacles=None, total_time=10)
+            pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=False,
+                                                act_const=False, check_collision=False, obstacles=None, total_time=8)
         else:
-            pos, vel, acc = cubic_spline(path_list, T=25)
+            pos, vel, acc = cubic_spline(path_list, T=15)
         print("Smoothing completed, tracking trajectory")
 
         # Plot the initial point (may don't need it)
