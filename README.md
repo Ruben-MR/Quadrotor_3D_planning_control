@@ -19,6 +19,7 @@ This README file will contain the links to the resources used in the project, re
 - The optional arguments are:
   - The threshold for self-connection with the goal, which is defined with a default value of 0.5
   - The axis for animation, if none are provided, no animation of the RRT will be carried out and only the final path will be represented at the end of the simulation by "plot_all"
+  - A margin to be left with respect to the obstacles (mostly required for the MPC).
 - In order to execute the algorithm, use the **find_path** function, which takes as arguments the goal point in the same format as the start point and the map_boundaries to which the samples will be constrained.
 - Once the algorithm has run, the path can be obtained in two different ways:
   - **get_path**: will return the complete path found by the RRT* algorithm
