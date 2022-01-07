@@ -56,7 +56,7 @@ class MPC_traj(MPC_basic):
         if obstacle:
             self.model.ineq = lambda z, p: np.array([(z[4] - p[6])**2 + (z[5] - p[7])**2 + (z[6] - p[8])**2])
             self.model.hu = np.array([np.inf])
-            self.model.hl = np.array([0.64])
+            self.model.hl = np.array([0.49])
 
         # set dimensions of the problem
         self.model.nvar = 17    # number of variables

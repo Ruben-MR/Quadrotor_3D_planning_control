@@ -9,24 +9,35 @@ from simulator_helpers import generate_env, plot_all, init_simulation, find_clos
 from RRT_3D.RRT_star_plotter import RRT_star
 from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
+from scipy import interpolate
 
+####################################################################################
+use_pre_saved_traj = True # whether to generate new trajectory using RRT* + trajectory smoothing
+min_snap = True
+slow_factor = 1.5  # whether to slow down the time-optimal trajectory
+traj_total_time = 10 # only valid when time-optimal = False for min_snap
+scenario = 1
+####################################################################################
 
 if __name__ == "__main__":
     # Create the quadrotor class, controller and other initial values
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
 
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario, min_snap = 4, True
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
 
     # global path planning using RRT*
     x_start = starts[0]
     x_goal = ends[0]
-    RRT = RRT_star(x_start, 1500, obstacles, 1)
-    path_exists = RRT.find_path(x_goal, map_boundary)
+    if not use_pre_saved_traj:
+        RRT = RRT_star(x_start, 1500, obstacles, 1)
+        path_exists = RRT.find_path(x_goal, map_boundary)
+    else:
+        path_exists = True
 
     # Reset the quadrotor object to the initial position
     current_state = env.reset(position=x_start)
+    num_collision = 0
 
     # If a path has been found, proceed to follow it
     if not path_exists:
@@ -34,23 +45,43 @@ if __name__ == "__main__":
     else:
         print("Path found, applying smoothing.")
 
-        # Apply the path interpolation algorithm selected, the path is simplified to make if time-feasible
-        path_list = RRT.get_straight_path()
-        if min_snap:
-            # Parameters can be adjusted as necessary
-            pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=False,
-                                                act_const=False, check_collision=False, obstacles=None, total_time=8)
+        if not use_pre_saved_traj:
+            # Apply the path interpolation algorithm selected, the path is simplified to make if time-feasible
+            path_list = RRT.get_straight_path()
+            if min_snap:
+                # Parameters can be adjusted as necessary
+                pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=True,
+                                                    act_const=False, check_collision=False, obstacles=None, total_time=traj_total_time)
+            else:
+                pos, vel, acc = cubic_spline(path_list, T=traj_total_time)
+
         else:
-            pos, vel, acc = cubic_spline(path_list, T=15)
-        print("Smoothing completed, tracking trajectory")
+            # load the pre-saved trajectory
+            traj = np.load('traj.npz')
+            path_list = traj['path_list']
+            pos = traj['pos']
+            vel = traj['vel']
+            acc = traj['acc']
 
         # Plot the initial point (may don't need it)
-        ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
+        ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='mediumorchid', linewidth=2, label='Planned_path')
         real_trajectory = np.zeros((1, 3))
         real_orientation = np.zeros((1, 4))
 
+        # interpolation of time-optimal trajectory
+        x = np.linspace(0, len(pos) - 1, len(pos))
+        f_pos = interpolate.interp1d(x, pos, axis=0)
+        f_vel = interpolate.interp1d(x, vel, axis=0)
+        f_acc = interpolate.interp1d(x, acc, axis=0)
+        x_interp = np.linspace(0, len(pos) - 1, int(slow_factor * len(pos)))
+        pos = f_pos(x_interp)
+        vel = f_vel(x_interp) / slow_factor
+        acc = f_acc(x_interp) / slow_factor
+
         for i in range(len(pos)):
-            dist_to_closest = find_closest(current_state, obstacles)
+            closest_obstacle = find_closest(current_state, obstacles)
+            if closest_obstacle <= 0:
+                num_collision += 1
             state_des = {'pos': pos[i], 'vel': vel[i], 'acc': acc[i], 'yaw': 0, 'yaw_dot': 0}
             action = policy.control(state_des, current_state)
             cmd_rotor_speeds = action['cmd_rotor_speeds']
@@ -72,6 +103,7 @@ if __name__ == "__main__":
         print("Sum of tracking error (integration): ", total_SE)
         print("Total time: ", t)
         print("Sum of energy consumption (integration)", total_energy)
+        print("Number of collisions: ", num_collision)
 
         # Plot everything
         plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)

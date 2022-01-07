@@ -21,21 +21,21 @@ if __name__ == "__main__":
     obstacle = False # whether to have an local obstacle
     use_pre_saved_traj = True # whether to generate new trajectory using RRT* + trajectory smoothing
     dynamic_obstacle = False # whether to use dynamic obstacle
-    traj_total_time = 25 # total time for the whole trajectory
     collision_avoidance_guarantee = False # whether to provide collision avoidance guarantee
     waypoint_navigation = False # whether to use waypoints navigation given by RRT* instead of trajectory given by min_snap
     min_snap = True
     time_optimal = True
+    slow_factor = 2 # whether to slow down the time-optimal trajectory
+    traj_total_time = 10 # only valid when time-optimal = False for min_snap
+    scenario = 1 # which scenario
 
     if dynamic_obstacle:
         obstacle = True
     ###############################################################
-
     # Create the quadrotor class, controller and other initial values
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, traj_tracking=True, time_horizon = 40, obstacle=obstacle)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario = 4
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
     #########################################################################
     # global path planning using RRT*
@@ -50,6 +50,7 @@ if __name__ == "__main__":
     #########################################################################
 
     current_state = env.reset(position=x_start)
+    num_collision = 0
 
     # If a path has been found, proceed to follow it
     if not path_exists:
@@ -67,7 +68,7 @@ if __name__ == "__main__":
             else:
                 pos, vel, acc = cubic_spline(path_list, T=traj_total_time)
             # save the trajectory
-            np.savez('traj.npz', pos=pos, vel=vel, path_list=path_list)
+            np.savez('traj.npz', pos=pos, vel=vel, acc=acc, path_list=path_list)
 
         else:
             # load the pre-saved trajectory
@@ -82,17 +83,16 @@ if __name__ == "__main__":
             obstacle_traj = np.flipud(pos)  # reverse the trajectory as obstacle trajectory
 
         # Plot the initial point (may don't need it)
-        ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='g', linewidth=2)
+        ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='mediumorchid', linewidth=2, label='Planned_path')
         real_trajectory = np.zeros((1, 3))
         real_orientation = np.zeros((1, 4))
 
         if not waypoint_navigation:
             # interpolation of time-optimal trajectory
-            slow_factor = 4
             x = np.linspace(0, len(pos)-1, len(pos))
             f_pos = interpolate.interp1d(x, pos, axis=0)
             f_vel = interpolate.interp1d(x, vel, axis=0)
-            x_interp = np.linspace(0, len(pos)-1, slow_factor * len(pos))
+            x_interp = np.linspace(0, len(pos)-1, int(slow_factor * len(pos)))
             pos = f_pos(x_interp)
             vel = f_vel(x_interp) / slow_factor
 
@@ -105,15 +105,15 @@ if __name__ == "__main__":
                     print("obstacle position: ", pos_obstacle)
                 elif obstacle and not dynamic_obstacle:
                     # static obstacle
-                    show_up_time = int(0.7 * len(pos))
+                    show_up_time = int(0.55 * len(pos))
                     pos_obstacle = pos[show_up_time]
                 else:
                     pass
 
                 if obstacle:
                     # if the agent is close to the obstacle, then avoid it
-                    if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
-                        state_des = np.hstack((pos[i + 4*policy.model.N], vel[i + 4*policy.model.N], pos_obstacle))
+                    if np.sum((current_state['x'] - pos_obstacle)**2) <= 4:
+                        state_des = np.hstack((pos[i + 2*policy.model.N], vel[i + 2*policy.model.N], pos_obstacle))
                         print("avoiding obstacle......")
                     else:
                         state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N], np.array([100, 100, 100])))
@@ -121,6 +121,8 @@ if __name__ == "__main__":
                     state_des = np.hstack((pos[i + policy.model.N], vel[i + policy.model.N]))
 
                 closest_obstacle = find_closest(current_state, obstacles)
+                if closest_obstacle <= 0:
+                    num_collision += 1
                 bbox_size = closest_obstacle / np.sqrt(3)
                 print("closest obstacle: ", bbox_size)
                 if collision_avoidance_guarantee:
@@ -142,7 +144,7 @@ if __name__ == "__main__":
                 total_SE += (np.sum((obs['x'] - state_des[:3]) ** 2) * time_step)
                 total_energy += (np.sum(cmd_rotor_speeds ** 2) * time_step)
                 # if current position is very close to the goal point, terminate the loop
-                if np.sqrt(np.sum((obs['x'] - pos[-1]) ** 2)) <= 0.5:
+                if np.sqrt(np.sum((obs['x'] - pos[-1]) ** 2)) <= 0.1:
                     break
 
         else: # use waypoint navigation, no velocity information, only waypoints given by RRT*
@@ -169,7 +171,7 @@ if __name__ == "__main__":
 
                 if obstacle:
                     # if the agent is close to the obstacle, then avoid it
-                    if np.sum((current_state['x'] - pos_obstacle)**2) <= 2.5:
+                    if np.sum((current_state['x'] - pos_obstacle)**2) <= 4:
                         state_des = np.hstack((waypoints[i], np.zeros(3), pos_obstacle))
                         print("avoiding obstacle......")
                     else:
@@ -178,6 +180,8 @@ if __name__ == "__main__":
                     state_des = np.hstack((waypoints[i], waypoints_vel[i]))
 
                 closest_obstacle = find_closest(current_state, obstacles)
+                if closest_obstacle <= 0:
+                    num_collision += 1
                 bbox_size = closest_obstacle / np.sqrt(3)
                 print("closest obstacle: ", bbox_size)
 
@@ -213,6 +217,7 @@ if __name__ == "__main__":
         print("Sum of tracking error (integration): ", total_SE)
         print("Total time: ", t)
         print("Sum of energy consumption (integration)", total_energy)
+        print("Number of collisions: ", num_collision)
 
         if obstacle:
             ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='y', markersize=16)
