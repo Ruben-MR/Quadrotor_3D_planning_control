@@ -27,7 +27,7 @@ class RRT_star:
     """
 
     # Class constructor given an initial pos
-    def __init__(self, x_start, num_iter, obstacles, thr=0.5, ax_anim=None):
+    def __init__(self, x_start, num_iter, obstacles, thr=0.5, margin=0, ax_anim=None):
         # Set parameters
         self.num_dim = 3        # number of dimensions to search for
         self.thr = thr          # threshold for final goal
@@ -40,7 +40,7 @@ class RRT_star:
         self.ax = ax_anim
         # Add the first node
         self.node_list = [Node(pos=x_start, cost=0, parent_idx=-1)]
-        self.safety_margin = 0.5
+        self.safety_margin = margin
         if self.ax is not None:
             self.lines = self.ax.plot(x_start[0], x_start[1], x_start[2], "ro")
             for obstacle in obstacles:
