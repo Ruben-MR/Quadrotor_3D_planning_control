@@ -1,6 +1,10 @@
 import numpy as np
 from numpy.linalg import norm
 from scipy.interpolate import CubicSpline
+from traj_optimization.min_snap_utils import *
+from simulator_helpers import generate_env, init_simulation
+from Obstacle import plot_three_dee_box
+from matplotlib import pyplot as plt
 
 
 def cubic_spline(path_list, T):
@@ -52,3 +56,30 @@ def cubic_spline(path_list, T):
     acc = np.vstack((acc_x, acc_y, acc_z)).T
     
     return pos, vel, acc
+
+if __name__ == "__main__":
+    """
+    Auxiliar __main__ function (only executed when running this file alone) for debugging and testing the algorithm,
+    can be used for testing the performance by itself on different paths    
+    """
+    # Create the quadrotor class, controller and other initial values
+    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
+    #################################################################
+    # Define the obstacles, plotting figure and axis and other scenario properties
+    scenario = 4
+    obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
+    #########################################################################
+    # global path planning using RRT*
+    x_start = starts[0]
+    x_goal = ends[0]
+
+    path_points = np.load('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario)+'.npy')
+    T = 20
+    pos, vel, acc = cubic_spline(path_points, T)
+    np.savez('../experiment_data_videos/front_end/traj_generation/cubic_spline_scenario_'+str(scenario)+'_data.npz',
+             pos=pos, vel=vel, acc=acc)
+    for box in obstacles:
+        plot_three_dee_box(box, ax=ax1)
+    ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2])
+    plt.savefig('../experiment_data_videos/front_end/traj_generation/cubic_spline_scenario_' + str(scenario) + '_fig.jpg')
+    plt.show()

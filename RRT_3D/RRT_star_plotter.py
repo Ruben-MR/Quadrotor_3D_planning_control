@@ -7,6 +7,7 @@ from numpy.linalg import norm
 from Obstacle import collision_check_path, plot_three_dee_box
 from simulator_helpers import generate_env
 import matplotlib.pyplot as plt
+import time
 
 
 # Definition of Class Node
@@ -65,11 +66,22 @@ class RRT_star:
 
     # Method for adding new paths
     def find_path(self, x_goal, map_boundary):
+        # draw the goal
+        self.ax.plot(x_goal[0], x_goal[1], x_goal[2], "ro")
         # Start iteration
+        start_time = time.time()
+        time_list = [start_time]
+        inter_time_list = []
+        count = 0
         for iteration in range(self.num_iter):
             # show the progress
             if (iteration + 1) % 100 == 0:
-                print('Search iterations:', iteration + 1)
+                time_list.append(time.time())
+                inter_time = np.round(time_list[count + 1] - time_list[count], 2)
+                inter_time_list.append(inter_time)
+                print('Search iterations:', iteration + 1,
+                      ", interval time: " + str(inter_time) + "s")
+                count += 1
 
             # get a new sampled point and the index of the closest node in the list
             x_new, idx = self.new_and_closest(map_boundary)
@@ -97,9 +109,15 @@ class RRT_star:
                 self.node_list.append(Node(x_goal, self.node_list[-1].cost+norm(x_goal - x_new),
                                            len(self.node_list) - 1))
                 self.goal_idx = len(self.node_list) - 1
+                # break
 
             if self.ax is not None:
                 self.draw_growing_tree()
+
+        total_time = np.round(time.time() - start_time, 2)
+        avg_time_per100 = np.round(np.mean(inter_time_list), 2)
+        print("Total searching time: " + str(total_time) + 's, ' + "average interval time per 100 iters: "+ str(avg_time_per100) + 's')
+        print("Total number of iterations:", iteration)
 
         return self.pathFind
 
@@ -237,10 +255,16 @@ if __name__ == '__main__':
     scenario = 4
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
 
-    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=1000, obstacles=obstacles, thr=0.5, ax_anim=ax1)
+    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=1000, obstacles=obstacles, thr=1, ax_anim=ax1)
     path_exists = RRT_star_pathfinder.find_path(x_goal=ends[0], map_boundary=map_boundary)
+    print("Is path found:", path_exists)
 
     RRT_star_pathfinder.plotTree(ax1)
+
+    RRT_path = RRT_star_pathfinder.get_straight_path()
+    save_file = False
+    if save_file:
+        np.save('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario), RRT_path)
 
     plt.show()
 

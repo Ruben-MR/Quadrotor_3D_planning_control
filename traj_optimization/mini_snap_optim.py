@@ -168,12 +168,13 @@ if __name__ == "__main__":
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario = 0
+    scenario = 4
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
     #########################################################################
     # global path planning using RRT*
     x_start = starts[0]
     x_goal = ends[0]
+    '''
     path_points = np.array([[5., 7., 3.],
                             [10.86112711, 6.12592946, 2.55994633],
                             [13.51474856, 5.87165097, 2.46509981],
@@ -188,13 +189,20 @@ if __name__ == "__main__":
                             [3.35235155, 0.62747605, 1.70443546],
                             [1.64982418, 1.60245634, 2.04395953],
                             [0.5, 2.5, 1.5]])
+    '''
 
+    path_points = np.load('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario)+'.npy')
     pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_points, penalty=penalty, time_optimal=False, total_time=5,
                                                           check_collision=True, obstacles=obstacles)
+    np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_data.npz',
+             pos=pos, vel=vel, acc=acc, jerk=jerk, snap=snap, ts=ts)
     for box in obstacles:
         plot_three_dee_box(box, ax=ax1)
     ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2])
+    plt.savefig('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_' + str(scenario) + '_fig.jpg')
     plt.show()
+
+
     """
     # global variables
     path_points = np.array([[0, 0, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4], [10, 7, 8],
