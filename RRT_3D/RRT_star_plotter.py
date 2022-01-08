@@ -240,18 +240,19 @@ if __name__ == '__main__':
 
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario = 4
+    safe_margin = 0.5
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
 
-    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=400, obstacles=obstacles, thr=1, ax_anim=ax1)
+    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=1500, obstacles=obstacles, thr=1, margin=safe_margin, ax_anim=ax1)
     path_exists = RRT_star_pathfinder.find_path(x_goal=ends[0], map_boundary=map_boundary)
     print("Is path found:", path_exists)
 
     RRT_star_pathfinder.plotTree(ax1)
 
     RRT_path = RRT_star_pathfinder.get_straight_path()
-    save_file = False
+    save_file = True
     if save_file:
-        np.save('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario), RRT_path)
+        np.save('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario)+'_margin_'+str(safe_margin), RRT_path)
 
     plt.show(block=True)
     plt.ioff()
