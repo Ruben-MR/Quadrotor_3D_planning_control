@@ -1,7 +1,3 @@
-# import sys
-#
-# sys.path.insert(0, "C:\\Users\\paulf\\Desktop\\MSc_ROB\\RO47005_Planning_&_Decision_Making\\ForcesPro")
-
 import numpy as np
 from numpy.linalg import norm
 from Obstacle import collision_check_path, plot_three_dee_box
@@ -208,7 +204,13 @@ class RRT_star:
     # Function for plotting the final tree of the algorithm
     def plotTree(self, ax, tree_color=(1, 0, 0), path_color=(0, 0, 1)):
         # note that argument "ax" is not self.ax. this argument is specifically for the static plot, and is therefore
-        # not the attribute. the attribute is used to show the dynamic plot.
+        # not the attribute. the attribute is used to show the dynamic plot. Any axis object can be used to plot the
+        # final tree.
+        ax.lines.clear()
+        ax.collections.clear()
+        for obstacle in self.obstacle_array:
+            plot_three_dee_box(points=obstacle, ax=ax)
+
         for node in range(1, len(self.node_list)):
             parent_idx = self.node_list[node].parent_idx
 
@@ -229,25 +231,6 @@ class RRT_star:
 
 
 if __name__ == '__main__':
-    # import time
-    #
-    # plt.ion()
-    # fig = plt.figure(42)
-    # ax = fig.gca()
-    # lines = ax.plot(0, 0, 'ro')
-    # for i in range(10):
-    #     lines.append(ax.plot(1, 1, 'ro'))
-    #     fig.canvas.draw()
-    #     fig.canvas.flush_events()
-    #     time.sleep(0.5)
-    #     ax.lines.pop(-1)
-    #     lines.pop(-1)
-    #     fig.canvas.draw()
-    #     fig.canvas.flush_events()
-    #     time.sleep(0.5)
-    #
-    # plt.close()
-    # plt.ioff()
 
     plt.ion()
 
@@ -255,7 +238,7 @@ if __name__ == '__main__':
     scenario = 4
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
 
-    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=1000, obstacles=obstacles, thr=1, ax_anim=ax1)
+    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=400, obstacles=obstacles, thr=1, ax_anim=ax1)
     path_exists = RRT_star_pathfinder.find_path(x_goal=ends[0], map_boundary=map_boundary)
     print("Is path found:", path_exists)
 
@@ -266,5 +249,4 @@ if __name__ == '__main__':
     if save_file:
         np.save('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario), RRT_path)
 
-    plt.show()
-
+    plt.show(block=True)
