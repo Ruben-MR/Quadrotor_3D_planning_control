@@ -1,3 +1,7 @@
+import sys
+
+sys.path.insert(0, "C:\\Users\\paulf\\Desktop\\MSc_ROB\\RO47005_Planning_&_Decision_Making\\ForcesPro")
+
 import numpy as np
 from numpy.linalg import norm
 from Obstacle import collision_check_path, plot_three_dee_box
@@ -250,3 +254,4 @@ if __name__ == '__main__':
         np.save('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario), RRT_path)
 
     plt.show(block=True)
+    plt.ioff()
