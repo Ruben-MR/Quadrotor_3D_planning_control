@@ -2,6 +2,7 @@
 File containing helper functions for frequently repeated actions in the simulator files for the different conditions
 evaluated.
 """
+
 import numpy as np
 from model.quadrotor import Quadrotor
 from Obstacle import Obstacle, plot_three_dee_box
@@ -130,6 +131,21 @@ def generate_env(scenario):
     return obstacles, fig, axis, boundary, start_points, end_points
 
 
+def show_scenario_no_solution(scenario):
+    """
+    Function for plotting a provided scenario. This function provides a static view of the map of the scenario,
+    along with start and end position. No path or trajectories are plotted.
+    :param scenario: int corresponding to the desired scenario.
+    """
+    obstacles, fig, axis, boundary, start_points, end_points = generate_env(scenario)
+    for obstacle in obstacles:
+        plot_three_dee_box(obstacle, ax=axis)
+    for point in start_points:
+        axis.plot(point[0], point[1], point[2], 'r.', zorder=100000)
+    for point in end_points:
+        axis.plot(point[0], point[1], point[2], 'b.', zorder=100000)
+    plt.show()
+
 def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation, dynamic=False, obstacle_trajectory=None):
     """
     Function for plotting all the elements of the simulation
@@ -222,4 +238,6 @@ if __name__ == "__main__":
         plot_three_dee_box(box, ax=axis)
     axis.plot(point['x'][0], point['x'][1], point['x'][2], 'r.')
     plt.show()
+
+    show_scenario_no_solution(5)
 
