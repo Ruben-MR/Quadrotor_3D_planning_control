@@ -238,34 +238,36 @@ class RRT_star:
 if __name__ == '__main__':
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario = 0
-    num_iter = 2500
+    num_iters = [1500, 2500, 4000]
     goal = 1
-    obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
+    for num_iter in num_iters:
+        print("Number of iterations: " + str(num_iter))
+        obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
 
-    if goal == 2:
-        starts[0] = np.array([1,1,1])
-        ends[0] = np.array([1,1,1])
+        if goal == 2:
+            starts[0] = np.array([1, 2.5, 1])
+            ends[0] = np.array([3, 0.5, 14])
 
-    RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=num_iter, obstacles=obstacles)
-    path_exists = RRT_star_pathfinder.find_path(x_goal=ends[0], map_boundary=map_boundary)
-    print("Is path found:", path_exists)
+        RRT_star_pathfinder = RRT_star(x_start=starts[0], num_iter=num_iter, obstacles=obstacles)
+        path_exists = RRT_star_pathfinder.find_path(x_goal=ends[0], map_boundary=map_boundary)
+        print("Is path found:", path_exists)
 
-    RRT_star_pathfinder.plotTree(ax1)
+        RRT_star_pathfinder.plotTree(ax1)
 
-    RRT_path = RRT_star_pathfinder.get_path()
-    length = 0
-    for i in range(1, np.size(RRT_path, 0)):
-        length += np.linalg.norm(RRT_path[i, :] - RRT_path[i-1, :])
-    print("length of complete path:"+str(length))
-    RRT_simplified_path = RRT_star_pathfinder.get_straight_path()
-    length = 0
-    for i in range(1, np.size(RRT_simplified_path, 0)):
-        length += np.linalg.norm(RRT_simplified_path[i, :] - RRT_simplified_path[i - 1, :])
-    print("length of simplified path:" + str(length))
-    save_file = True
-    if save_file:
-        np.save('../experiment_data_videos/front_end/RRT_2/RRT_points_scenario_'+str(scenario)+'_num_iter_'+str(num_iter)+
-                '_goal_'+str(goal), RRT_path, RRT_simplified_path)
+        RRT_path = RRT_star_pathfinder.get_path()
+        length = 0
+        for i in range(1, np.size(RRT_path, 0)):
+            length += np.linalg.norm(RRT_path[i, :] - RRT_path[i-1, :])
+        print("length of complete path:"+str(length))
+        RRT_simplified_path = RRT_star_pathfinder.get_straight_path()
+        length = 0
+        for i in range(1, np.size(RRT_simplified_path, 0)):
+            length += np.linalg.norm(RRT_simplified_path[i, :] - RRT_simplified_path[i - 1, :])
+        print("length of simplified path:" + str(length))
+        save_file = True
+        if save_file:
+            np.save('../experiment_data_videos/front_end/RRT_2/RRT_points_scenario_'+str(scenario)+'_num_iter_'+str(num_iter)+
+                    '_goal_'+str(goal), RRT_path, RRT_simplified_path)
 
-    plt.show(block=True)
+        plt.show(block=True)
 
