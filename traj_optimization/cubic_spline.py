@@ -77,9 +77,9 @@ if __name__ == "__main__":
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenarios = [0, 1, 5]
-    T = 20
-    for scenario in scenarios:
+    scenario = 5
+    Ts = [4, 6, 8]
+    for T in Ts:
         obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
         #########################################################################
         # global path planning using RRT*

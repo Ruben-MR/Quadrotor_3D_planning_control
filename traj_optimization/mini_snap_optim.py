@@ -169,12 +169,12 @@ if __name__ == "__main__":
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenarios = [0, 1, 5]
-    T = 20
-    penalty = 1250
-    for scenario in scenarios:
+    scenario = 5
+    Ts = [4, 6, 8]
+    penalty = 0
+    for T in Ts:
         obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
-        ax1.view_init(60, 35)
+        ax1.view_init(30, 35)
         #########################################################################
         # global path planning using RRT*
         x_start = starts[0]
@@ -201,6 +201,7 @@ if __name__ == "__main__":
                                                                   act_const=True)
         end = time.time()
         print("Execution time: " + str(end-start))
+
         # Compute the length and duration of the trajectory
         length = 0
         for i in range(np.size(ts, 0)):
@@ -210,6 +211,7 @@ if __name__ == "__main__":
         for i in range(1, np.size(pos, 0)):
             length += np.linalg.norm(pos[i, :] - pos[i - 1, :])
         print("Trajectory length: " + str(length))
+
         # Compute maximum actuation
         _, max_actuation = get_max_actuation(acc, jerk, snap)
         print(max_actuation)
@@ -217,6 +219,7 @@ if __name__ == "__main__":
             print("Actuation limits surpassed")
         else:
             print("NO actuation limits surpassed")
+
         # Save the data
         if penalty == 0:
             np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_T_'+str(T)+'.npz',
@@ -224,6 +227,7 @@ if __name__ == "__main__":
         else:
             np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_penalty_'+str(penalty)+'.npz',
                      pos=pos, vel=vel, acc=acc, jerk=jerk, snap=snap, ts=ts)
+
         # Plot everything and save it
         for box in obstacles:
             plot_three_dee_box(box, ax=ax1)
