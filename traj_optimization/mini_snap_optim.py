@@ -8,6 +8,7 @@ from scipy.optimize import minimize
 from traj_optimization.min_snap_utils import *
 from simulator_helpers import generate_env, init_simulation
 from Obstacle import plot_three_dee_box
+import time
 
 
 def min_snap_optimizer_3d(path, penalty, time_optimal=True, act_const=False, check_collision=False, obstacles=None, total_time=10):
@@ -144,7 +145,7 @@ def minimum_snap_qp(path, ts, n_seg, n_order, time_optimal):
 
     # set the constraints, bounds and additional options for the optimizer
     con = [{'type': 'eq', 'fun': equal_constraint, 'args': [n_seg, n_order, path, time_optimal, ts]}]
-    opts = {'maxiter': 300, 'eps': 2e-8, 'disp': True}
+    opts = {'maxiter': 500, 'eps': 2e-8, 'disp': True}
 
     # solve the problem
     penalty = 0
@@ -168,89 +169,49 @@ if __name__ == "__main__":
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario = 4
-    obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
-    #########################################################################
-    # global path planning using RRT*
-    x_start = starts[0]
-    x_goal = ends[0]
-    '''
-    path_points = np.array([[5., 7., 3.],
-                            [10.86112711, 6.12592946, 2.55994633],
-                            [13.51474856, 5.87165097, 2.46509981],
-                            [13.26590969, 4.55821649, 2.06223386],
-                            [12.38218297, 3.92085155, 2.11475727],
-                            [10.97662532, 3.23206355, 1.86315257],
-                            [9.50077495, 1.94620373, 1.79910651],
-                            [7.62894844, 1.24818373, 1.74496482],
-                            [7.18167236, 1.23754264, 1.59337815],
-                            [5.49010816, 0.97186878, 1.41324015],
-                            [4.66375168, 0.55217968, 1.62723241],
-                            [3.35235155, 0.62747605, 1.70443546],
-                            [1.64982418, 1.60245634, 2.04395953],
-                            [0.5, 2.5, 1.5]])
-    '''
+    scenarios = [0, 1, 5]
+    T = 20
+    penalty = 2500
+    for scenario in scenarios:
+        obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
+        ax1.view_init(60, 35)
+        #########################################################################
+        # global path planning using RRT*
+        x_start = starts[0]
+        x_goal = ends[0]
+        # Load the data from previous test and compute minimum snap
+        path_points = np.load('../experiment_data_videos/front_end/RRT_2/RRT_points_scenario_' + str(scenario) +
+                              '_num_iter_4000_goal_1.npz')
+        print(path_points["simplified_path"])
+        start = time.time()
+        pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_points["simplified_path"], penalty=penalty, time_optimal=False, total_time=T,
+                                                              check_collision=True, obstacles=obstacles)
+        end = time.time()
+        print("Execution time: " + str(end-start))
+        # Compute the length and duration of the trajectory
+        length = 0
+        for i in range(np.size(ts, 0)):
+            length += ts[i]
+        print("Trajectory duration: " + str(length))
+        length = 0
+        for i in range(1, np.size(pos, 0)):
+            length += np.linalg.norm(pos[i, :] - pos[i - 1, :])
+        print("Trajectory length: " + str(length))
+        # Compute maximum actuation
+        _, max_actuation = get_max_actuation(acc, jerk, snap)
+        print(max_actuation)
+        if any(max_actuation > 2500):
+            print("Actuation limits surpassed")
+        else:
+            print("NO actuation limits surpassed")
+        # Save the data
+        np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_T_'+str(T)+'.npz',
+                 pos=pos, vel=vel, acc=acc, jerk=jerk, snap=snap, ts=ts)
 
-    path_points = np.load('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario)+'.npy')
-    pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_points, penalty=penalty, time_optimal=False, total_time=5,
-                                                          check_collision=True, obstacles=obstacles)
-    np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_data.npz',
-             pos=pos, vel=vel, acc=acc, jerk=jerk, snap=snap, ts=ts)
-    for box in obstacles:
-        plot_three_dee_box(box, ax=ax1)
-    ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2])
-    plt.savefig('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_' + str(scenario) + '_fig.jpg')
-    plt.show()
-
-
-    """
-    # global variables
-    path_points = np.array([[0, 0, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 3], [8, 2, 4], [10, 7, 8],
-                            [8, 6, 5], [11, 9, 7]])
-    # path_points = np.array([[0, 0, 0], [1, 3, 0], [2, 4, 2], [4, 2, 3], [3, 3, 1], [5, 5, 4]])
-
-    # compute the optimal path
-    time_optimal = True
-    start = time.time()
-    position, velocity, acceleration, jerk, snap, times = min_snap_optimizer_3d(path_points, penalty=10000,
-                                                                                time_optimal=time_optimal, act_const=False)
-    idx, speeds = get_max_actuation(acceleration, jerk, snap)
-    end = time.time()
-    print("Execution took: ", end-start)
-    print('Time distribution:\n', np.round(times, 2))
-    print('Maximum commanded rotor speeds: ', speeds, 'at index: ', idx)
-    # plot the results
-    N = len(velocity[:, 0])
-    fig, axs = plt.subplots(3)
-    if time_optimal:
-        fig.suptitle('Optimal Time')
-    else:
-        fig.suptitle('Proportional Time')
-
-    axs[0].plot(range(N), position[:, 0])
-    axs[0].plot(range(N), position[:, 1])
-    axs[0].plot(range(N), position[:, 2])
-    axs[0].set_title('pos')
-
-    axs[1].plot(range(N), velocity[:, 0])
-    axs[1].plot(range(N), velocity[:, 1])
-    axs[1].plot(range(N), velocity[:, 2])
-    axs[1].set_title('vel')
-
-    axs[2].plot(range(N), acceleration[:, 0])
-    axs[2].plot(range(N), acceleration[:, 1])
-    axs[2].plot(range(N), acceleration[:, 2])
-    axs[2].set_title('acc')
-    plt.show()
-
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    ax.set_xlim(0, 15)
-    ax.set_ylim(-5, 10)
-    ax.set_zlim(0, 15)
-    ax.scatter(path_points[:, 0], path_points[:, 1], path_points[:, 2])
-    ax.plot(position[:, 0], position[:, 1], position[:, 2])
-
-    plt.show()
-    """
+        # Plot everything and save it
+        for box in obstacles:
+            plot_three_dee_box(box, ax=ax1)
+        ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2])
+        plt.savefig('../experiment_data_videos/front_end/traj_generation/min_snap_scenario_' + str(scenario) + '_T_'+str(T)+'.jpg')
+        plt.show()
 
