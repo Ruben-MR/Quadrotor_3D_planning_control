@@ -171,7 +171,7 @@ if __name__ == "__main__":
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenarios = [0, 1, 5]
     T = 20
-    penalty = 2500
+    penalty = 1250
     for scenario in scenarios:
         obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
         ax1.view_init(60, 35)
@@ -184,8 +184,21 @@ if __name__ == "__main__":
                               '_num_iter_4000_goal_1.npz')
         print(path_points["simplified_path"])
         start = time.time()
-        pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_points["simplified_path"], penalty=penalty, time_optimal=False, total_time=T,
-                                                              check_collision=True, obstacles=obstacles)
+        if penalty == 0:
+            pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_points["simplified_path"], penalty=penalty,
+                                                                  time_optimal=False, total_time=T,
+                                                                  check_collision=True, obstacles=obstacles,
+                                                                  act_const=False)
+        elif penalty <= 2500:
+            pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_points["simplified_path"], penalty=penalty,
+                                                                  time_optimal=True, total_time=T,
+                                                                  check_collision=True, obstacles=obstacles,
+                                                                  act_const=False)
+        else:
+            pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_points["simplified_path"], penalty=penalty,
+                                                                  time_optimal=True, total_time=T,
+                                                                  check_collision=True, obstacles=obstacles,
+                                                                  act_const=True)
         end = time.time()
         print("Execution time: " + str(end-start))
         # Compute the length and duration of the trajectory
@@ -205,13 +218,19 @@ if __name__ == "__main__":
         else:
             print("NO actuation limits surpassed")
         # Save the data
-        np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_T_'+str(T)+'.npz',
-                 pos=pos, vel=vel, acc=acc, jerk=jerk, snap=snap, ts=ts)
-
+        if penalty == 0:
+            np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_T_'+str(T)+'.npz',
+                     pos=pos, vel=vel, acc=acc, jerk=jerk, snap=snap, ts=ts)
+        else:
+            np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_penalty_'+str(penalty)+'.npz',
+                     pos=pos, vel=vel, acc=acc, jerk=jerk, snap=snap, ts=ts)
         # Plot everything and save it
         for box in obstacles:
             plot_three_dee_box(box, ax=ax1)
         ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2])
-        plt.savefig('../experiment_data_videos/front_end/traj_generation/min_snap_scenario_' + str(scenario) + '_T_'+str(T)+'.jpg')
+        if penalty == 0:
+            plt.savefig('../experiment_data_videos/front_end/traj_generation/min_snap_scenario_' + str(scenario) + '_T_'+str(T)+'.jpg')
+        else:
+            plt.savefig('../experiment_data_videos/front_end/traj_generation/min_snap_scenario_' + str(scenario) + '_penalty_' + str(penalty) + '.jpg')
         plt.show()
 
