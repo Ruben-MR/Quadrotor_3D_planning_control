@@ -6,6 +6,7 @@ from simulator_helpers import generate_env, init_simulation
 from Obstacle import plot_three_dee_box
 from matplotlib import pyplot as plt
 from min_snap_utils import find_collisions, get_max_actuation
+import time
 
 
 def cubic_spline(path_list, T):
@@ -88,7 +89,10 @@ if __name__ == "__main__":
         path_points = np.load('../experiment_data_videos/front_end/RRT_2/RRT_points_scenario_'+str(scenario) +
                                  '_num_iter_4000_goal_1.npz')
         print(path_points['simplified_path'])
+        start = time.time()
         pos, vel, acc, jerk, snap = cubic_spline(path_points['simplified_path'], T)
+        end = time.time()
+        print("Execution time: " + str(end-start))
         print("Total time:" + str(T))
         idx = find_collisions(obstacles, pos)
         print(idx)
