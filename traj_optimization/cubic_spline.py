@@ -1,4 +1,6 @@
-import numpy as np
+"""
+File for cubic spline interpolation definition
+"""
 from numpy.linalg import norm
 from scipy.interpolate import CubicSpline
 from traj_optimization.min_snap_utils import *

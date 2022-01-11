@@ -1,3 +1,6 @@
+"""
+File containing the class definition of the Nonlinear Model Predictive Controller
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.linalg import inv
@@ -8,6 +11,11 @@ import casadi
 
 
 class MPC_traj:
+    """
+    MPC class, instantiated with the horizon limit (N) and an option to expect or not obstacles on the trajectory
+    (obstacle). Can be called with the "control" function, to which the current state and goal must be passed in
+    addition to the size of the collision-free bounding box in which the drone can move
+    """
     def __init__(self, N, obstacle=False):
         """
         Parameters of the class
@@ -108,7 +116,7 @@ class MPC_traj:
         x0 = np.transpose(np.tile(self.inital_guess, (1, self.model.N)))
         self.problem = {"x0": x0}
 
-    def control(self, state, goal, bounding_box_size = 2):
+    def control(self, state, goal, bounding_box_size=2):
         """
         Sovling NLP prolem in N-step-horizon for optimal control, take the first control input
         """
@@ -201,93 +209,3 @@ class MPC_traj:
     def objective(self, z, goal):
         self.goal = np.array([goal[0], goal[1], goal[2], goal[3], goal[4], goal[5], 0, 0, 0, 1, 0, 0, 0])
         return (z[4:] - self.goal).T @ self._Q_goal @ (z[4:]-self.goal) + 0.1 * (z[0]**2 + z[1]**2 + z[2]**2 + z[3]**2)
-
-#######################################################################################################################
-# You can check the results of a single optimization step here, be sure to comment the main function below
-#######################################################################################################################
-# mpc = MPC()
-#
-# # Set initial guess to start solver from (here, middle of upper and lower bound)
-# x0i = np.zeros(17)
-# x0 = np.transpose(np.tile(x0i, (1, mpc.model.N)))
-# init_state = np.zeros(13)
-# init_state[9] = 1
-# problem = {"x0": x0, "xinit": np.transpose(init_state)}
-# # # Set runtime parameters
-# # params = np.array(
-# #     [-1.5, 1.])  # In this example, the user can change these parameters by clicking into an interactive window
-# # problem["all_parameters"] = np.transpose(np.tile(params, (1, model.N)))
-#
-# # Time to solve the NLP!
-# output, exitflag, info = mpc.solver.solve(problem)
-#
-# # Make sure the solver has exited properly.
-# assert exitflag == 1, "bad exitflag"
-# print("FORCES took {} iterations and {} seconds to solve the problem.".format(info.it, info.solvetime))
-#
-# print(output)
-# print(output['x01'].shape)
-#######################################################################################################################
-
-
-def animate(i):
-    line.set_xdata(real_trajectory['x'][:i + 1])
-    line.set_ydata(real_trajectory['y'][:i + 1])
-    line.set_3d_properties(real_trajectory['z'][:i + 1])
-    point.set_xdata(real_trajectory['x'][i])
-    point.set_ydata(real_trajectory['y'][i])
-    point.set_3d_properties(real_trajectory['z'][i])
-
-
-if __name__ == '__main__':
-    env = Quadrotor()
-    current_state = env.reset()
-    print("current:", current_state)
-    dt = 0.01
-    t = 0
-    i = 0
-    endpoint = np.array([10, 10, 10, 0, 0, 0, 7, 7, 7]) # last three digits are the position of the obstacle
-    controller = MPC_traj(40, obstacle=True)
-    real_trajectory = {'x': [], 'y': [], 'z': []}
-    while t < 10:
-        print('iteration: ', i)
-        action = controller.control(current_state, endpoint)["cmd_rotor_speeds"]
-        obs, reward, done, info = env.step(action)
-        real_trajectory['x'].append(obs['x'][0])
-        real_trajectory['y'].append(obs['x'][1])
-        real_trajectory['z'].append(obs['x'][2])
-        print("x, y, z:", obs['x'][0], obs['x'][1], obs['x'][2])
-        print("action", action)
-        print("--------------------------")
-        current_state = obs
-        t += dt
-        i += 1
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111, projection="3d")  # 3D place for drawing
-    ax1.set_xlim3d(0, np.max(endpoint))
-    ax1.set_ylim3d(0, np.max(endpoint))
-    ax1.set_zlim3d(0, np.max(endpoint))
-    real_trajectory['x'] = np.array(real_trajectory['x'])
-    real_trajectory['y'] = np.array(real_trajectory['y'])
-    real_trajectory['z'] = np.array(real_trajectory['z'])
-    point, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]], 'ro',
-                      label='Quadrotor')
-    line, = ax1.plot([real_trajectory['x'][0]], [real_trajectory['y'][0]], [real_trajectory['z'][0]],
-                     label='Real_Trajectory')
-    ax1.scatter([2, 7], [2, 7], [2, 7], color = 'g', s=500)
-
-    ax1.set_xlabel('x')
-    ax1.set_ylabel('y')
-    ax1.set_zlabel('z')
-    ax1.set_title('3D animate')
-    ax1.view_init(30, 35)
-    ax1.legend(loc='lower right')
-
-    ani = animation.FuncAnimation(fig=fig,
-                                  func=animate,
-                                  frames=len(real_trajectory['x']),
-                                  interval=10,
-                                  repeat=False,
-                                  blit=False)
-    plt.show()

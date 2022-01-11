@@ -16,7 +16,7 @@ import csv
 import os
 
 
-def init_simulation(mpc=True, traj_tracking=True, time_horizon=50, obstacle=False):
+def init_simulation(mpc=True, time_horizon=50, obstacle=False):
     """
     Function for initializing multiple elements of the simulation which are generally common. Depending on the
     values of the parameters the policy will be adjusted

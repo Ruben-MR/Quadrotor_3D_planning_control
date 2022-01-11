@@ -1,3 +1,6 @@
+"""
+RRT_star class definition file
+"""
 import numpy as np
 from numpy.linalg import norm
 from Obstacle import collision_check_path, plot_three_dee_box

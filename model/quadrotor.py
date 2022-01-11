@@ -1,3 +1,6 @@
+"""
+File for the quadrotor class definition, used in simulation and the Model Predictive Controller
+"""
 import numpy as np
 from numpy.linalg import inv, norm
 import scipy.integrate
@@ -24,7 +27,7 @@ def quat_dot(quat, omega):
     return quat_dot
 
 
-class Quadrotor():
+class Quadrotor:
     """
     Quadrotor forward dynamics model.
     """

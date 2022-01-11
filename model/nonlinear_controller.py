@@ -1,9 +1,16 @@
+"""
+File containing the implementation of the Geometric Nonlinear Controller for trajectory tracking
+"""
 import numpy as np
 from scipy.spatial.transform import Rotation
 from numpy.linalg import norm
 
 
 class GeometricController:
+    """
+    Geometric controller class, instantiated with no parameters and which can be called by means of the "control"
+    function to which the state of the quadrotor must be passed (state) in addition to the desired pose (flat_output)
+    """
     def __init__(self):
         
         self.Kp_pos = np.diag([83, 83, 245])
