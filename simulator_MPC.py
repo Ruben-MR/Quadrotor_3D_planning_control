@@ -18,16 +18,16 @@ if __name__ == "__main__":
     '''
     ################################################################
     # some parameters
-    obstacle = False # whether to have an local obstacle
+    obstacle = True # whether to have an local obstacle
     use_pre_saved_traj = True # whether to generate new trajectory using RRT* + trajectory smoothing
     dynamic_obstacle = False # whether to use dynamic obstacle
     collision_avoidance_guarantee = False # whether to provide collision avoidance guarantee
     waypoint_navigation = False # whether to use waypoints navigation given by RRT* instead of trajectory given by min_snap
     min_snap = True
     time_optimal = True
-    slow_factor = 2 # whether to slow down the time-optimal trajectory
+    slow_factor = 1.4 # whether to slow down the time-optimal trajectory
     traj_total_time = 10 # only valid when time-optimal = False for min_snap
-    scenario = 1 # which scenario
+    scenario = 4 # which scenario
 
     if dynamic_obstacle:
         obstacle = True
@@ -79,9 +79,6 @@ if __name__ == "__main__":
 
         print("Smoothing completed, tracking trajectory")
 
-        if dynamic_obstacle:
-            obstacle_traj = np.flipud(pos)  # reverse the trajectory as obstacle trajectory
-
         # Plot the initial point (may don't need it)
         ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2], c='mediumorchid', linewidth=2, label='Planned_path')
         real_trajectory = np.zeros((1, 3))
@@ -95,6 +92,9 @@ if __name__ == "__main__":
             x_interp = np.linspace(0, len(pos)-1, int(slow_factor * len(pos)))
             pos = f_pos(x_interp)
             vel = f_vel(x_interp) / slow_factor
+
+            if dynamic_obstacle:
+                obstacle_traj = np.flipud(pos)  # reverse the trajectory as obstacle trajectory
 
             # follow the path in segments
             for i in range(len(pos) - policy.model.N):
@@ -155,6 +155,9 @@ if __name__ == "__main__":
             waypoints_vel = vel[waypoints_idx]/5
             # waypoints = path_list
             i = 0
+
+            if dynamic_obstacle:
+                obstacle_traj = np.flipud(pos)  # reverse the trajectory as obstacle trajectory
 
             while(True):
                 if dynamic_obstacle:
