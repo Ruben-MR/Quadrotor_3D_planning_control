@@ -85,7 +85,7 @@ if __name__ == "__main__":
         x_start = starts[0]
         x_goal = ends[0]
 
-        path_points = np.load('../experiment_data_videos/front_end/RRT_2/RRT_points_scenario_'+str(scenario) +
+        path_points = np.load('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario) +
                                  '_num_iter_4000_goal_1.npz')
         print(path_points['simplified_path'])
         start = time.time()

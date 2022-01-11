@@ -169,8 +169,8 @@ if __name__ == "__main__":
     env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario = 5
-    Ts = [4, 6, 8]
+    scenario = 0
+    Ts = [24]
     penalty = 0
     for T in Ts:
         obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         x_start = starts[0]
         x_goal = ends[0]
         # Load the data from previous test and compute minimum snap
-        path_points = np.load('../experiment_data_videos/front_end/RRT_2/RRT_points_scenario_' + str(scenario) +
+        path_points = np.load('../experiment_data_videos/front_end/RRT/RRT_points_scenario_' + str(scenario) +
                               '_num_iter_4000_goal_1.npz')
         print(path_points["simplified_path"])
         start = time.time()

@@ -262,7 +262,7 @@ if __name__ == '__main__':
         print("length of simplified path:" + str(length))
         save_file = True
         if save_file:
-            np.savez('../experiment_data_videos/front_end/RRT_2/RRT_points_scenario_'+str(scenario)+'_num_iter_'+str(num_iter)+
+            np.savez('../experiment_data_videos/front_end/RRT/RRT_points_scenario_'+str(scenario)+'_num_iter_'+str(num_iter)+
                     '_goal_'+str(goal), complete_path=RRT_path, simplified_path=RRT_simplified_path)
 
         plt.show(block=True)
