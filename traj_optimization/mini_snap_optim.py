@@ -170,7 +170,7 @@ if __name__ == "__main__":
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
     scenario = 0
-    Ts = [24]
+    Ts = [8]
     penalty = 0
     for T in Ts:
         obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)

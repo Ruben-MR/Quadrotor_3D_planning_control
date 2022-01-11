@@ -236,7 +236,7 @@ class RRT_star:
 
 if __name__ == '__main__':
     # Define the obstacles, plotting figure and axis and other scenario properties
-    scenario = 0
+    scenario = 2
     num_iters = [1500, 2500, 4000]
     goal = 1
     for num_iter in num_iters:
@@ -263,7 +263,7 @@ if __name__ == '__main__':
         for i in range(1, np.size(RRT_simplified_path, 0)):
             length += np.linalg.norm(RRT_simplified_path[i, :] - RRT_simplified_path[i - 1, :])
         print("length of simplified path:" + str(length))
-        save_file = True
+        save_file = False
         if save_file:
             np.savez('../full_results_and_more/front_end/RRT/RRT_points_scenario_'+str(scenario)+'_num_iter_'+str(num_iter)+
                     '_goal_'+str(goal), complete_path=RRT_path, simplified_path=RRT_simplified_path)

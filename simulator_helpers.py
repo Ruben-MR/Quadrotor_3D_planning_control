@@ -230,7 +230,7 @@ if __name__ == "__main__":
     Small auxiliary main function for testing the helpers and seeing the empty scenario.
     """
     point = {'x': np.array([0, 0, 0])}
-    obstacles, fig, axis, boundary, start_points, end_points = generate_env(0)
+    obstacles, fig, axis, boundary, start_points, end_points = generate_env(2)
     print(find_closest(point, obstacles))
     for box in obstacles:
         plot_three_dee_box(box, ax=axis)

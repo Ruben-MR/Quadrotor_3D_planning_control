@@ -36,7 +36,10 @@ if __name__ == "__main__":
     x_goal = ends[0]
 
     if not use_pre_saved_traj:
-        RRT = RRT_star(x_start, RRT_iterations, obstacles, margin=0.5)
+        if obstacle:
+            RRT = RRT_star(x_start, RRT_iterations, obstacles, thr=1, margin=0.5)
+        else:
+            RRT = RRT_star(x_start, RRT_iterations, obstacles)
         path_exists = RRT.find_path(x_goal, map_boundary)
     else:
         path_exists = True
