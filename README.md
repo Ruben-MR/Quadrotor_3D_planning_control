@@ -10,16 +10,16 @@ Please, note that the obstacle avoidance with an additional obstacle (not consid
 tested on scenarios 1 and 2, which were observed to be sufficiently wide and ample so as to ensure complete collision avoidance.
 
 ### Scenario 0
-![Scenario 0](experiment_data_videos/README photos/Scenario_0.png "scenario_0")
+![Scenario 0](full_results_and_more/README photos/Scenario_0.png "scenario_0")
 
 ### Scenario 1
-![Scenario 1](experiment_data_videos/README photos/Scenario_1.png "scenario_1")
+![Scenario 1](full_results_and_more/README photos/Scenario_1.png "scenario_1")
 
 ### Scenario 2
-![Scenario 2](experiment_data_videos/README photos/Scenario_2.png "scenario_2")
+![Scenario 2](full_results_and_more/README photos/Scenario_2.png "scenario_2")
 
 ### Scenario 3
-![Scenario 3](experiment_data_videos/README photos/Scenario_3.png "scenario_3")
+![Scenario 3](full_results_and_more/README photos/Scenario_3.png "scenario_3")
 
 ## Simulator file usage
 

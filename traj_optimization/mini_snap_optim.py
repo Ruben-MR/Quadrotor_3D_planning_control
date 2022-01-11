@@ -180,7 +180,7 @@ if __name__ == "__main__":
         x_start = starts[0]
         x_goal = ends[0]
         # Load the data from previous test and compute minimum snap
-        path_points = np.load('../experiment_data_videos/front_end/RRT/RRT_points_scenario_' + str(scenario) +
+        path_points = np.load('../full_results_and_more/front_end/RRT/RRT_points_scenario_' + str(scenario) +
                               '_num_iter_4000_goal_1.npz')
         print(path_points["simplified_path"])
         start = time.time()
@@ -222,10 +222,10 @@ if __name__ == "__main__":
 
         # Save the data
         if penalty == 0:
-            np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_T_'+str(T)+'.npz',
+            np.savez('../full_results_and_more/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_T_'+str(T)+'.npz',
                      pos=pos, vel=vel, acc=acc, jerk=jerk, snap=snap, ts=ts)
         else:
-            np.savez('../experiment_data_videos/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_penalty_'+str(penalty)+'.npz',
+            np.savez('../full_results_and_more/front_end/traj_generation/mini_snap_scenario_'+str(scenario)+'_penalty_'+str(penalty)+'.npz',
                      pos=pos, vel=vel, acc=acc, jerk=jerk, snap=snap, ts=ts)
 
         # Plot everything and save it
@@ -233,8 +233,8 @@ if __name__ == "__main__":
             plot_three_dee_box(box, ax=ax1)
         ax1.plot(pos[:, 0], pos[:, 1], pos[:, 2])
         if penalty == 0:
-            plt.savefig('../experiment_data_videos/front_end/traj_generation/min_snap_scenario_' + str(scenario) + '_T_'+str(T)+'.jpg')
+            plt.savefig('../full_results_and_more/front_end/traj_generation/min_snap_scenario_' + str(scenario) + '_T_'+str(T)+'.jpg')
         else:
-            plt.savefig('../experiment_data_videos/front_end/traj_generation/min_snap_scenario_' + str(scenario) + '_penalty_' + str(penalty) + '.jpg')
+            plt.savefig('../full_results_and_more/front_end/traj_generation/min_snap_scenario_' + str(scenario) + '_penalty_' + str(penalty) + '.jpg')
         plt.show()
 
