@@ -124,11 +124,11 @@ class MPC_traj:
         # Set runtime constraints
         self.bounding_box_size = bounding_box_size
         # only bound first 5 steps (since MPC only executes the first control command)
-        lb_first = np.tile([0, state[0]-self.bounding_box_size, state[1]-self.bounding_box_size, state[2]-self.bounding_box_size], (15,))
-        lb_second = np.tile([0, state[0]-100, state[1]-100, state[2]-100], (self.model.N - 15, ))
+        lb_first = np.tile([0, state[0]-self.bounding_box_size, state[1]-self.bounding_box_size, state[2]-self.bounding_box_size], (5,))
+        lb_second = np.tile([0, state[0]-100, state[1]-100, state[2]-100], (self.model.N - 5, ))
         self.problem["lb"] = np.hstack((lb_first, lb_second))
-        ub_first = np.tile([2.5*self.mass*self.g, state[0]+self.bounding_box_size, state[1]+self.bounding_box_size, state[2]+self.bounding_box_size], (15, ))
-        ub_second = np.tile([2.5*self.mass*self.g, state[0]+100, state[1]+100, state[2]+100], (self.model.N - 15, ))
+        ub_first = np.tile([2.5*self.mass*self.g, state[0]+self.bounding_box_size, state[1]+self.bounding_box_size, state[2]+self.bounding_box_size], (5, ))
+        ub_second = np.tile([2.5*self.mass*self.g, state[0]+100, state[1]+100, state[2]+100], (self.model.N - 5, ))
         self.problem["ub"] = np.hstack((ub_first, ub_second))
 
         # Time to solve the NLP!

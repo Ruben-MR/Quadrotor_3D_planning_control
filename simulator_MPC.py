@@ -21,11 +21,11 @@ if __name__ == "__main__":
     obstacle = True # whether to have an local obstacle
     use_pre_saved_traj = True # whether to generate new trajectory using RRT* + trajectory smoothing
     dynamic_obstacle = False # whether to use dynamic obstacle
-    collision_avoidance_guarantee = False # whether to provide collision avoidance guarantee
+    collision_avoidance_guarantee = True # whether to provide collision avoidance guarantee
     waypoint_navigation = False # whether to use waypoints navigation given by RRT* instead of trajectory given by min_snap
     min_snap = True
     time_optimal = True
-    slow_factor = 1.4 # whether to slow down the time-optimal trajectory
+    slow_factor = 1.8 # whether to slow down the time-optimal trajectory
     traj_total_time = 10 # only valid when time-optimal = False for min_snap
     scenario = 4 # which scenario
 
