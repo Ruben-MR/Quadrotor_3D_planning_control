@@ -1,7 +1,3 @@
-import sys
-
-sys.path.insert(0, "C:\\Users\\paulf\\Desktop\\MSc_ROB\\RO47005_Planning_&_Decision_Making\\ForcesPro")
-
 import numpy as np
 from numpy.linalg import norm
 from Obstacle import collision_check_path, plot_three_dee_box

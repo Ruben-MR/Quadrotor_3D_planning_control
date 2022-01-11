@@ -4,7 +4,7 @@ from numpy.linalg import inv
 from matplotlib import animation
 import forcespro
 from model.quadrotor import Quadrotor
-from model.MPC_basic import MPC_basic
+from old_files.MPC_basic import MPC_basic
 
 class MPC_wip(MPC_basic):
     def __init__(self):
