@@ -30,6 +30,7 @@ plt.title('Computation time of RRT with different iterations')
 plt.legend(loc='best')
 plt.show()
 
+
 # length of path compared with simplified path
 len_sce0_g1 = (24.78 + 25.087 + 24.53) / 3
 simplify_len_sce0_g1 = (24.61 + 24.49 + 24.18) / 3
@@ -47,7 +48,6 @@ simplify_length_path = np.array([simplify_len_sce0_g1, simlify_len_sce1_g1, simp
 plt.bar(sce, length_path, color ='r', width = barWidth, label = 'path')
 plt.bar(simplify_sce, simplify_length_path, color ='b', width = barWidth, label = 'simplified path')
 
- 
 plt.xlabel("Differnet scenarios")
 plt.ylabel("Length of path (m)")
 plt.xticks([r + barWidth/2 for r in range(3)],
@@ -56,17 +56,18 @@ plt.title("Length of path compared with simplified path in different scenarios")
 plt.legend()
 plt.show()
 
+
 # computation time for minimum snap
 minisnap_time_sce0 = np.array([24.28, 23.25, 998.85])
 minisnap_time_sce1 = np.array([11.41, 45.96, 475.17])
 minisnap_time_sce5 = np.array([10.46, 8.87, 274.5])
-
 
 penalty = np.array([1250, 2500, 10000])
 plt.figure(3)
 plt.plot(penalty, minisnap_time_sce0, 's-', color = 'r', label = 'scenario 0')
 plt.plot(penalty, minisnap_time_sce1, 's-', color = 'g', label = 'scenario 1')
 plt.plot(penalty, minisnap_time_sce5, 's-', color = 'b', label = 'scenario 5')
+
 
 # trajectory time for minimum snap
 traj_time_sce0 = np.array([7.85, 7.26, 6.228])
@@ -78,14 +79,10 @@ plt.title('Computation time of minimum snap with different penalty')
 plt.legend(loc='best')
 plt.show()
 
-
 plt.figure(4)
 plt.plot(penalty, traj_time_sce0, 'o-', color = 'r', label = 'scenario 0')
 plt.plot(penalty, traj_time_sce1, 'o-', color = 'g', label = 'scenario 1')
 plt.plot(penalty, traj_time_sce5, 'o-', color = 'b', label = 'scenario 5')
-
-
-
 
 plt.xlabel('Penalty')
 plt.ylabel('Time (s)')
