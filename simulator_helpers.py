@@ -229,7 +229,7 @@ if __name__ == "__main__":
     """
     Small auxiliary main function for testing the helpers and seeing the empty scenario.
     """
-    point = {'x': np.array([14.5, 4.5, 2.75])}
+    point = {'x': np.array([0, 0, 0])}
     obstacles, fig, axis, boundary, start_points, end_points = generate_env(0)
     print(find_closest(point, obstacles))
     for box in obstacles:

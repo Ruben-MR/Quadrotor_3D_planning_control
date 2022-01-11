@@ -3,45 +3,33 @@ Repository for the Planning and Decision Making Project Code
 
 The present document describes the contents of the folders and the instructions on the usage of the different simulator files and functions
 
-## Project report
+## Scenarios
 
-- [View the report on Overleaf](https://www.overleaf.com/read/djjcwndjbvxw)
+The current algorithm has been developed and tested in four different scenarios, represented in the following pictures. 
+Please, note that the obstacle avoidance with an additional obstacle (not considered in global planning) has only been
+tested on scenarios 1 and 2, which were observed to be sufficiently wide and ample so as to ensure complete collision avoidance.
 
-# Simulator file usage
+### Scenario 0
+![Scenario 0](experiment_data_videos/README photos/Scenario_0.png "scenario_0")
 
-### simulator.py
+### Scenario 1
+![Scenario 1](experiment_data_videos/README photos/Scenario_1.png "scenario_1")
 
+### Scenario 2
+![Scenario 2](experiment_data_videos/README photos/Scenario_2.png "scenario_2")
 
-### simulator_MPC.py
+### Scenario 3
+![Scenario 3](experiment_data_videos/README photos/Scenario_3.png "scenario_3")
 
+## Simulator file usage
 
-## Info on the used functions
+The file **simulator.py** depicts the trajectory tracking with the Geometric Nonlinear Controller. Multiple settings are
+provided both for the RRT* and the minimum snap optimization, with their corresponding descriptions in the file itself.
 
-### RRT*
-
-- The RRT_star class can be instantiated using as compulsory arguments the initial position, introduced as a numpy array,the number of iterations of the algorithm, the list of obstacle objects in the environment.
-- The optional arguments are:
-  - The threshold for self-connection with the goal, which is defined with a default value of 0.5
-  - The axis for animation, if none are provided, no animation of the RRT will be carried out and only the final path will be represented at the end of the simulation by "plot_all"
-  - A margin to be left with respect to the obstacles (mostly required for the MPC).
-- In order to execute the algorithm, use the **find_path** function, which takes as arguments the goal point in the same format as the start point and the map_boundaries to which the samples will be constrained. If the RRT_star object has been instantiated with an axis for animation, the animation will start immediately as this function is being called.
-- Once the algorithm has run, the path can be obtained in two different ways:
-  - **get_path**: will return the complete path found by the RRT* algorithm
-  - **get_straight_path**: modification of the complete path found by the algorithm in which, starting from the goal, the points are consecutively connected with the furthest point in the path without colliding with obstacles. ***It is highly recommendable to use it with advanced versions of the minimum snap (actuator constraints) to reduce the computation time***.
-- A static plot of the generated tree can be obtained, by means of the "plotTree" method. If a solution has been found, the corresponding path is highlighted.
-
-### Minimum snap
-
-- The function to call the minimum snap optimization is **min_snap_optimizer_3d**.
-- The only two parameters necessarily required are the path from the RRT* algorithm and the penalty (integer) that will be imposed to time in the cost function.
-- The remaining parameters are optional and determine the capabilities and guarantees of the algorithm
-  - **time_optimal**: when set to **True**, the time allocated for each segment of the path will be optimized. In such case, any of the other options can be used. When set to False, the time allocated for each segment will be calculated proportionally to the total length of the path and a given total time for completing the path, given as an additional argument.
-  - **total_time**: total time required to complete the path, can only be used when **time_optimal** is set to **False**.
-  - **act_const**: can only be set to **True** when **time_optimal** so is, since otherwise it could lead to conflicts with the total time requirement. It performs the optimization ensuring that the trajectory will not require the drone to exceed the limits of actuation. Please, note that this will slow down the optimization. When set to **False** a value of 2700 for the penalty is selected, which allows for a safe profile of the cost function and convergence of the solution without excessive penalty on time.
-  - **check_collision**: can be used regardless of the value of **time_optimal**. It will check for collisions with the provided list of obstacles and modify the path to avoid collisions, if detected. Note that a single collision will twofold or more the computation time.
-  - **obstacles**: only required if **check_collision** is set to **True**, must be a list of Obstacle objects to check collision with.
-
-Therefore, the more constraints and complex the optimization, increased computation time, but better guarantees. If the completion time of the path is desired to be changed, this can be achieved by setting **time_optimal** to **False** and providing the required completion time. An alternative option is to reduce the **penalty** value, indistinctly of whether actuation constraints are used or not. However, for values of the penalty larger than 2700 no change will be done if **act_const** is set to **False** as the value will be capped.
+The file **simulator_MPC.py** allows for the simulation of the MPC in multiple operation modes, but with more limited
+options in terms of minimum snap. Please notice once again that, in order to perform collision avoidance with
+an unpredicted obstacle (that is, an obstacle in the way of the trajectory), scenarios 1 and 2 are the only ones for
+which the avoidance has been tested to be performed robustly.
 
 ## References
 - [Dynamic obstacle avoidance](https://ieeexplore.ieee.org/document/9274865)
