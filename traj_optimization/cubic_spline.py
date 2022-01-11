@@ -5,7 +5,6 @@ from traj_optimization.min_snap_utils import *
 from simulator_helpers import generate_env, init_simulation
 from Obstacle import plot_three_dee_box
 from matplotlib import pyplot as plt
-from min_snap_utils import find_collisions, get_max_actuation
 import time
 
 
