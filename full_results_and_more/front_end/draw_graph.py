@@ -4,7 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+'''
 # computation time for RRT
 rrt_time_sce0_goal1 = np.array([52.82, 99.32, 261.9])
 rrt_time_sce0_goal2 = np.array([43.09, 93.22, 262.72])
@@ -55,37 +55,36 @@ plt.xticks([r + barWidth/2 for r in range(3)],
 plt.title("Length of path compared with simplified path in different scenarios")
 plt.legend()
 plt.show()
-
+'''
 
 # computation time for minimum snap
 minisnap_time_sce0 = np.array([24.28, 23.25, 998.85])
 minisnap_time_sce1 = np.array([11.41, 45.96, 475.17])
 minisnap_time_sce5 = np.array([10.46, 8.87, 274.5])
-
-penalty = np.array([1250, 2500, 10000])
-plt.figure(3)
-plt.plot(penalty, minisnap_time_sce0, 's-', color = 'r', label = 'scenario 0')
-plt.plot(penalty, minisnap_time_sce1, 's-', color = 'g', label = 'scenario 1')
-plt.plot(penalty, minisnap_time_sce5, 's-', color = 'b', label = 'scenario 5')
-
-
 # trajectory time for minimum snap
 traj_time_sce0 = np.array([7.85, 7.26, 6.228])
 traj_time_sce1 = np.array([5.39, 5.18, 4.28])
 traj_time_sce5 = np.array([5.78, 5.36, 4.59])
-plt.xlabel('Penalty')
-plt.ylabel('Time (s)')
-plt.title('Computation time of minimum snap with different penalty')
-plt.legend(loc='best')
-plt.show()
 
-plt.figure(4)
-plt.plot(penalty, traj_time_sce0, 'o-', color = 'r', label = 'scenario 0')
-plt.plot(penalty, traj_time_sce1, 'o-', color = 'g', label = 'scenario 1')
-plt.plot(penalty, traj_time_sce5, 'o-', color = 'b', label = 'scenario 5')
+penalty = np.array([1250, 2500, 10000])
+fig, ax1 = plt.subplots()
+ax2 = ax1.twinx()
 
-plt.xlabel('Penalty')
-plt.ylabel('Time (s)')
-plt.title('Trajectory time of minimum snap with different penalty')
-plt.legend(loc='best')
+ax1.plot(penalty, minisnap_time_sce0, 's-', color = 'r', label = 'computation time in sce 0')
+ax1.plot(penalty, minisnap_time_sce1, 'o-', color = 'r', label = 'computation time in sce 1')
+ax1.plot(penalty, minisnap_time_sce5, '^-', color = 'r', label = 'computation time in sce 5')
+
+ax1.set_xlabel('Penalty')
+ax1.set_ylabel('Computation time (s)')
+ax1.set_ylim(0,1300)
+ax1.legend(loc='upper right')
+
+ax2.plot(penalty, traj_time_sce0, 's-', color = 'b', label = 'trajectory time in sce 0')
+ax2.plot(penalty, traj_time_sce1, 'o-', color = 'b', label = 'trajectory time in sce 1')
+ax2.plot(penalty, traj_time_sce5, '^-', color = 'b', label = 'trajectory time in sce 5')
+
+ax2.set_ylabel('Trajectory time (s)')
+ax2.set_ylim(3,10)
+ax2.legend(loc='upper left')
+plt.title('Computation and trajectory time of minimum snap with different penalty')
 plt.show()
