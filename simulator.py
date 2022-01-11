@@ -12,16 +12,21 @@ from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 from scipy import interpolate
 
 ####################################################################################
-use_pre_saved_traj = True # whether to generate new trajectory using RRT* + trajectory smoothing
-min_snap = True
-slow_factor = 1.5  # whether to slow down the time-optimal trajectory
-traj_total_time = 10 # only valid when time-optimal = False for min_snap
-scenario = 1
+use_pre_saved_traj = False   # whether to generate new trajectory using RRT* and smoothing or use a precomputed one
+RRT_iterations = 2000       # Number of iterations of the RRT_star algorithm
+min_snap = True             # Set to True is minimum snap is to be used as interpolation or cubic splines is preferred
+time_optimal = True         # When set to True, the minimum snap will be applied in a time-optimization fashion
+traj_total_time = 10        # When using minimum snap and time_optimal is False, set the completion time of the path
+check_collision = True      # When set to True, the minimum snap will check for collision avoidance with the obstacles
+act_constr = False          # When set to True, actuator constraints will be explicitly accounted for in minimum snap
+penalty = 2500              # Time penalty value of the minimum snap optimization, will be capped if act_constr is False
+slow_factor = 1             # Only required for comparison with the MPC with obstacle avoidance
+scenario = 0                # Scenario to test the algorithm on
 ####################################################################################
 
 if __name__ == "__main__":
     # Create the quadrotor class, controller and other initial values
-    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=False)
+    env, policy, t, time_step, total_SE, total_energy, _ = init_simulation(mpc=False)
 
     # Define the obstacles, plotting figure and axis and other scenario properties
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
@@ -30,13 +35,15 @@ if __name__ == "__main__":
     x_start = starts[0]
     x_goal = ends[0]
     if not use_pre_saved_traj:
-        RRT = RRT_star(x_start, 1500, obstacles, 1)
+        RRT = RRT_star(x_start, RRT_iterations, obstacles)
         path_exists = RRT.find_path(x_goal, map_boundary)
     else:
         path_exists = True
 
     # Reset the quadrotor object to the initial position
     current_state = env.reset(position=x_start)
+
+    # Track the number of collisions just to make sure
     num_collision = 0
 
     # If a path has been found, proceed to follow it
@@ -50,8 +57,10 @@ if __name__ == "__main__":
             path_list = RRT.get_straight_path()
             if min_snap:
                 # Parameters can be adjusted as necessary
-                pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=True,
-                                                    act_const=False, check_collision=False, obstacles=None, total_time=traj_total_time)
+                pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, act_const=act_constr,
+                                                                      time_optimal=time_optimal, obstacles=obstacles,
+                                                                      check_collision=check_collision,
+                                                                      total_time=traj_total_time)
             else:
                 pos, vel, acc = cubic_spline(path_list, T=traj_total_time)
 
@@ -69,14 +78,15 @@ if __name__ == "__main__":
         real_orientation = np.zeros((1, 4))
 
         # interpolation of time-optimal trajectory
-        x = np.linspace(0, len(pos) - 1, len(pos))
-        f_pos = interpolate.interp1d(x, pos, axis=0)
-        f_vel = interpolate.interp1d(x, vel, axis=0)
-        f_acc = interpolate.interp1d(x, acc, axis=0)
-        x_interp = np.linspace(0, len(pos) - 1, int(slow_factor * len(pos)))
-        pos = f_pos(x_interp)
-        vel = f_vel(x_interp) / slow_factor
-        acc = f_acc(x_interp) / slow_factor
+        if time_optimal and (slow_factor > 1):
+            x = np.linspace(0, len(pos) - 1, len(pos))
+            f_pos = interpolate.interp1d(x, pos, axis=0)
+            f_vel = interpolate.interp1d(x, vel, axis=0)
+            f_acc = interpolate.interp1d(x, acc, axis=0)
+            x_interp = np.linspace(0, len(pos) - 1, int(slow_factor * len(pos)))
+            pos = f_pos(x_interp)
+            vel = f_vel(x_interp) / slow_factor
+            acc = f_acc(x_interp) / slow_factor
 
         for i in range(len(pos)):
             closest_obstacle = find_closest(current_state, obstacles)
