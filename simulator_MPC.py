@@ -8,7 +8,6 @@ File for simulation of the quadrotor in a given environment. This file is used f
 import numpy as np
 from RRT_3D.RRT_star_plotter import RRT_star
 from simulator_helpers import generate_env, plot_all, init_simulation, find_closest
-from traj_optimization.cubic_spline import cubic_spline
 from traj_optimization.mini_snap_optim import min_snap_optimizer_3d
 from scipy import interpolate
 
@@ -18,22 +17,16 @@ if __name__ == "__main__":
     '''
     ################################################################
     # some parameters
-    obstacle = True # whether to have an local obstacle
-    use_pre_saved_traj = True # whether to generate new trajectory using RRT* + trajectory smoothing
-    dynamic_obstacle = False # whether to use dynamic obstacle
-    collision_avoidance_guarantee = True # whether to provide collision avoidance guarantee
-    waypoint_navigation = False # whether to use waypoints navigation given by RRT* instead of trajectory given by min_snap
-    min_snap = True
-    time_optimal = True
-    slow_factor = 1.8 # whether to slow down the time-optimal trajectory
-    traj_total_time = 10 # only valid when time-optimal = False for min_snap
-    scenario = 4 # which scenario
-
-    if dynamic_obstacle:
-        obstacle = True
+    obstacle = True                         # whether to have a local obstacle
+    RRT_iterations = 2000                   # Number of iterations of the RRT_star algorithm
+    use_pre_saved_traj = False              # whether to generate new trajectory using RRT* + trajectory smoothing
+    collision_avoidance_guarantee = True    # whether to provide collision avoidance guarantee
+    waypoint_navigation = False             # whether to use waypoints navigation instead of min_snap trajectory
+    slow_factor = 1.8                       # whether to slow down the time-optimal trajectory
+    scenario = 2                            # which scenario to test the algorithm on
     ###############################################################
     # Create the quadrotor class, controller and other initial values
-    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, traj_tracking=True, time_horizon = 40, obstacle=obstacle)
+    env, policy, t, time_step, total_SE, total_energy, penalty = init_simulation(mpc=True, time_horizon=40, obstacle=obstacle)
     #################################################################
     # Define the obstacles, plotting figure and axis and other scenario properties
     obstacles, fig, ax1, map_boundary, starts, ends = generate_env(scenario)
@@ -43,7 +36,7 @@ if __name__ == "__main__":
     x_goal = ends[0]
 
     if not use_pre_saved_traj:
-        RRT = RRT_star(x_start, 1500, obstacles, 1, margin=0.5)
+        RRT = RRT_star(x_start, RRT_iterations, obstacles, margin=0.5)
         path_exists = RRT.find_path(x_goal, map_boundary)
     else:
         path_exists = True
@@ -61,15 +54,12 @@ if __name__ == "__main__":
         if not use_pre_saved_traj:
             # Apply the path interpolation algorithm selected, the path is simplified to make if time-feasible
             path_list = RRT.get_straight_path()
-            if min_snap:
-                # Parameters can be adjusted as necessary
-                pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=time_optimal,
-                                                    act_const=False, check_collision=False, obstacles=None, total_time=traj_total_time)
-            else:
-                pos, vel, acc = cubic_spline(path_list, T=traj_total_time)
+            # Parameters can be adjusted as necessary
+            pos, vel, acc, jerk, snap, ts = min_snap_optimizer_3d(path_list, penalty=penalty, time_optimal=True,
+                                                                  act_const=False, check_collision=True,
+                                                                  obstacles=obstacles)
             # save the trajectory
             np.savez('traj.npz', pos=pos, vel=vel, acc=acc, path_list=path_list)
-
         else:
             # load the pre-saved trajectory
             traj = np.load('traj.npz')
@@ -93,22 +83,12 @@ if __name__ == "__main__":
             pos = f_pos(x_interp)
             vel = f_vel(x_interp) / slow_factor
 
-            if dynamic_obstacle:
-                obstacle_traj = np.flipud(pos)  # reverse the trajectory as obstacle trajectory
-
             # follow the path in segments
             for i in range(len(pos) - policy.model.N):
-
-                if dynamic_obstacle:
-                    # dynamic obstacle
-                    pos_obstacle = obstacle_traj[i]
-                    print("obstacle position: ", pos_obstacle)
-                elif obstacle and not dynamic_obstacle:
+                if obstacle:
                     # static obstacle
                     show_up_time = int(0.55 * len(pos))
                     pos_obstacle = pos[show_up_time]
-                else:
-                    pass
 
                 if obstacle:
                     # if the agent is close to the obstacle, then avoid it
@@ -146,9 +126,8 @@ if __name__ == "__main__":
                 # if current position is very close to the goal point, terminate the loop
                 if np.sqrt(np.sum((obs['x'] - pos[-1]) ** 2)) <= 0.1:
                     break
-
-        else: # use waypoint navigation, no velocity information, only waypoints given by RRT*
-
+        # use waypoint navigation, no velocity information, only waypoints given by RRT*
+        else:
             down_sampling_points = 80
             waypoints_idx = np.linspace(0, len(pos)-1, down_sampling_points).astype(np.int)
             waypoints = pos[waypoints_idx]
@@ -156,21 +135,12 @@ if __name__ == "__main__":
             # waypoints = path_list
             i = 0
 
-            if dynamic_obstacle:
-                obstacle_traj = np.flipud(pos)  # reverse the trajectory as obstacle trajectory
-
             while(True):
-                if dynamic_obstacle:
-                    # dynamic obstacle
-                    pos_obstacle = obstacle_traj[i]
-                    print("obstacle position: ", pos_obstacle)
-                elif obstacle and not dynamic_obstacle:
+                if obstacle:
                     # static obstacle
                     show_up_time = int(0.5 * len(pos))
                     pos_obstacle = pos[show_up_time]
                     print("obstacle position: ", pos_obstacle)
-                else:
-                    pass
 
                 if obstacle:
                     # if the agent is close to the obstacle, then avoid it
@@ -224,9 +194,7 @@ if __name__ == "__main__":
 
         if obstacle:
             ax1.plot(pos_obstacle[0], pos_obstacle[1], pos_obstacle[2], marker='o', c='y', markersize=16)
-        if dynamic_obstacle:
-            plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation, dynamic=True, obstacle_trajectory=obstacle_traj)
-        else:
-            plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
+
+        plot_all(fig, ax1, obstacles, x_start, x_goal, path_list, real_trajectory, real_orientation)
 
         print(len(pos))
