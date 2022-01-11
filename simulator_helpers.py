@@ -126,8 +126,6 @@ def generate_env(scenario):
 
     print("Loaded scenario successfully.")
 
-    # TODO: there might be a better way to implement the scenarios for multiple drones.
-
     return obstacles, fig, axis, boundary, start_points, end_points
 
 
@@ -229,7 +227,7 @@ def plot_all(fig, axis, obstacles, start, goal, path, trajectory, orientation, d
 
 if __name__ == "__main__":
     """
-    Small auxiliary main function for testing the different functions. Only called if the file is run alone.
+    Small auxiliary main function for testing the helpers and seeing the empty scenario.
     """
     point = {'x': np.array([14.5, 4.5, 2.75])}
     obstacles, fig, axis, boundary, start_points, end_points = generate_env(0)
@@ -239,5 +237,5 @@ if __name__ == "__main__":
     axis.plot(point['x'][0], point['x'][1], point['x'][2], 'r.')
     plt.show()
 
-    show_scenario_no_solution(5)
+    show_scenario_no_solution(2)
 
