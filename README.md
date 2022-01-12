@@ -6,7 +6,7 @@ The present document describes the contents of the folders and the instructions 
 ## How to download and test
 
 Please, in order not to encounter any trouble while running the files, clone the repository to a folder and use pyCharm.
-Notice that using a different IDE may require modifications to the import files. Additionally, FORCESPRO needs to be
+Notice that using a different IDE may require modifications to the import statements. Additionally, FORCESPRO needs to be
 installed in the device and the current libraries with respective versions need to be installed (in a virtual environment
 is enough):
 
@@ -43,6 +43,12 @@ The file **simulator_MPC.py** allows for the simulation of the MPC in multiple o
 options in terms of minimum snap. Please notice once again that, in order to perform collision avoidance with
 an unpredicted obstacle (that is, an obstacle in the way of the trajectory), scenario 2 is the only one for
 which the avoidance has been tested to be performed robustly.
+
+## Further results
+
+The folder full_results_and_more contains data related to some of the tests carried out during the evaluation of the 
+solution as well as file summaries of the inspected results. The folder back_end contains data related to the trajectory 
+tracking and obstacle avoidance; while the folder front_end contains the data and results of RRT and minimum snap.
 
 ## References
 - [Dynamic obstacle avoidance](https://ieeexplore.ieee.org/document/9274865)
