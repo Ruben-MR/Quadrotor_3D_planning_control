@@ -7,7 +7,7 @@ The present document describes the contents of the folders and the instructions 
 
 The current algorithm has been developed and tested in four different scenarios, represented in the following pictures. 
 Please, note that the obstacle avoidance with an additional obstacle (not considered in global planning) has only been
-tested on scenarios 1 and 2, which were observed to be sufficiently wide and ample so as to ensure complete collision avoidance.
+tested on scenario 2, which was observed to be sufficiently wide and ample so as to ensure complete collision avoidance.
 
 ### Scenario 0
 ![Scenario 0](full_results_and_more/README photos/Scenario_0.png "scenario_0")
@@ -28,7 +28,7 @@ provided both for the RRT* and the minimum snap optimization, with their corresp
 
 The file **simulator_MPC.py** allows for the simulation of the MPC in multiple operation modes, but with more limited
 options in terms of minimum snap. Please notice once again that, in order to perform collision avoidance with
-an unpredicted obstacle (that is, an obstacle in the way of the trajectory), scenarios 1 and 2 are the only ones for
+an unpredicted obstacle (that is, an obstacle in the way of the trajectory), scenario 2 is the only one for
 which the avoidance has been tested to be performed robustly.
 
 ## References
