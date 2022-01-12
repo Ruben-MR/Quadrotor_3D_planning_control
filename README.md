@@ -3,6 +3,19 @@ Repository for the Planning and Decision Making Project Code
 
 The present document describes the contents of the folders and the instructions on the usage of the different simulator files and functions
 
+## How to download and test
+
+Please, in order not to encounter any trouble while running the files, clone the repository to a folder and use pyCharm.
+Notice that using a different IDE may require modifications to the import files. Additionally, FORCESPRO needs to be
+installed in the device and the current libraries with respective versions need to be installed (in a virtual environment
+is enough):
+
+- CADADI: 3.5.5
+- NUMPY: 1.19.5 (versions 1.20 and above not supported due to CADADI incompatibilities)
+- MATPLOTLIB: 3.3.4
+- SCIPY: 1.6.3
+- FORCESPRO: 1.5.0
+
 ## Scenarios
 
 The current algorithm has been developed and tested in four different scenarios, represented in the following pictures. 
