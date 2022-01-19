@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from scipy.spatial.transform import Rotation
 from model.MPC_3D_trajectory_tracking import MPC_traj
-from old_files.MPC_3D_waypoint_navigation import MPC_waypoint
 from model.nonlinear_controller import GeometricController
 import csv
 import os

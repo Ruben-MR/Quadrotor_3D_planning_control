@@ -105,10 +105,13 @@ def get_ab(n_seg, n_order, path, ts):
 
     # jerk continuity
     aeq_contj = get_aeq_cont(n_seg, n_order, ts, k=3)
+    aeq_conts = get_aeq_cont(n_seg, n_order, ts, k=4)
+    aeq_contc = get_aeq_cont(n_seg, n_order, ts, k=5)
+    aeq_contpop = get_aeq_cont(n_seg, n_order, ts, k=6)
 
     # Combine the matrices in a single matrix
-    aeq_cont = np.vstack((aeq_contp, aeq_contv, aeq_conta, aeq_contj))
-    beq_cont = np.zeros(4 * (n_seg - 1), )
+    aeq_cont = np.vstack((aeq_contp, aeq_contv, aeq_conta, aeq_contj, aeq_conts, aeq_contc, aeq_contpop))
+    beq_cont = np.zeros(7 * (n_seg - 1), )
     aeq = np.vstack((aeq_start, aeq_end, aeq_wp, aeq_cont))
     beq = np.concatenate((beq_start, beq_end, beq_wp, beq_cont))
     return aeq, beq
