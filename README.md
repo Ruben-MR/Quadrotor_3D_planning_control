@@ -22,17 +22,13 @@ The current algorithm has been developed and tested in four different scenarios,
 Please, note that the obstacle avoidance with an additional obstacle (not considered in global planning) has only been
 tested on scenario 2, which was observed to be sufficiently wide and ample so as to ensure complete collision avoidance.
 
-### Scenario 0
-![Scenario 0](full_results_and_more/README photos/Scenario_0.png "scenario_0")
+| Scenario 0  | Scenario 1 |
+|---|---|
+<img src="./full_results_and_more/README%20photos/Scenario_0.png" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/Scenario_1.png" alt="004" style="zoom: 50%;" /> |
 
-### Scenario 1
-![Scenario 1](full_results_and_more/README photos/Scenario_1.png "scenario_1")
-
-### Scenario 2
-![Scenario 2](full_results_and_more/README photos/Scenario_2.png "scenario_2")
-
-### Scenario 3
-![Scenario 3](full_results_and_more/README photos/Scenario_3.png "scenario_3")
+| Scenario 2 | Scenario 3 |
+|---|---|
+<img src="./full_results_and_more/README%20photos/Scenario_2.png" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/Scenario_3.png" alt="004" style="zoom: 50%;" /> |
 
 ## Simulator file usage
 
@@ -49,6 +45,21 @@ which the avoidance has been tested to be performed robustly.
 The folder full_results_and_more contains data related to some of the tests carried out during the evaluation of the 
 solution as well as file summaries of the inspected results. The folder back_end contains data related to the trajectory 
 tracking and obstacle avoidance; while the folder front_end contains the data and results of RRT and minimum snap.
+
+### Results of RRT
+| Scenario 0  | Scenario 1 |
+|---|---|
+<img src="./full_results_and_more/README%20photos/Scenario_0_4000_1_mod.png" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/Scenario_1_4000_1_mod.png" alt="004" style="zoom: 50%;" /> |
+
+### Results of minimum snap
+| Scenario 0  | Scenario 1 |
+|---|---|
+<img src="./full_results_and_more/README%20photos/min_snap_scenario_0_penalty_10000.jpg" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/min_snap_scenario_1_penalty_2500_mod.jpg" alt="004" style="zoom: 50%;" /> |
+
+### Results of MPC
+| Path following  | Local avoidance |
+|---|---|
+<img src="./full_results_and_more/README%20photos/mpc_following_scenario4.gif" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/mpc_local_avoidance_scenario4.gif" alt="004" style="zoom: 50%;" /> |
 
 ## References
 - [Dynamic obstacle avoidance](https://ieeexplore.ieee.org/document/9274865)
