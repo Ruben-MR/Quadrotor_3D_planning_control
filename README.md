@@ -46,6 +46,21 @@ The folder full_results_and_more contains data related to some of the tests carr
 solution as well as file summaries of the inspected results. The folder back_end contains data related to the trajectory 
 tracking and obstacle avoidance; while the folder front_end contains the data and results of RRT and minimum snap.
 
+### Results of RRT
+| Scenario 0  | Scenario 1 |
+|---|---|
+<img src="./full_results_and_more/README%20photos/Scenario_0_4000_1_mod.png" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/Scenario_1_4000_1_mod.png" alt="004" style="zoom: 50%;" /> |
+
+### Results of minimum snap
+| Scenario 0  | Scenario 1 |
+|---|---|
+<img src="./full_results_and_more/README%20photos/min_snap_scenario_0_penalty_10000.jpg" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/min_snap_scenario_1_penalty_2500_mod.jpg" alt="004" style="zoom: 50%;" /> |
+
+### Results of MPC
+| Path following  | Local avoidance |
+|---|---|
+<img src="./full_results_and_more/README%20photos/mpc_following_scenario4.gif" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/mpc_local_avoidance_scenario4.gif" alt="004" style="zoom: 50%;" /> |
+
 ## References
 - [Dynamic obstacle avoidance](https://ieeexplore.ieee.org/document/9274865)
 - [Quaternions and dynamics](https://archive.org/details/arxiv-0811.2889/page/n5/mode/2up)
