@@ -1,5 +1,5 @@
-# PDM_Project
-Repository for the Planning and Decision Making Project Code
+# Quadrotor 3D Planning and control
+Repository for the project on quadrotor 3D planning and control using an RRT* method as global path planner, minimum snap optimization for the conversion of the global path into a trajectory tracked by a nonlinear Model Predictive Controller for local obstacle avoidance.
 
 The present document describes the contents of the folders and the instructions on the usage of the different simulator files and functions
 
