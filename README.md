@@ -22,17 +22,13 @@ The current algorithm has been developed and tested in four different scenarios,
 Please, note that the obstacle avoidance with an additional obstacle (not considered in global planning) has only been
 tested on scenario 2, which was observed to be sufficiently wide and ample so as to ensure complete collision avoidance.
 
-### Scenario 0
-![Scenario 0](full_results_and_more/README photos/Scenario_0.png "scenario_0")
+| Scenario 0  | Scenario 1 |
+|---|---|
+<img src="./full_results_and_more/README%20photos/Scenario_0.png" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/Scenario_1.png" alt="004" style="zoom: 50%;" /> |
 
-### Scenario 1
-![Scenario 1](full_results_and_more/README photos/Scenario_1.png "scenario_1")
-
-### Scenario 2
-![Scenario 2](full_results_and_more/README photos/Scenario_2.png "scenario_2")
-
-### Scenario 3
-![Scenario 3](full_results_and_more/README photos/Scenario_3.png "scenario_3")
+| Scenario 2 | Scenario 3 |
+|---|---|
+<img src="./full_results_and_more/README%20photos/Scenario_2.png" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/Scenario_3.png" alt="004" style="zoom: 50%;" /> |
 
 ## Simulator file usage
 
