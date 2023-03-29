@@ -61,6 +61,17 @@ tracking and obstacle avoidance; while the folder front_end contains the data an
 |---|---|
 <img src="./full_results_and_more/README%20photos/mpc_following_scenario4.gif" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/mpc_local_avoidance_scenario4.gif" alt="004" style="zoom: 50%;" /> |
 
+## License 
+
+Distributed under the MIT License. See `LICENSE` for more infomation.
+
+## Contact 
+
+Rubén Martín Rodríguez - r.martinrodriguez@student.tudelft.nl  
+Xinjie Liu - x.liu-47@student.tudelft.nl  
+Yuezhe Zhang -y.zhang-130@student.tudelft.nl  
+Paul Féry - p.h.fery-1@student.tudelft.nl
+
 ## References
 - [Dynamic obstacle avoidance](https://ieeexplore.ieee.org/document/9274865)
 - [Quaternions and dynamics](https://archive.org/details/arxiv-0811.2889/page/n5/mode/2up)
