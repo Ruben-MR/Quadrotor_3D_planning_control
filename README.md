@@ -1,5 +1,5 @@
-# Quadrotor 3D Planning and control
-Repository for the project on quadrotor 3D planning and control using an RRT* method as global path planner, minimum snap optimization for the conversion of the global path into a trajectory tracked by a nonlinear Model Predictive Controller for local obstacle avoidance.
+# Quadrotor 3D Planning and Control
+Repository for the project on quadrotor 3D planning and control using an RRT* method as a global path planner, minimum snap optimization for the conversion of the global path into a trajectory tracked by a nonlinear Model Predictive Controller for local obstacle avoidance.
 
 The present document describes the contents of the folders and the instructions on the usage of the different simulator files and functions
 
@@ -10,11 +10,11 @@ Notice that using a different IDE may require modifications to the import statem
 installed in the device and the current libraries with respective versions need to be installed (in a virtual environment
 is enough):
 
-- CADADI: 3.5.5
+- CASADI: 3.5.5
 - NUMPY: 1.19.5 (versions 1.20 and above not supported due to CADADI incompatibilities)
 - MATPLOTLIB: 3.3.4
 - SCIPY: 1.6.3
-- FORCESPRO: 1.5.0
+- FORCESPRO: 5.1.0
 
 ## Scenarios
 
@@ -61,6 +61,10 @@ tracking and obstacle avoidance; while the folder front_end contains the data an
 |---|---|
 <img src="./full_results_and_more/README%20photos/mpc_following_scenario4.gif" alt="005" style="zoom: 50%;" /> | <img src="./full_results_and_more/README%20photos/mpc_local_avoidance_scenario4.gif" alt="004" style="zoom: 50%;" /> |
 
+## Report
+
+The report of this project can be found [here](https://www.researchgate.net/publication/358573208_Planning_Algorithm_for_a_Quadrotor_Drone)
+
 ## License 
 
 Distributed under the MIT License. See `LICENSE` for more infomation.
@@ -72,6 +76,7 @@ Xinjie Liu - x.liu-47@student.tudelft.nl
 Yuezhe Zhang -y.zhang-130@student.tudelft.nl  
 Paul Féry - p.h.fery-1@student.tudelft.nl
 
+<!--
 ## References
 - [Dynamic obstacle avoidance](https://ieeexplore.ieee.org/document/9274865)
 - [Quaternions and dynamics](https://archive.org/details/arxiv-0811.2889/page/n5/mode/2up)
@@ -92,3 +97,4 @@ Paul Féry - p.h.fery-1@student.tudelft.nl
 - [Model Predictive control-based trajectory planning for quadrotors with state and input constraints](https://ieeexplore-ieee-org.tudelft.idm.oclc.org/document/7832517)
 - [Minimum Snap Trajectory Tracking for a Quadrotor UAV using Nonlinear Model Predictive Control](https://www.researchgate.net/publication/346782883_Minimum_Snap_Trajectory_Tracking_for_a_Quadrotor_UAV_using_Nonlinear_Model_Predictive_Control)
 - [Geometric path following control for multirotor vehicles using nonlinear model predictive control and 3D spline paths](https://ieeexplore-ieee-org.tudelft.idm.oclc.org/document/7502541)
+-->
